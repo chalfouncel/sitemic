@@ -60,21 +60,18 @@ const formFeedback = document.getElementById('formFeedback');
 
 if (form) {
     form.addEventListener('submit', (e) => {
-        e.preventDefault(); // Evita recarregar a página
+        e.preventDefault(); 
 
-        // Puxa os valores dos campos
         const nome = document.getElementById('nomeLead').value;
         const telefone = document.getElementById('telefoneLead').value;
         const email = document.getElementById('emailLead').value;
         const interesse = document.getElementById('interesseLead').value;
         const mensagem = document.getElementById('mensagemLead').value;
 
-        // Feedback na tela
         formFeedback.style.display = 'block';
         formFeedback.style.color = 'var(--gold)';
         formFeedback.innerText = 'Processando a sua mensagem...';
 
-        // Envia via FormSubmit de forma invisível
         fetch("https://formsubmit.co/ajax/chalfouncorretor@gmail.com", {
             method: "POST",
             headers: {
@@ -91,7 +88,6 @@ if (form) {
         })
         .then(response => response.json())
         .then(data => {
-            // Se o e-mail enviar com sucesso, formata e abre o WhatsApp
             const msgWp = `*Novo Lead via Site M&IC*\n\n*Nome:* ${nome}\n*Telefone:* ${telefone}\n*E-mail:* ${email}\n*Interesse:* ${interesse}\n*Mensagem:* ${mensagem}`;
             const urlWp = `https://wa.me/5521979748388?text=${encodeURIComponent(msgWp)}`;
 
@@ -105,7 +101,6 @@ if (form) {
         })
         .catch(error => {
             console.error('Erro no FormSubmit:', error);
-            // Fallback: Se der erro no e-mail, pelo menos salva o lead enviando direto pro WhatsApp
             const msgWp = `*Novo Lead via Site M&IC*\n\n*Nome:* ${nome}\n*Telefone:* ${telefone}\n*E-mail:* ${email}\n*Interesse:* ${interesse}\n*Mensagem:* ${mensagem}`;
             const urlWp = `https://wa.me/5521979748388?text=${encodeURIComponent(msgWp)}`;
             
@@ -126,7 +121,6 @@ async function carregarImoveisSite() {
 
     grid.innerHTML = '<p style="color: var(--gold); text-align: center; width: 100%;">A buscar oportunidades exclusivas...</p>';
 
-    // Puxa todos os imóveis
     const { data, error } = await supabase
         .from('imoveis')
         .select('*')
@@ -193,6 +187,13 @@ async function carregarImoveisSite() {
         `;
         grid.innerHTML += card;
     });
+
+    // --- NOVA LÓGICA: Verifica se tem um ID na URL para abrir o modal direto ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const idNaUrl = urlParams.get('id');
+    if (idNaUrl) {
+        setTimeout(() => abrirModal(idNaUrl), 100); // Abre o modal do imóvel automaticamente
+    }
 }
 
 // Lógica de abertura do Modal
@@ -221,7 +222,15 @@ function abrirModal(id) {
     if (imovel.valor_iptu > 0) featuresHtml += `<span>📄 IPTU: R$ ${Number(imovel.valor_iptu).toLocaleString('pt-BR')}</span>`;
     document.getElementById('modalFeatures').innerHTML = featuresHtml;
 
-    const msgZap = encodeURIComponent(`Olá, tenho interesse no imóvel: ${imovel.titulo} (${precoFormatado})`);
+    // --- NOVA LÓGICA: Geração de Link e Botão do WhatsApp ---
+    // Cria o link combinando a página atual + o ID do imóvel
+    const urlAtual = window.location.origin + window.location.pathname;
+    const linkDoImovel = `${urlAtual}?id=${imovel.id}`;
+    
+    // Formata a mensagem com o link para você saber exatamente qual anúncio é
+    const textoWhatsApp = `Olá! Tenho interesse neste imóvel:\n\n*${imovel.titulo}*\n*Valor:* ${precoFormatado}\n\n*Veja o anúncio aqui:* ${linkDoImovel}`;
+    const msgZap = encodeURIComponent(textoWhatsApp);
+    
     document.getElementById('modalZap').href = `https://wa.me/5521979748388?text=${msgZap}`;
 
     const carousel = document.getElementById('carouselSlides');
@@ -242,6 +251,10 @@ function abrirModal(id) {
 function fecharModal() {
     document.getElementById('imovelModal').classList.remove('active');
     document.body.style.overflow = 'auto'; 
+    
+    // --- NOVA LÓGICA: Limpa a URL ao fechar o modal para evitar reabertura acidental no refresh ---
+    const urlLimpa = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, urlLimpa);
 }
 
 function mudarSlide(direcao) {
