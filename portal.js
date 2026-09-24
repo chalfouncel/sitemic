@@ -66,6 +66,20 @@ function mudarAba(aba) {
     }
 }
 
+// Função para mostrar/esconder detalhes da mobília
+function toggleMobiliaDetalhes() {
+    const radioSim = document.querySelector('input[name="mobiliado"][value="sim"]');
+    const divDetalhes = document.getElementById('div-detalhes-mobilia');
+    const textareaDetalhes = document.getElementById('detalhes_mobilia');
+
+    if (radioSim && radioSim.checked) {
+        divDetalhes.style.display = 'block';
+    } else {
+        divDetalhes.style.display = 'none';
+        if(textareaDetalhes) textareaDetalhes.value = ''; // Limpa o texto se desmarcar
+    }
+}
+
 // --- BUSCA DE CEP AUTOMÁTICA (ViaCEP) ---
 const cepInput = document.getElementById('imoCep');
 if (cepInput) {
@@ -171,6 +185,10 @@ if (formImovel) {
             }
         }
 
+        // Pega valores da mobília
+        const isMobiliado = document.querySelector('input[name="mobiliado"][value="sim"]').checked;
+        const detalhesMobilia = document.getElementById('detalhes_mobilia').value;
+
         const payload = {
             titulo: document.getElementById('imoTitulo').value,
             tipo: document.getElementById('imoTipo').value,
@@ -185,6 +203,8 @@ if (formImovel) {
             suites: document.getElementById('imoSuites').value || 0,
             banheiros: document.getElementById('imoBanheiros').value || 0,
             vagas: document.getElementById('imoVagas').value || 0,
+            mobiliado: isMobiliado,
+            detalhes_mobilia: detalhesMobilia,
             cep: document.getElementById('imoCep').value,
             endereco: document.getElementById('imoEndereco').value,
             numero: document.getElementById('imoNumero').value,
@@ -207,6 +227,8 @@ if (formImovel) {
             msg.style.color = '#25D366'; 
             msg.innerText = 'Imóvel e fotos guardados com sucesso!';
             formImovel.reset();
+            // Volta a esconder a mobília ao resetar
+            document.getElementById('div-detalhes-mobilia').style.display = 'none'; 
             document.getElementById('previewFotos').innerHTML = '';
             fotosProcessadas = [];
             
