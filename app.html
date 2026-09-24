@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>App M&IC</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#C9A84C">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #C9A84C; --black: #0A0A0A; --black-light: #1A1A1A; --white: #FFFFFF; --gray: #9A9A9A; }
+        body { font-family: 'Inter', sans-serif; background: var(--black); color: var(--white); margin: 0; padding: 0 0 70px 0; }
+        .header { text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(201,168,76,0.2); }
+        .header img { height: 40px; }
+        .container { padding: 20px; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: var(--gray); font-size: 12px; text-transform: uppercase; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; background: var(--black-light); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; box-sizing: border-box; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--gold); outline: none; }
+        button { width: 100%; padding: 15px; background: var(--gold); border: none; color: black; font-weight: 600; border-radius: 4px; }
+        
+        /* Menu Fixo no Rodapé para Mobile */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--black-light); border-top: 1px solid rgba(201,168,76,0.2); display: flex; z-index: 1000; }
+        .bottom-nav button { flex: 1; background: transparent; color: var(--gray); border: none; padding: 15px 0; font-size: 12px; text-transform: uppercase; border-radius: 0; }
+        .bottom-nav button.active { color: var(--gold); border-top: 2px solid var(--gold); font-weight: 600; }
+        
+        .card { background: var(--black-light); padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .card h2 { font-size: 18px; color: var(--gold); margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        
+        .leads-list { display: flex; flex-direction: column; gap: 15px; }
+        .lead-item { background: var(--black); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block; margin-bottom: 10px;}
+        .badge.novo { background: rgba(37, 211, 102, 0.2); color: #25D366; }
+        .badge.atendimento { background: rgba(201, 168, 76, 0.2); color: var(--gold); }
+        .badge.concluido { background: rgba(154, 154, 154, 0.2); color: var(--gray); }
+        
+        #previewFotos { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        #previewFotos img { height: 80px; border-radius: 4px; border: 1px solid var(--gold); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="logo.png" alt="M&IC Logo">
+    </div>
+
+    <!-- ÁREA DE LOGIN -->
+    <div class="container" id="loginSection">
+        <div class="card" style="margin-top: 20px;">
+            <h2 style="text-align:center;">Acesso Restrito</h2>
+            <div class="form-group"><label>E-mail</label><input type="email" id="loginEmail"></div>
+            <div class="form-group"><label>Senha</label><input type="password" id="loginSenha"></div>
+            <button onclick="fazerLogin()">Entrar</button>
+            <p id="loginMsg" style="color:#ff4444; font-size:14px; text-align:center; display:none; margin-top:16px;"></p>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboardSection" style="display:none;">
+        <div class="container">
+            <!-- ABA IMÓVEL -->
+            <div id="abaImovel" class="card">
+                <h2>Cadastrar Imóvel</h2>
+                <form id="formImovelApp">
+                    <div class="form-group"><label>Título</label><input type="text" id="imoTitulo" required></div>
+                    <div class="form-group"><label>Tipo</label>
+                        <select id="imoTipo"><option>Apartamento</option><option>Casa</option><option>Cobertura</option><option>Terreno</option><option>Comercial</option></select>
+                    </div>
+                    <div class="form-group"><label>Finalidade</label>
+                        <select id="imoFinalidade"><option>Venda</option><option>Aluguel</option><option>Venda e Aluguel</option></select>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="form-group" style="flex:1"><label>Venda (R$)</label><input type="number" id="imoVenda"></div>
+                        <div class="form-group" style="flex:1"><label>Aluguel (R$)</label><input type="number" id="imoAluguel"></div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="form-group" style="flex:1"><label>Quartos</label><input type="number" id="imoQuartos" value="0"></div>
+                        <div class="form-group" style="flex:1"><label>Vagas</label><input type="number" id="imoVagas" value="0"></div>
+                    </div>
+                    <div class="form-group"><label>CEP (Busca automática)</label><input type="text" id="imoCep"></div>
+                    <div class="form-group"><label>Endereço</label><input type="text" id="imoEndereco"></div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="form-group" style="flex:1"><label>Número</label><input type="text" id="imoNumero"></div>
+                        <div class="form-group" style="flex:1"><label>Complemento</label><input type="text" id="imoComplemento"></div>
+                    </div>
+                    <div class="form-group"><label>Bairro</label><input type="text" id="imoBairro"></div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="form-group" style="flex:1"><label>Cidade</label><input type="text" id="imoCidade" value="Rio de Janeiro"></div>
+                        <div class="form-group" style="flex:1"><label>UF</label><input type="text" id="imoEstado" value="RJ"></div>
+                    </div>
+                    <div class="form-group"><label>Descrição</label><textarea id="imoDescricao" rows="3"></textarea></div>
+                    <div class="form-group">
+                        <label>Fotos (Marca d'água automática)</label>
+                        <input type="file" id="imoFotos" multiple accept="image/*">
+                        <div id="previewFotos"></div>
+                    </div>
+                    <button type="submit">Publicar</button>
+                    <p id="imovelMsg" style="text-align:center; margin-top:15px; font-weight: 600;"></p>
+                </form>
+            </div>
+
+            <!-- ABA LEADS -->
+            <div id="abaLeads" style="display:none;">
+                <h2 style="color:var(--gold); margin-bottom:15px;">Leads Recebidos</h2>
+                <div id="loadingLeads" style="color: var(--gold);">Carregando...</div>
+                <div class="leads-list" id="listaLeads"></div>
+            </div>
+        </div>
+
+        <!-- MENU RODAPÉ -->
+        <div class="bottom-nav">
+            <button id="btnAbaImovel" class="active" onclick="mudarAba('imovel')">🏢 Cadastro</button>
+            <button id="btnAbaLeads" onclick="mudarAba('leads')">🔔 Leads</button>
+            <button onclick="fazerLogout()">Sair</button>
+        </div>
+    </div>
+
+    <!-- Registo do PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</body>
+</html>
