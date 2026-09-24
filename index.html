@@ -56,20 +56,6 @@
                 <a href="#imoveis" class="btn-primary">Ver Imóveis</a>
                 <a href="#contato" class="btn-secondary">Agendar Visita</a>
             </div>
-            <div class="hero-stats">
-                <div class="stat">
-                    <span class="stat-number" data-target="500">0</span><span class="stat-plus">+</span>
-                    <span class="stat-label">Imóveis vendidos</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-number" data-target="15">0</span><span class="stat-plus">+</span>
-                    <span class="stat-label">Anos de experiência</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-number" data-target="98">0</span><span class="stat-plus">%</span>
-                    <span class="stat-label">Clientes satisfeitos</span>
-                </div>
-            </div>
         </div>
         <div class="scroll-indicator">
             <span>Scroll</span>
@@ -120,7 +106,6 @@
                 <p>Seleção especial dos melhores imóveis do mercado</p>
             </div>
             
-            <!-- AQUI SÃO INJETADOS OS IMÓVEIS -->
             <div class="imoveis-grid" id="gridImoveis">
                 <!-- Imóveis gerados via script.js -->
             </div>
@@ -137,7 +122,7 @@
             <div class="sobre-content">
                 <span class="section-tag">Quem Somos</span>
                 <h2>Tradição e <span class="gold-text">excelência</span> no mercado imobiliário</h2>
-                <p>A <strong>M&IC Corretores de Imóveis</strong> nasceu da paixão por conectar pessoas aos seus sonhos. Com mais de 15 anos de atuação no mercado de alto padrão, oferecemos um atendimento consultivo, discreto e personalizado.</p>
+                <p>Nosso propósito é realizar seu sonho da casa própria. Com atuação no mercado de alto padrão, oferecemos um atendimento consultivo, discreto e personalizado.</p>
                 <p>Nossa equipe de corretores certificados possui profundo conhecimento do mercado carioca, garantindo as melhores oportunidades para nossos clientes.</p>
                 <div class="sobre-features">
                     <div class="feature">
@@ -239,24 +224,17 @@
             <div class="contato-container">
                 <div class="contato-info">
                     <div class="contato-item">
-                        <div class="contato-icon">📍</div>
-                        <div>
-                            <h4>Endereço</h4>
-                            <p>Av. Atlântica, 1000 - Copacabana<br>Rio de Janeiro - RJ</p>
-                        </div>
-                    </div>
-                    <div class="contato-item">
                         <div class="contato-icon">📞</div>
                         <div>
-                            <h4>Telefone</h4>
-                            <p>(21) 99999-9999<br>(21) 3333-3333</p>
+                            <h4>Telefones</h4>
+                            <p>(21) 97974-8388<br>(21) 98289-5043</p>
                         </div>
                     </div>
                     <div class="contato-item">
                         <div class="contato-icon">✉️</div>
                         <div>
                             <h4>E-mail</h4>
-                            <p>contato@miccorretores.com.br</p>
+                            <p>chalfouncorretor@gmail.com</p>
                         </div>
                     </div>
                     <div class="contato-item">
@@ -298,7 +276,6 @@
                         <textarea id="mensagemLead" rows="4" placeholder="Como podemos ajudar?"></textarea>
                     </div>
                     <button type="submit" class="btn-primary btn-full">Enviar Mensagem</button>
-                    <!-- Área de feedback para o usuário -->
                     <div id="formFeedback" style="display:none; text-align:center; padding-top: 15px; color: var(--gold);"></div>
                 </form>
             </div>
@@ -311,12 +288,13 @@
             <div class="footer-grid">
                 <div class="footer-brand">
                     <img src="logo.png" alt="M&IC" class="footer-logo">
-                    <p>Excelência em mediação imobiliária desde 2010.</p>
+                    <p style="margin-bottom: 15px; color: var(--silver);">
+                        <strong>Ivy Carla</strong> (CRECI 75179)<br>
+                        <strong>Mario Jr</strong> (CRECI 101338)
+                    </p>
                     <div class="social-links">
-                        <a href="#" aria-label="Instagram">📷</a>
-                        <a href="#" aria-label="Facebook">📘</a>
-                        <a href="#" aria-label="WhatsApp">💬</a>
-                        <a href="#" aria-label="LinkedIn"></a>
+                        <a href="https://instagram.com/ivy_corretora" target="_blank" aria-label="Instagram">📷</a>
+                        <a href="https://wa.me/5521979748388" target="_blank" aria-label="WhatsApp">💬</a>
                     </div>
                 </div>
                 <div class="footer-links">
@@ -340,9 +318,8 @@
                 </div>
                 <div class="footer-contact">
                     <h4>Contato</h4>
-                    <p>📍 Av. Atlântica, 1000<br>Copacabana - RJ</p>
-                    <p>📞 (21) 99999-9999</p>
-                    <p>✉️ contato@miccorretores.com.br</p>
+                    <p>📞 (21) 97974-8388 / 98289-5043</p>
+                    <p>✉️ chalfouncorretor@gmail.com</p>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -352,11 +329,11 @@
     </footer>
 
     <!-- WhatsApp Float -->
-    <a href="https://wa.me/5521999999999" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
+    <a href="https://wa.me/5521979748388" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
         💬
     </a>
 
-    <!-- MODAL DE IMÓVEL (CARROSSEL E DETALHES) -->
+    <!-- MODAL DE IMÓVEL -->
     <div class="modal-overlay" id="imovelModal">
         <div class="modal-content">
             <div class="modal-close" onclick="fecharModal()">×</div>
