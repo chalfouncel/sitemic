@@ -12,14 +12,14 @@ async function checarSessao() {
     if (session) {
         loginSection.style.display = 'none';
         dashboardSection.style.display = 'block';
-        carregarLeads(); // Carrega os leads automaticamente ao entrar
+        carregarLeads();
     } else {
         loginSection.style.display = 'block';
         dashboardSection.style.display = 'none';
     }
 }
 
-// Lógica de Login
+// Lógica de Login e Logout
 async function fazerLogin() {
     const email = document.getElementById('loginEmail').value;
     const senha = document.getElementById('loginSenha').value;
@@ -29,10 +29,7 @@ async function fazerLogin() {
     msg.style.color = 'var(--gold)';
     msg.innerText = 'A verificar credenciais...';
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: senha,
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
 
     if (error) {
         msg.style.color = '#ff4444';
@@ -43,13 +40,11 @@ async function fazerLogin() {
     }
 }
 
-// Lógica de Logout
 async function fazerLogout() {
     await supabase.auth.signOut();
     checarSessao();
 }
 
-// Lógica de Abas
 function mudarAba(aba) {
     document.getElementById('btnAbaImovel').classList.remove('active');
     document.getElementById('btnAbaLeads').classList.remove('active');
@@ -66,7 +61,7 @@ function mudarAba(aba) {
     }
 }
 
-// Lógica da Mobília (Mostra/Esconde a caixa de texto)
+// Interações do Formulário (Mobília e Lazer)
 function toggleMobiliaDetalhes() {
     const radioSim = document.getElementById('mobSim');
     const divDetalhes = document.getElementById('div-detalhes-mobilia');
@@ -80,17 +75,25 @@ function toggleMobiliaDetalhes() {
     }
 }
 
-// --- BUSCA DE CEP AUTOMÁTICA (ViaCEP) ---
+let todosLazerMarcados = false;
+function toggleTodosLazer() {
+    todosLazerMarcados = !todosLazerMarcados;
+    const checkboxes = document.querySelectorAll('input[name="lazer"]');
+    checkboxes.forEach(cb => cb.checked = todosLazerMarcados);
+    
+    const btn = document.getElementById('btnToggleLazer');
+    btn.innerText = todosLazerMarcados ? 'Desmarcar Todos' : 'Marcar Todos';
+}
+
+// Busca CEP
 const cepInput = document.getElementById('imoCep');
 if (cepInput) {
     cepInput.addEventListener('blur', async function() {
         let cep = this.value.replace(/\D/g, ''); 
-        
         if (cep.length === 8) {
             try {
                 const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
                 const dados = await response.json();
-
                 if (!dados.erro) {
                     document.getElementById('imoEndereco').value = dados.logradouro;
                     document.getElementById('imoBairro').value = dados.bairro;
@@ -105,13 +108,23 @@ if (cepInput) {
     });
 }
 
-// Lógica de Fotos e Marca D'água
+// Processamento de Fotos (Marca D'água)
 let fotosProcessadas = [];
+let urlsDasFotosEnviadas = []; // Salva as URLs após o upload pela IA para não duplicar no Publish
+
 const fileInput = document.getElementById('imoFotos');
 if(fileInput) {
     fileInput.addEventListener('change', async function(e) {
+        // Se trocar as fotos, obriga a gerar a IA de novo
+        urlsDasFotosEnviadas = [];
+        document.getElementById('btnSubmit').disabled = true;
+        document.getElementById('btnGerarIA').innerText = '✨ Analisar e Gerar Anúncio com IA';
+        document.getElementById('btnGerarIA').disabled = false;
+        document.getElementById('imoTitulo').value = 'A Inteligência Artificial criará o título após a análise...';
+        document.getElementById('imoDescricao').value = 'A Inteligência Artificial fará a leitura das fotos, da mobília e das características acima para redigir o melhor anúncio...';
+
         const previewContainer = document.getElementById('previewFotos');
-        previewContainer.innerHTML = '<span style="color: var(--gold);">A processar imagens com marca de água...</span>';
+        previewContainer.innerHTML = '<span style="color: var(--gold);">Processando imagens com marca d\'água...</span>';
         fotosProcessadas = [];
         
         const files = e.target.files;
@@ -136,7 +149,6 @@ if(fileInput) {
             const ctx = canvas.getContext('2d');
             canvas.width = img.width;
             canvas.height = img.height;
-
             ctx.drawImage(img, 0, 0);
 
             if (marcaDagua.width > 0) {
@@ -160,44 +172,101 @@ if(fileInput) {
     });
 }
 
-// Lógica de Inserção de Imóveis
+// GERAR TEXTO COM INTELIGÊNCIA ARTIFICIAL
+async function gerarTextoIA() {
+    if(fotosProcessadas.length === 0) {
+        alert('Por favor, adicione as fotos do imóvel. A IA precisa delas para criar o anúncio.');
+        return;
+    }
+
+    const btnIA = document.getElementById('btnGerarIA');
+    const msg = document.getElementById('imovelMsg');
+    
+    btnIA.disabled = true;
+    btnIA.innerText = '⏳ Fazendo upload e analisando... (Isso pode demorar alguns segundos)';
+    msg.innerText = '';
+
+    try {
+        // Passo 1: Fazer upload das fotos para o Supabase (se ainda não foram feitas)
+        if (urlsDasFotosEnviadas.length === 0) {
+            for(let file of fotosProcessadas) {
+                const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+                const { data: uploadData, error: uploadError } = await supabase.storage.from('imoveis_fotos').upload(fileName, file);
+                
+                if(!uploadError) {
+                    const { data: publicUrlData } = supabase.storage.from('imoveis_fotos').getPublicUrl(fileName);
+                    urlsDasFotosEnviadas.push(publicUrlData.publicUrl);
+                }
+            }
+        }
+
+        // Capturar características para mandar para a IA
+        const itensLazer = [];
+        document.querySelectorAll('input[name="lazer"]:checked').forEach(cb => itensLazer.push(cb.value));
+        const isMobiliado = document.getElementById('mobSim').checked;
+        const detalhesMobilia = document.getElementById('detalhes_mobilia').value;
+
+        const payloadParaIA = {
+            tipo: document.getElementById('imoTipo').value,
+            finalidade: document.getElementById('imoFinalidade').value,
+            area_util: document.getElementById('imoAreaUtil').value,
+            area_total: document.getElementById('imoAreaTotal').value,
+            quartos: document.getElementById('imoQuartos').value,
+            suites: document.getElementById('imoSuites').value,
+            banheiros: document.getElementById('imoBanheiros').value,
+            vagas: document.getElementById('imoVagas').value,
+            bairro: document.getElementById('imoBairro').value,
+            cidade: document.getElementById('imoCidade').value,
+            mobiliado: isMobiliado,
+            detalhes_mobilia: detalhesMobilia,
+            lazer: itensLazer,
+            fotosUrls: urlsDasFotosEnviadas // Mandamos os links para a IA olhar
+        };
+
+        // Passo 2: Mandar para a sua rota na Vercel (onde você conectará o Gemini/ChatGPT)
+        const response = await fetch('/api/gerar-anuncio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payloadParaIA)
+        });
+
+        if (!response.ok) throw new Error("Erro na rota da IA");
+
+        const dadosIA = await response.json();
+
+        // Passo 3: Preencher os campos bloqueados
+        document.getElementById('imoTitulo').value = dadosIA.titulo || "Título gerado indisponível";
+        document.getElementById('imoDescricao').value = dadosIA.descricao || "Descrição gerada indisponível";
+
+        // Passo 4: Habilitar publicação
+        document.getElementById('btnSubmit').disabled = false;
+        btnIA.innerText = '✅ Anúncio Gerado com Sucesso!';
+        btnIA.style.background = '#0F9D58'; // Verde mais escuro pra mostrar que concluiu
+
+    } catch (error) {
+        console.error(error);
+        btnIA.disabled = false;
+        btnIA.innerText = '❌ Falha ao gerar. Tentar novamente';
+        msg.style.color = '#ff4444';
+        msg.innerText = 'Erro de comunicação com a IA. A rota /api/gerar-anuncio está configurada na Vercel?';
+    }
+}
+
+// INSERIR IMÓVEL NO BANCO (Publicar)
 const formImovel = document.getElementById('formImovel');
 if (formImovel) {
     formImovel.addEventListener('submit', async (e) => {
         e.preventDefault();
         const msg = document.getElementById('imovelMsg');
         msg.style.color = 'var(--gold)';
-        msg.innerText = 'A enviar fotos e gravar imóvel (Isto pode demorar uns segundos)...';
+        msg.innerText = 'Gravando imóvel no banco de dados...';
 
-        const fotosUrls = [];
-        for(let file of fotosProcessadas) {
-            const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
-            const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('imoveis_fotos')
-                .upload(fileName, file);
-            
-            if(!uploadError) {
-                const { data: publicUrlData } = supabase.storage
-                    .from('imoveis_fotos')
-                    .getPublicUrl(fileName);
-                fotosUrls.push(publicUrlData.publicUrl);
-            }
-        }
-
-        // Pega valores da mobília
-        const isMobiliado = document.getElementById('mobSim').checked;
-        const detalhesMobilia = document.getElementById('detalhes_mobilia').value;
-
-        // Pega os itens de lazer marcados
         const itensLazer = [];
-        document.querySelectorAll('input[name="lazer"]:checked').forEach(checkbox => {
-            itensLazer.push(checkbox.value);
-        });
+        document.querySelectorAll('input[name="lazer"]:checked').forEach(cb => itensLazer.push(cb.value));
 
         const payload = {
-            // Título e Descrição são mandados com um texto padrão provisório até a IA agir
-            titulo: 'Pendente geração por Inteligência Artificial',
-            descricao: 'Pendente geração por Inteligência Artificial',
+            titulo: document.getElementById('imoTitulo').value,
+            descricao: document.getElementById('imoDescricao').value,
             tipo: document.getElementById('imoTipo').value,
             finalidade: document.getElementById('imoFinalidade').value,
             valor_venda: document.getElementById('imoVenda').value || null,
@@ -211,8 +280,8 @@ if (formImovel) {
             banheiros: document.getElementById('imoBanheiros').value || 0,
             vagas: document.getElementById('imoVagas').value || 0,
             
-            mobiliado: isMobiliado,
-            detalhes_mobilia: detalhesMobilia,
+            mobiliado: document.getElementById('mobSim').checked,
+            detalhes_mobilia: document.getElementById('detalhes_mobilia').value,
             itens_lazer: itensLazer,
             
             cep: document.getElementById('imoCep').value,
@@ -222,7 +291,9 @@ if (formImovel) {
             bairro: document.getElementById('imoBairro').value,
             cidade: document.getElementById('imoCidade').value,
             estado: document.getElementById('imoEstado').value,
-            fotos: fotosUrls,
+            
+            // As fotos já foram upadas pela IA! Economiza tempo e processamento.
+            fotos: urlsDasFotosEnviadas, 
             status: 'Ativo'
         };
 
@@ -234,34 +305,38 @@ if (formImovel) {
             msg.innerText = 'Ocorreu um erro ao gravar o imóvel.';
         } else {
             msg.style.color = '#25D366'; 
-            msg.innerText = 'Imóvel e fotos guardados com sucesso!';
+            msg.innerText = 'Imóvel publicado com sucesso!';
             formImovel.reset();
             
-            // Volta a esconder a mobília
+            // Reseta a interface
             document.getElementById('div-detalhes-mobilia').style.display = 'none'; 
             document.getElementById('previewFotos').innerHTML = '';
             fotosProcessadas = [];
+            urlsDasFotosEnviadas = [];
+            
+            document.getElementById('btnSubmit').disabled = true;
+            document.getElementById('btnGerarIA').innerText = '✨ Analisar e Gerar Anúncio com IA';
+            document.getElementById('btnGerarIA').style.background = '#25D366';
+            document.getElementById('btnGerarIA').disabled = false;
             
             setTimeout(() => { msg.innerText = ''; }, 4000);
         }
     });
 }
 
-// Lógica para carregar e gerir Leads
+// Lógica de Leads (Inalterada)
 async function carregarLeads() {
     const loading = document.getElementById('loadingLeads');
     const tabela = document.getElementById('tabelaLeads');
     const corpo = document.getElementById('corpoTabelaLeads');
-
     loading.style.display = 'block';
     tabela.style.display = 'none';
 
     const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
-
     loading.style.display = 'none';
 
     if (error) {
-        corpo.innerHTML = '<tr><td colspan="5">Erro ao carregar leads.</td></tr>';
+        corpo.innerHTML = '<tr><td colspan="5">Erro ao carregar contatos.</td></tr>';
         tabela.style.display = 'table';
         return;
     }
@@ -272,7 +347,6 @@ async function carregarLeads() {
         corpo.innerHTML = '';
         data.forEach(lead => {
             const dataFormatada = new Date(lead.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
-            
             let badgeClass = 'novo';
             if(lead.status === 'Em atendimento') badgeClass = 'atendimento';
             if(lead.status === 'Concluído') badgeClass = 'concluido';
@@ -299,9 +373,8 @@ async function carregarLeads() {
 
 async function atualizarStatusLead(id, novoStatus) {
     const { error } = await supabase.from('leads').update({ status: novoStatus }).eq('id', id);
-    if(error) {
-        alert('Erro ao atualizar o status do lead.');
-    } else {
+    if(error) alert('Erro ao atualizar o status.');
+    else {
         const badge = document.getElementById(`badge-${id}`);
         badge.className = 'badge';
         if(novoStatus === 'Novo') badge.classList.add('novo');
