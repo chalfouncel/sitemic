@@ -107,6 +107,87 @@ if (form) {
     });
 }
 
+// --- CARREGAMENTO DINÂMICO DE IMÓVEIS ---
+async function carregarImoveisSite() {
+    const grid = document.getElementById('gridImoveis');
+    if (!grid) return;
+
+    grid.innerHTML = '<p style="color: var(--gold); text-align: center; width: 100%;">A buscar oportunidades exclusivas...</p>';
+
+    // Puxa apenas os imóveis ativos
+    const { data, error } = await supabase
+        .from('imoveis')
+        .select('*')
+        .eq('status', 'Ativo')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        grid.innerHTML = '<p style="color: #ff4444; text-align: center; width: 100%;">Não foi possível carregar o portfólio no momento.</p>';
+        return;
+    }
+
+    if (data.length === 0) {
+        grid.innerHTML = '<p style="color: var(--silver); text-align: center; width: 100%;">Nenhum imóvel disponível para o filtro selecionado.</p>';
+        return;
+    }
+
+    grid.innerHTML = '';
+    data.forEach(imovel => {
+        // Define a foto de capa
+        let imgCapa = '';
+        if (imovel.fotos && imovel.fotos.length > 0) {
+            imgCapa = `background-image: url('${imovel.fotos[0]}'); background-size: cover; background-position: center;`;
+        } else {
+            imgCapa = `background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);`;
+        }
+
+        // Formata o preço
+        let precoFormatado = 'Sob Consulta';
+        if (imovel.finalidade === 'Venda' && imovel.valor_venda) {
+            precoFormatado = `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}`;
+        } else if (imovel.finalidade === 'Aluguel' && imovel.valor_aluguel) {
+            precoFormatado = `R$ ${Number(imovel.valor_aluguel).toLocaleString('pt-BR')}/mês`;
+        } else if (imovel.finalidade === 'Venda e Aluguel') {
+            precoFormatado = imovel.valor_venda ? `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}` : 'Sob Consulta';
+        }
+
+        // Define a tag de destaque
+        const destaqueHtml = imovel.destaque ? `<span class="imovel-tag destaque" style="margin-left: 8px;">Destaque</span>` : '';
+
+        // Monta os diferenciais (quartos, área, vagas)
+        let featuresHtml = '';
+        if (imovel.quartos > 0) featuresHtml += `<span>🛏 ${imovel.quartos} Quartos</span>`;
+        if (imovel.area_util > 0) featuresHtml += `<span>📐 ${imovel.area_util}m²</span>`;
+        if (imovel.vagas > 0) featuresHtml += `<span>🚗 ${imovel.vagas} Vagas</span>`;
+
+        // Monta o card
+        const card = `
+            <div class="imovel-card">
+                <div class="imovel-img" style="${imgCapa} height: 220px; position: relative; padding: 16px;">
+                    <span class="imovel-tag">${imovel.finalidade}</span>
+                    ${destaqueHtml}
+                </div>
+                <div class="imovel-info">
+                    <h3>${imovel.titulo}</h3>
+                    <p class="imovel-local">📍 ${imovel.bairro}, ${imovel.cidade}</p>
+                    <div class="imovel-features" style="display: flex; gap: 16px; padding: 16px 0; border-top: 1px solid rgba(255, 255, 255, 0.05); border-bottom: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 16px; flex-wrap: wrap;">
+                        ${featuresHtml}
+                    </div>
+                    <div class="imovel-footer">
+                        <span class="imovel-price">${precoFormatado}</span>
+                        <a href="https://wa.me/5521999999999?text=Olá, tenho interesse no imóvel: ${imovel.titulo}" target="_blank" class="btn-card">Detalhes →</a>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        grid.innerHTML += card;
+    });
+}
+
+// Executa o carregamento dos imóveis ao abrir a página
+carregarImoveisSite();
+
 // Smooth reveal on scroll
 const revealElements = document.querySelectorAll('.imovel-card, .servico-card, .feature');
 const revealObserver = new IntersectionObserver((entries) => {
