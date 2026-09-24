@@ -109,9 +109,12 @@
                 <h2>Imóveis em <span class="gold-text">Destaque</span></h2>
                 <p>Seleção especial dos melhores imóveis do mercado</p>
             </div>
+            
+            <!-- AQUI SÃO INJETADOS OS IMÓVEIS -->
             <div class="imoveis-grid" id="gridImoveis">
-                <!-- Os imóveis serão injetados aqui automaticamente pelo JavaScript -->
+                <!-- Imóveis gerados via script.js -->
             </div>
+            
             <div class="text-center">
                 <a href="#contato" class="btn-primary">Ver Todos os Imóveis</a>
             </div>
@@ -298,7 +301,6 @@
             <div class="footer-grid">
                 <div class="footer-brand">
                     <img src="logo.png" alt="M&IC" class="footer-logo">
-                    <!-- O CRECI foi atualizado para ser genérico ou omitido -->
                     <p>Excelência em mediação imobiliária desde 2010.</p>
                     <div class="social-links">
                         <a href="#" aria-label="Instagram">📷</a>
@@ -343,6 +345,36 @@
     <a href="https://wa.me/5521999999999" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
         💬
     </a>
+
+    <!-- MODAL DE IMÓVEL (CARROSSEL E DETALHES) -->
+    <div class="modal-overlay" id="imovelModal">
+        <div class="modal-content">
+            <div class="modal-close" onclick="fecharModal()">×</div>
+            <div class="carousel-container">
+                <button class="carousel-btn carousel-prev" onclick="mudarSlide(-1)">❮</button>
+                <div id="carouselSlides">
+                    <!-- Imagens injetadas via JS -->
+                </div>
+                <button class="carousel-btn carousel-next" onclick="mudarSlide(1)">❯</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modalTitulo">Título</h2>
+                    <p class="modal-local" id="modalLocal">📍 Localização</p>
+                    <span class="modal-price" id="modalPreco">R$ 0,00</span>
+                </div>
+                <div class="modal-features" id="modalFeatures">
+                    <!-- Features injetadas via JS -->
+                </div>
+                <div class="modal-desc" id="modalDesc">
+                    Descrição
+                </div>
+                <a href="#" class="btn-whatsapp-modal" id="modalZap" target="_blank">
+                    Falar com Corretor 💬
+                </a>
+            </div>
+        </div>
+    </div>
 
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
