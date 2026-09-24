@@ -1,7 +1,6 @@
 // --- CONFIGURAÇÃO DO SUPABASE ---
 var SUPABASE_URL = 'https://uztsmkhlvoemjbbyebcr.supabase.co';
 var SUPABASE_ANON_KEY = 'sb_publishable_nmolEh_G5_hKcfdgy2Xpeg_s4T6ePAz';
-
 var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Navbar scroll effect
@@ -17,7 +16,6 @@ window.addEventListener('scroll', () => {
 // Mobile menu toggle
 const menuToggle = document.getElementById('menuToggle');
 const navLinks = document.getElementById('navLinks');
-
 menuToggle.addEventListener('click', () => {
     navLinks.classList.toggle('active');
 });
@@ -32,13 +30,11 @@ document.querySelectorAll('.nav-links a').forEach(link => {
 // Counter animation
 const counters = document.querySelectorAll('.stat-number');
 const counterSpeed = 50;
-
 const animateCounters = () => {
     counters.forEach(counter => {
         const target = +counter.getAttribute('data-target');
         const count = +counter.innerText;
         const increment = target / counterSpeed;
-
         if (count < target) {
             counter.innerText = Math.ceil(count + increment);
             setTimeout(() => animateCounters(), 20);
@@ -59,7 +55,6 @@ if (statsSection) {
             }
         });
     }, { threshold: 0.5 });
-
     observer.observe(statsSection);
 }
 
@@ -70,51 +65,43 @@ const formFeedback = document.getElementById('formFeedback');
 if (form) {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-
-        // Capturar os valores dos campos
         const nome = document.getElementById('nomeLead').value;
         const telefone = document.getElementById('telefoneLead').value;
         const email = document.getElementById('emailLead').value;
         const interesse = document.getElementById('interesseLead').value;
         const mensagem = document.getElementById('mensagemLead').value;
 
-        // Mostrar mensagem de envio em curso
         formFeedback.style.display = 'block';
         formFeedback.style.color = 'var(--silver)';
         formFeedback.innerText = 'A enviar a sua mensagem...';
 
-        // Inserir na tabela 'leads' no Supabase
         const { data, error } = await supabase
             .from('leads')
-            .insert([
-                { nome: nome, telefone: telefone, email: email, interesse: interesse, mensagem: mensagem }
-            ]);
+            .insert([{ nome: nome, telefone: telefone, email: email, interesse: interesse, mensagem: mensagem }]);
 
         if (error) {
             console.error('Erro ao guardar lead:', error);
-            formFeedback.style.color = '#ff4444'; // Vermelho para erro
+            formFeedback.style.color = '#ff4444';
             formFeedback.innerText = 'Ocorreu um erro ao enviar. Tente novamente ou contacte por WhatsApp.';
         } else {
-            formFeedback.style.color = 'var(--gold)'; // Dourado para sucesso
+            formFeedback.style.color = 'var(--gold)';
             formFeedback.innerText = 'Mensagem enviada com sucesso! Entraremos em contacto em breve.';
-            form.reset(); // Limpa o formulário
-            
-            // Esconder a mensagem de sucesso após 5 segundos
-            setTimeout(() => {
-                formFeedback.style.display = 'none';
-            }, 5000);
+            form.reset();
+            setTimeout(() => { formFeedback.style.display = 'none'; }, 5000);
         }
     });
 }
 
-// --- CARREGAMENTO DINÂMICO DE IMÓVEIS ---
+// --- CARREGAMENTO DINÂMICO DE IMÓVEIS E MODAL ---
+let imoveisCarregados = [];
+let slideAtual = 0;
+
 async function carregarImoveisSite() {
     const grid = document.getElementById('gridImoveis');
     if (!grid) return;
 
     grid.innerHTML = '<p style="color: var(--gold); text-align: center; width: 100%;">A buscar oportunidades exclusivas...</p>';
 
-    // Puxa apenas os imóveis ativos
     const { data, error } = await supabase
         .from('imoveis')
         .select('*')
@@ -131,9 +118,11 @@ async function carregarImoveisSite() {
         return;
     }
 
+    imoveisCarregados = data; // Guardamos os dados em memória para abrir no modal
     grid.innerHTML = '';
+    
     data.forEach(imovel => {
-        // Define a foto de capa
+        // Define a foto de capa (Apenas a primeira para a miniatura)
         let imgCapa = '';
         if (imovel.fotos && imovel.fotos.length > 0) {
             imgCapa = `background-image: url('${imovel.fotos[0]}'); background-size: cover; background-position: center;`;
@@ -151,41 +140,107 @@ async function carregarImoveisSite() {
             precoFormatado = imovel.valor_venda ? `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}` : 'Sob Consulta';
         }
 
-        // Define a tag de destaque
         const destaqueHtml = imovel.destaque ? `<span class="imovel-tag destaque" style="margin-left: 8px;">Destaque</span>` : '';
 
-        // Monta os diferenciais (quartos, área, vagas)
+        // Monta os diferenciais básicos do card
         let featuresHtml = '';
         if (imovel.quartos > 0) featuresHtml += `<span>🛏 ${imovel.quartos} Quartos</span>`;
         if (imovel.area_util > 0) featuresHtml += `<span>📐 ${imovel.area_util}m²</span>`;
         if (imovel.vagas > 0) featuresHtml += `<span>🚗 ${imovel.vagas} Vagas</span>`;
 
-        // Monta o card
+        // Monta o card (ao clicar abre o Modal)
         const card = `
             <div class="imovel-card">
-                <div class="imovel-img" style="${imgCapa} height: 220px; position: relative; padding: 16px;">
-                    <span class="imovel-tag">${imovel.finalidade}</span>
-                    ${destaqueHtml}
+                <div class="imovel-img" style="${imgCapa}" onclick="abrirModal('${imovel.id}')">
+                    <div style="position:absolute; top:16px; left:16px;">
+                        <span class="imovel-tag">${imovel.finalidade}</span>
+                        ${destaqueHtml}
+                    </div>
                 </div>
                 <div class="imovel-info">
                     <h3>${imovel.titulo}</h3>
-                    <p class="imovel-local">📍 ${imovel.bairro}, ${imovel.cidade}</p>
-                    <div class="imovel-features" style="display: flex; gap: 16px; padding: 16px 0; border-top: 1px solid rgba(255, 255, 255, 0.05); border-bottom: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 16px; flex-wrap: wrap;">
+                    <p class="imovel-local">📍 ${imovel.bairro || 'Localização não informada'}, ${imovel.cidade || ''}</p>
+                    <div class="imovel-features">
                         ${featuresHtml}
                     </div>
                     <div class="imovel-footer">
                         <span class="imovel-price">${precoFormatado}</span>
-                        <a href="https://wa.me/5521999999999?text=Olá, tenho interesse no imóvel: ${imovel.titulo}" target="_blank" class="btn-card">Detalhes →</a>
+                        <button onclick="abrirModal('${imovel.id}')" class="btn-card">Detalhes →</button>
                     </div>
                 </div>
             </div>
         `;
-        
         grid.innerHTML += card;
     });
 }
 
-// Executa o carregamento dos imóveis ao abrir a página
+// Lógica de abertura do Modal
+function abrirModal(id) {
+    const imovel = imoveisCarregados.find(i => i.id === id);
+    if(!imovel) return;
+
+    // Textos
+    document.getElementById('modalTitulo').innerText = imovel.titulo;
+    document.getElementById('modalLocal').innerText = `📍 ${imovel.endereco || ''} ${imovel.numero || ''} - ${imovel.bairro || ''}, ${imovel.cidade || ''} - ${imovel.estado || ''}`;
+    document.getElementById('modalDesc').innerText = imovel.descricao || 'Sem descrição detalhada.';
+    
+    // Preço
+    let precoFormatado = 'Sob Consulta';
+    if (imovel.finalidade === 'Venda' && imovel.valor_venda) precoFormatado = `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}`;
+    else if (imovel.finalidade === 'Aluguel' && imovel.valor_aluguel) precoFormatado = `R$ ${Number(imovel.valor_aluguel).toLocaleString('pt-BR')}/mês`;
+    else if (imovel.finalidade === 'Venda e Aluguel') precoFormatado = imovel.valor_venda ? `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}` : 'Sob Consulta';
+    document.getElementById('modalPreco').innerText = precoFormatado;
+
+    // Features Detalhadas no Modal
+    let featuresHtml = '';
+    if (imovel.quartos > 0) featuresHtml += `<span>🛏 ${imovel.quartos} Quartos</span>`;
+    if (imovel.suites > 0) featuresHtml += `<span>🚿 ${imovel.suites} Suítes</span>`;
+    if (imovel.banheiros > 0) featuresHtml += `<span>🚽 ${imovel.banheiros} Banheiros</span>`;
+    if (imovel.area_util > 0) featuresHtml += `<span>📐 ${imovel.area_util}m² Útil</span>`;
+    if (imovel.area_total > 0) featuresHtml += `<span>📐 ${imovel.area_total}m² Total</span>`;
+    if (imovel.vagas > 0) featuresHtml += `<span>🚗 ${imovel.vagas} Vagas</span>`;
+    if (imovel.valor_condominio > 0) featuresHtml += `<span>🏢 Cond: R$ ${Number(imovel.valor_condominio).toLocaleString('pt-BR')}</span>`;
+    if (imovel.valor_iptu > 0) featuresHtml += `<span>📄 IPTU: R$ ${Number(imovel.valor_iptu).toLocaleString('pt-BR')}</span>`;
+    document.getElementById('modalFeatures').innerHTML = featuresHtml;
+
+    // Link do WhatsApp com a referência
+    const msgZap = encodeURIComponent(`Olá, tenho interesse no imóvel: ${imovel.titulo} (${precoFormatado})`);
+    document.getElementById('modalZap').href = `https://wa.me/5521999999999?text=${msgZap}`;
+
+    // Fotos no Carrossel
+    const carousel = document.getElementById('carouselSlides');
+    carousel.innerHTML = '';
+    if(imovel.fotos && imovel.fotos.length > 0) {
+        imovel.fotos.forEach((foto, idx) => {
+            carousel.innerHTML += `<img src="${foto}" class="carousel-slide ${idx === 0 ? 'active' : ''}" alt="Foto do imóvel">`;
+        });
+    } else {
+        carousel.innerHTML = `<div class="carousel-slide active" style="background: var(--black-lighter); width:100%; height:100%; display:flex; align-items:center; justify-content:center; color: var(--silver);">Sem fotos</div>`;
+    }
+
+    slideAtual = 0;
+    document.getElementById('imovelModal').classList.add('active');
+    document.body.style.overflow = 'hidden'; // Impede o ecrã de trás de descer
+}
+
+function fecharModal() {
+    document.getElementById('imovelModal').classList.remove('active');
+    document.body.style.overflow = 'auto'; // Restaura o scroll
+}
+
+function mudarSlide(direcao) {
+    const slides = document.querySelectorAll('.carousel-slide');
+    if(slides.length === 0) return;
+    
+    slides[slideAtual].classList.remove('active');
+    slideAtual += direcao;
+    
+    if(slideAtual >= slides.length) slideAtual = 0;
+    if(slideAtual < 0) slideAtual = slides.length - 1;
+    
+    slides[slideAtual].classList.add('active');
+}
+
 carregarImoveisSite();
 
 // Smooth reveal on scroll
