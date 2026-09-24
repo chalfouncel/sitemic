@@ -1,3 +1,33 @@
+// --- LÓGICA DE SPLASH SCREEN (ANIMAÇÃO DE ENTRADA) ---
+document.addEventListener('DOMContentLoaded', () => {
+    const splash = document.getElementById('splash-screen');
+    const video = document.getElementById('splashVideo');
+
+    if (splash && video) {
+        // Quando o vídeo chegar ao fim
+        video.addEventListener('ended', () => {
+            fecharSplash();
+        });
+
+        // Trava de segurança: Se o vídeo falhar ou demorar muito, esconde ao fim de 7s
+        setTimeout(() => {
+            fecharSplash();
+        }, 7000);
+    }
+    
+    function fecharSplash() {
+        splash.classList.add('splash-hidden');
+        document.body.classList.remove('no-scroll');
+        
+        // Remove totalmente o elemento após a transição terminar para não interferir nos cliques
+        setTimeout(() => {
+            if (splash.parentNode) {
+                splash.parentNode.removeChild(splash);
+            }
+        }, 800);
+    }
+});
+
 // --- CONFIGURAÇÃO DO SUPABASE ---
 var SUPABASE_URL = 'https://uztsmkhlvoemjbbyebcr.supabase.co';
 var SUPABASE_ANON_KEY = 'sb_publishable_nmolEh_G5_hKcfdgy2Xpeg_s4T6ePAz';
@@ -26,37 +56,6 @@ document.querySelectorAll('.nav-links a').forEach(link => {
         navLinks.classList.remove('active');
     });
 });
-
-// Counter animation
-const counters = document.querySelectorAll('.stat-number');
-const counterSpeed = 50;
-const animateCounters = () => {
-    counters.forEach(counter => {
-        const target = +counter.getAttribute('data-target');
-        const count = +counter.innerText;
-        const increment = target / counterSpeed;
-        if (count < target) {
-            counter.innerText = Math.ceil(count + increment);
-            setTimeout(() => animateCounters(), 20);
-        } else {
-            counter.innerText = target;
-        }
-    });
-};
-
-// Intersection Observer for counters
-const statsSection = document.querySelector('.hero-stats');
-if (statsSection) {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                animateCounters();
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.5 });
-    observer.observe(statsSection);
-}
 
 // --- FORMULÁRIO DE CONTATO (Envio para o Supabase) ---
 const form = document.getElementById('contatoForm');
@@ -118,11 +117,10 @@ async function carregarImoveisSite() {
         return;
     }
 
-    imoveisCarregados = data; // Guardamos os dados em memória para abrir no modal
+    imoveisCarregados = data;
     grid.innerHTML = '';
     
     data.forEach(imovel => {
-        // Define a foto de capa (Apenas a primeira para a miniatura)
         let imgCapa = '';
         if (imovel.fotos && imovel.fotos.length > 0) {
             imgCapa = `background-image: url('${imovel.fotos[0]}'); background-size: cover; background-position: center;`;
@@ -130,7 +128,6 @@ async function carregarImoveisSite() {
             imgCapa = `background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);`;
         }
 
-        // Formata o preço
         let precoFormatado = 'Sob Consulta';
         if (imovel.finalidade === 'Venda' && imovel.valor_venda) {
             precoFormatado = `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}`;
@@ -142,13 +139,11 @@ async function carregarImoveisSite() {
 
         const destaqueHtml = imovel.destaque ? `<span class="imovel-tag destaque" style="margin-left: 8px;">Destaque</span>` : '';
 
-        // Monta os diferenciais básicos do card
         let featuresHtml = '';
         if (imovel.quartos > 0) featuresHtml += `<span>🛏 ${imovel.quartos} Quartos</span>`;
         if (imovel.area_util > 0) featuresHtml += `<span>📐 ${imovel.area_util}m²</span>`;
         if (imovel.vagas > 0) featuresHtml += `<span>🚗 ${imovel.vagas} Vagas</span>`;
 
-        // Monta o card (ao clicar abre o Modal)
         const card = `
             <div class="imovel-card">
                 <div class="imovel-img" style="${imgCapa}" onclick="abrirModal('${imovel.id}')">
@@ -179,19 +174,16 @@ function abrirModal(id) {
     const imovel = imoveisCarregados.find(i => i.id === id);
     if(!imovel) return;
 
-    // Textos
     document.getElementById('modalTitulo').innerText = imovel.titulo;
     document.getElementById('modalLocal').innerText = `📍 ${imovel.endereco || ''} ${imovel.numero || ''} - ${imovel.bairro || ''}, ${imovel.cidade || ''} - ${imovel.estado || ''}`;
     document.getElementById('modalDesc').innerText = imovel.descricao || 'Sem descrição detalhada.';
     
-    // Preço
     let precoFormatado = 'Sob Consulta';
     if (imovel.finalidade === 'Venda' && imovel.valor_venda) precoFormatado = `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}`;
     else if (imovel.finalidade === 'Aluguel' && imovel.valor_aluguel) precoFormatado = `R$ ${Number(imovel.valor_aluguel).toLocaleString('pt-BR')}/mês`;
     else if (imovel.finalidade === 'Venda e Aluguel') precoFormatado = imovel.valor_venda ? `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}` : 'Sob Consulta';
     document.getElementById('modalPreco').innerText = precoFormatado;
 
-    // Features Detalhadas no Modal
     let featuresHtml = '';
     if (imovel.quartos > 0) featuresHtml += `<span>🛏 ${imovel.quartos} Quartos</span>`;
     if (imovel.suites > 0) featuresHtml += `<span>🚿 ${imovel.suites} Suítes</span>`;
@@ -203,11 +195,9 @@ function abrirModal(id) {
     if (imovel.valor_iptu > 0) featuresHtml += `<span>📄 IPTU: R$ ${Number(imovel.valor_iptu).toLocaleString('pt-BR')}</span>`;
     document.getElementById('modalFeatures').innerHTML = featuresHtml;
 
-    // Link do WhatsApp com a referência
     const msgZap = encodeURIComponent(`Olá, tenho interesse no imóvel: ${imovel.titulo} (${precoFormatado})`);
-    document.getElementById('modalZap').href = `https://wa.me/5521999999999?text=${msgZap}`;
+    document.getElementById('modalZap').href = `https://wa.me/5521979748388?text=${msgZap}`;
 
-    // Fotos no Carrossel
     const carousel = document.getElementById('carouselSlides');
     carousel.innerHTML = '';
     if(imovel.fotos && imovel.fotos.length > 0) {
@@ -220,12 +210,10 @@ function abrirModal(id) {
 
     slideAtual = 0;
     document.getElementById('imovelModal').classList.add('active');
-    document.body.style.overflow = 'hidden'; // Impede o ecrã de trás de descer
 }
 
 function fecharModal() {
     document.getElementById('imovelModal').classList.remove('active');
-    document.body.style.overflow = 'auto'; // Restaura o scroll
 }
 
 function mudarSlide(direcao) {
