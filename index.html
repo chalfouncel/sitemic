@@ -73,7 +73,7 @@
             <div class="search-box">
                 <div class="search-field">
                     <label>Tipo</label>
-                    <select>
+                    <select id="buscaTipo">
                         <option>Todos</option>
                         <option>Apartamento</option>
                         <option>Casa</option>
@@ -84,11 +84,11 @@
                 </div>
                 <div class="search-field">
                     <label>Localização</label>
-                    <input type="text" placeholder="Bairro ou cidade">
+                    <input type="text" id="buscaLocalizacao" placeholder="Bairro ou cidade">
                 </div>
                 <div class="search-field">
                     <label>Preço até</label>
-                    <select>
+                    <select id="buscaPreco">
                         <option>Qualquer valor</option>
                         <option>R$ 500.000</option>
                         <option>R$ 1.000.000</option>
@@ -110,6 +110,7 @@
                 <p>Seleção especial dos melhores imóveis do mercado</p>
             </div>
             <div class="imoveis-grid">
+                <!-- Imóvel 1 -->
                 <div class="imovel-card">
                     <div class="imovel-img" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);">
                         <span class="imovel-tag">Venda</span>
@@ -129,6 +130,7 @@
                         </div>
                     </div>
                 </div>
+                <!-- Imóvel 2 -->
                 <div class="imovel-card">
                     <div class="imovel-img" style="background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);">
                         <span class="imovel-tag">Venda</span>
@@ -147,6 +149,7 @@
                         </div>
                     </div>
                 </div>
+                <!-- Imóvel 3 -->
                 <div class="imovel-card">
                     <div class="imovel-img" style="background: linear-gradient(135deg, #1a1a1a 0%, #3d3d3d 100%);">
                         <span class="imovel-tag">Aluguel</span>
@@ -165,6 +168,7 @@
                         </div>
                     </div>
                 </div>
+                <!-- Imóvel 4 -->
                 <div class="imovel-card">
                     <div class="imovel-img" style="background: linear-gradient(135deg, #3d3d3d 0%, #1a1a1a 100%);">
                         <span class="imovel-tag">Venda</span>
@@ -184,6 +188,7 @@
                         </div>
                     </div>
                 </div>
+                <!-- Imóvel 5 -->
                 <div class="imovel-card">
                     <div class="imovel-img" style="background: linear-gradient(135deg, #2d2d2d 0%, #3d3d3d 100%);">
                         <span class="imovel-tag">Venda</span>
@@ -202,6 +207,7 @@
                         </div>
                     </div>
                 </div>
+                <!-- Imóvel 6 -->
                 <div class="imovel-card">
                     <div class="imovel-img" style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);">
                         <span class="imovel-tag">Aluguel</span>
@@ -363,24 +369,25 @@
                         </div>
                     </div>
                 </div>
+                <!-- Formulário de Contato -->
                 <form class="contato-form" id="contatoForm">
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nome completo</label>
-                            <input type="text" placeholder="Seu nome" required>
+                            <input type="text" id="nomeLead" placeholder="Seu nome">
                         </div>
                         <div class="form-group">
                             <label>Telefone</label>
-                            <input type="tel" placeholder="(21) 99999-9999" required>
+                            <input type="tel" id="telefoneLead" placeholder="(21) 99999-9999">
                         </div>
                     </div>
                     <div class="form-group">
                         <label>E-mail</label>
-                        <input type="email" placeholder="seu@email.com" required>
+                        <input type="email" id="emailLead" placeholder="seu@email.com">
                     </div>
                     <div class="form-group">
                         <label>Interesse</label>
-                        <select>
+                        <select id="interesseLead">
                             <option>Comprar imóvel</option>
                             <option>Alugar imóvel</option>
                             <option>Vender imóvel</option>
@@ -390,9 +397,11 @@
                     </div>
                     <div class="form-group">
                         <label>Mensagem</label>
-                        <textarea rows="4" placeholder="Como podemos ajudar?"></textarea>
+                        <textarea id="mensagemLead" rows="4" placeholder="Como podemos ajudar?"></textarea>
                     </div>
                     <button type="submit" class="btn-primary btn-full">Enviar Mensagem</button>
+                    <!-- Área de feedback para o usuário -->
+                    <div id="formFeedback" style="display:none; text-align:center; padding-top: 15px; color: var(--gold);"></div>
                 </form>
             </div>
         </div>
@@ -404,7 +413,8 @@
             <div class="footer-grid">
                 <div class="footer-brand">
                     <img src="logo.png" alt="M&IC" class="footer-logo">
-                    <p>Excelência em mediação imobiliária desde 2010. CRECI-RJ 00000-J</p>
+                    <!-- O CRECI foi atualizado para ser genérico ou omitido -->
+                    <p>Excelência em mediação imobiliária desde 2010.</p>
                     <div class="social-links">
                         <a href="#" aria-label="Instagram">📷</a>
                         <a href="#" aria-label="Facebook">📘</a>
@@ -449,6 +459,8 @@
         💬
     </a>
 
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 </body>
 </html>
