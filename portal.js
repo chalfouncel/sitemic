@@ -12,6 +12,7 @@ async function checarSessao() {
     if (session) {
         loginSection.style.display = 'none';
         dashboardSection.style.display = 'block';
+        carregarLeads(); // Carrega os leads automaticamente ao entrar
     } else {
         loginSection.style.display = 'block';
         dashboardSection.style.display = 'none';
@@ -48,63 +49,77 @@ async function fazerLogout() {
     checarSessao();
 }
 
+// Lógica de Abas
+function mudarAba(aba) {
+    document.getElementById('btnAbaImovel').classList.remove('active');
+    document.getElementById('btnAbaLeads').classList.remove('active');
+    document.getElementById('abaImovel').style.display = 'none';
+    document.getElementById('abaLeads').style.display = 'none';
+
+    if(aba === 'imovel') {
+        document.getElementById('btnAbaImovel').classList.add('active');
+        document.getElementById('abaImovel').style.display = 'block';
+    } else {
+        document.getElementById('btnAbaLeads').classList.add('active');
+        document.getElementById('abaLeads').style.display = 'block';
+        carregarLeads();
+    }
+}
+
 // Lógica de Fotos e Marca D'água
 let fotosProcessadas = [];
-
-document.getElementById('imoFotos').addEventListener('change', async function(e) {
-    const previewContainer = document.getElementById('previewFotos');
-    previewContainer.innerHTML = '<span style="color: var(--gold);">A processar imagens com marca de água...</span>';
-    fotosProcessadas = [];
-    
-    const files = e.target.files;
-    if(files.length === 0) {
-        previewContainer.innerHTML = '';
-        return;
-    }
-
-    // Carrega a marca de água (usando .png ou .jpg dependendo de como está salvo no repositório)
-    const marcaDagua = new Image();
-    marcaDagua.src = 'marca-dagua.png'; // Se a imagem falhar, renomeie para marca-dagua.jpg no repositório
-    
-    await new Promise(r => { marcaDagua.onload = r; marcaDagua.onerror = r; });
-    previewContainer.innerHTML = '';
-
-    for(let file of files) {
-        const img = new Image();
-        const url = URL.createObjectURL(file);
-        img.src = url;
-        await new Promise(r => img.onload = r);
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        // Desenha a foto original
-        ctx.drawImage(img, 0, 0);
-
-        // Desenha a marca de água no centro, com 40% de opacidade
-        if (marcaDagua.width > 0) {
-            ctx.globalAlpha = 0.4; 
-            const wmWidth = canvas.width * 0.4; // Ocupa 40% da largura da foto
-            const wmHeight = (marcaDagua.height / marcaDagua.width) * wmWidth;
-            const dx = (canvas.width - wmWidth) / 2;
-            const dy = (canvas.height - wmHeight) / 2;
-            ctx.drawImage(marcaDagua, dx, dy, wmWidth, wmHeight);
-            ctx.globalAlpha = 1.0;
+const fileInput = document.getElementById('imoFotos');
+if(fileInput) {
+    fileInput.addEventListener('change', async function(e) {
+        const previewContainer = document.getElementById('previewFotos');
+        previewContainer.innerHTML = '<span style="color: var(--gold);">A processar imagens com marca de água...</span>';
+        fotosProcessadas = [];
+        
+        const files = e.target.files;
+        if(files.length === 0) {
+            previewContainer.innerHTML = '';
+            return;
         }
 
-        // Converte para ficheiro novamente
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
-        const processedFile = new File([blob], file.name, { type: 'image/jpeg' });
-        fotosProcessadas.push(processedFile);
+        const marcaDagua = new Image();
+        marcaDagua.src = 'marca-dagua.png'; 
+        
+        await new Promise(r => { marcaDagua.onload = r; marcaDagua.onerror = r; });
+        previewContainer.innerHTML = '';
 
-        // Adiciona miniatura no ecrã
-        const previewImg = document.createElement('img');
-        previewImg.src = URL.createObjectURL(blob);
-        previewContainer.appendChild(previewImg);
-    }
-});
+        for(let file of files) {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.src = url;
+            await new Promise(r => img.onload = r);
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            ctx.drawImage(img, 0, 0);
+
+            if (marcaDagua.width > 0) {
+                ctx.globalAlpha = 0.4; 
+                const wmWidth = canvas.width * 0.4; 
+                const wmHeight = (marcaDagua.height / marcaDagua.width) * wmWidth;
+                const dx = (canvas.width - wmWidth) / 2;
+                const dy = (canvas.height - wmHeight) / 2;
+                ctx.drawImage(marcaDagua, dx, dy, wmWidth, wmHeight);
+                ctx.globalAlpha = 1.0;
+            }
+
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
+            const processedFile = new File([blob], file.name, { type: 'image/jpeg' });
+            fotosProcessadas.push(processedFile);
+
+            const previewImg = document.createElement('img');
+            previewImg.src = URL.createObjectURL(blob);
+            previewContainer.appendChild(previewImg);
+        }
+    });
+}
 
 // Lógica de Inserção de Imóveis
 const formImovel = document.getElementById('formImovel');
@@ -115,7 +130,6 @@ if (formImovel) {
         msg.style.color = 'var(--gold)';
         msg.innerText = 'A enviar fotos e gravar imóvel (Isto pode demorar uns segundos)...';
 
-        // 1. Fazer upload das fotos primeiro
         const fotosUrls = [];
         for(let file of fotosProcessadas) {
             const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
@@ -131,7 +145,6 @@ if (formImovel) {
             }
         }
 
-        // 2. Prepara os dados para a tabela imoveis
         const payload = {
             titulo: document.getElementById('imoTitulo').value,
             tipo: document.getElementById('imoTipo').value,
@@ -158,7 +171,6 @@ if (formImovel) {
             status: 'Ativo'
         };
 
-        // 3. Gravar na base de dados
         const { error } = await supabase.from('imoveis').insert([payload]);
 
         if (error) {
@@ -166,7 +178,7 @@ if (formImovel) {
             msg.style.color = '#ff4444';
             msg.innerText = 'Ocorreu um erro ao gravar o imóvel.';
         } else {
-            msg.style.color = '#25D366'; // Verde
+            msg.style.color = '#25D366'; 
             msg.innerText = 'Imóvel e fotos guardados com sucesso!';
             formImovel.reset();
             document.getElementById('previewFotos').innerHTML = '';
@@ -175,6 +187,73 @@ if (formImovel) {
             setTimeout(() => { msg.innerText = ''; }, 4000);
         }
     });
+}
+
+// Lógica para carregar e gerir Leads
+async function carregarLeads() {
+    const loading = document.getElementById('loadingLeads');
+    const tabela = document.getElementById('tabelaLeads');
+    const corpo = document.getElementById('corpoTabelaLeads');
+
+    loading.style.display = 'block';
+    tabela.style.display = 'none';
+
+    // Puxa os leads ordenados do mais recente para o mais antigo
+    const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+
+    loading.style.display = 'none';
+
+    if (error) {
+        corpo.innerHTML = '<tr><td colspan="5">Erro ao carregar leads.</td></tr>';
+        tabela.style.display = 'table';
+        return;
+    }
+
+    if (data.length === 0) {
+        corpo.innerHTML = '<tr><td colspan="5">Nenhum contato recebido ainda.</td></tr>';
+    } else {
+        corpo.innerHTML = '';
+        data.forEach(lead => {
+            const dataFormatada = new Date(lead.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+            
+            // Define a classe CSS baseada no status atual
+            let badgeClass = 'novo';
+            if(lead.status === 'Em atendimento') badgeClass = 'atendimento';
+            if(lead.status === 'Concluído') badgeClass = 'concluido';
+
+            corpo.innerHTML += `
+                <tr>
+                    <td>${dataFormatada}</td>
+                    <td><strong>${lead.nome}</strong><br>${lead.telefone}<br>${lead.email}</td>
+                    <td><span class="badge ${badgeClass}" id="badge-${lead.id}">${lead.interesse}</span></td>
+                    <td><small>${lead.mensagem || 'Sem mensagem'}</small></td>
+                    <td>
+                        <select onchange="atualizarStatusLead('${lead.id}', this.value)">
+                            <option value="Novo" ${lead.status === 'Novo' ? 'selected' : ''}>Novo</option>
+                            <option value="Em atendimento" ${lead.status === 'Em atendimento' ? 'selected' : ''}>Em atendimento</option>
+                            <option value="Concluído" ${lead.status === 'Concluído' ? 'selected' : ''}>Concluído</option>
+                        </select>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+    tabela.style.display = 'table';
+}
+
+// Função para atualizar o status do lead direto no Supabase
+async function atualizarStatusLead(id, novoStatus) {
+    const { error } = await supabase.from('leads').update({ status: novoStatus }).eq('id', id);
+    if(error) {
+        alert('Erro ao atualizar o status do lead.');
+    } else {
+        // Atualiza a cor da badge visualmente
+        const badge = document.getElementById(`badge-${id}`);
+        badge.className = 'badge';
+        if(novoStatus === 'Novo') badge.classList.add('novo');
+        if(novoStatus === 'Em atendimento') badge.classList.add('atendimento');
+        if(novoStatus === 'Concluído') badge.classList.add('concluido');
+    }
 }
 
 checarSessao();
