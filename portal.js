@@ -66,6 +66,32 @@ function mudarAba(aba) {
     }
 }
 
+// --- BUSCA DE CEP AUTOMÁTICA (ViaCEP) ---
+const cepInput = document.getElementById('imoCep');
+if (cepInput) {
+    cepInput.addEventListener('blur', async function() {
+        let cep = this.value.replace(/\D/g, ''); // Remove traços e pontos
+        
+        if (cep.length === 8) {
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const dados = await response.json();
+
+                if (!dados.erro) {
+                    document.getElementById('imoEndereco').value = dados.logradouro;
+                    document.getElementById('imoBairro').value = dados.bairro;
+                    document.getElementById('imoCidade').value = dados.localidade;
+                    document.getElementById('imoEstado').value = dados.uf;
+                    // Foca no número automaticamente para facilitar
+                    document.getElementById('imoNumero').focus();
+                }
+            } catch (error) {
+                console.error("Erro ao buscar CEP:", error);
+            }
+        }
+    });
+}
+
 // Lógica de Fotos e Marca D'água
 let fotosProcessadas = [];
 const fileInput = document.getElementById('imoFotos');
