@@ -7,7 +7,6 @@
     <meta name="description" content="M&IC Corretores de Imóveis - Especialistas em imóveis de alto padrão. Encontre o imóvel dos seus sonhos.">
     <link rel="icon" type="image/png" href="logo.png">
     
-    <!-- Redirecionamento Automático para Subdomínios -->
     <script>
         if (window.location.hostname === 'app.miccorretores.com.br') { 
             window.location.replace('/app.html'); 
@@ -23,16 +22,14 @@
 </head>
 <body class="no-scroll">
 
-    <!-- SPLASH SCREEN ANIMADO -->
     <div id="splashScreen">
         <video id="splashVideo" autoplay muted playsinline>
-            <source src="video.mp4" type="video/mp4">
+            <source src="Logo%20animado.mp4" type="video/mp4">
             Seu navegador não suporta vídeos.
         </video>
         <button id="skipSplash" class="btn-skip">Pular Introdução</button>
     </div>
 
-    <!-- NAVBAR -->
     <nav class="navbar" id="navbar">
         <div class="container nav-container">
             <a href="#" class="logo">
@@ -54,7 +51,6 @@
         </div>
     </nav>
 
-    <!-- HERO -->
     <section class="hero" id="inicio">
         <div class="hero-overlay"></div>
         <div class="hero-content">
@@ -72,7 +68,6 @@
         </div>
     </section>
 
-    <!-- BUSCA -->
     <section class="search-section">
         <div class="container">
             <div class="search-box">
@@ -106,7 +101,6 @@
         </div>
     </section>
 
-    <!-- IMÓVEIS -->
     <section class="imoveis" id="imoveis">
         <div class="container">
             <div class="section-header">
@@ -116,8 +110,7 @@
             </div>
             
             <div class="imoveis-grid" id="gridImoveis">
-                <!-- Imóveis gerados via script.js -->
-            </div>
+                </div>
             
             <div class="text-center">
                 <a href="#contato" class="btn-primary">Ver Todos os Imóveis</a>
@@ -125,7 +118,6 @@
         </div>
     </section>
 
-    <!-- SOBRE -->
     <section class="sobre" id="sobre">
         <div class="container sobre-container">
             <div class="sobre-content">
@@ -168,7 +160,6 @@
         </div>
     </section>
 
-    <!-- SERVIÇOS -->
     <section class="servicos" id="servicos">
         <div class="container">
             <div class="section-header">
@@ -211,7 +202,6 @@
         </div>
     </section>
 
-    <!-- CTA -->
     <section class="cta-section">
         <div class="container">
             <div class="cta-box">
@@ -222,7 +212,6 @@
         </div>
     </section>
 
-    <!-- CONTATO -->
     <section class="contato" id="contato">
         <div class="container">
             <div class="section-header">
@@ -254,7 +243,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Formulário de Contato -->
                 <form class="contato-form" id="contatoForm">
                     <div class="form-row">
                         <div class="form-group">
@@ -291,7 +279,6 @@
         </div>
     </section>
 
-    <!-- FOOTER -->
     <footer class="footer">
         <div class="container">
             <div class="footer-grid">
@@ -302,7 +289,6 @@
                         <strong>Mario Jr</strong> (CRECI 101338)
                     </p>
                     <div class="social-links">
-                        <!-- Ícones SVG Oficiais -->
                         <a href="https://instagram.com/ivy_corretora" target="_blank" aria-label="Instagram">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
                         </a>
@@ -342,20 +328,17 @@
         </div>
     </footer>
 
-    <!-- WhatsApp Float (Também com SVG para ser limpo e oficial) -->
     <a href="https://wa.me/5521979748388" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
     </a>
 
-    <!-- MODAL DE IMÓVEL -->
     <div class="modal-overlay" id="imovelModal">
         <div class="modal-content">
             <div class="modal-close" onclick="fecharModal()">×</div>
             <div class="carousel-container">
                 <button class="carousel-btn carousel-prev" onclick="mudarSlide(-1)">❮</button>
                 <div id="carouselSlides">
-                    <!-- Imagens injetadas via JS -->
-                </div>
+                    </div>
                 <button class="carousel-btn carousel-next" onclick="mudarSlide(1)">❯</button>
             </div>
             <div class="modal-body">
@@ -365,8 +348,7 @@
                     <span class="modal-price" id="modalPreco">R$ 0,00</span>
                 </div>
                 <div class="modal-features" id="modalFeatures">
-                    <!-- Features injetadas via JS -->
-                </div>
+                    </div>
                 <div class="modal-desc" id="modalDesc">
                     Descrição
                 </div>
@@ -377,7 +359,6 @@
         </div>
     </div>
 
-    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 </body>
