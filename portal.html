@@ -20,9 +20,6 @@
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; background: var(--black); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--gold); }
         
-        /* Campos bloqueados para a IA preencher */
-        .form-group input:disabled, .form-group textarea:disabled { background: #111; color: var(--gray); font-style: italic; border-color: rgba(255,255,255,0.05); cursor: not-allowed; }
-        
         button { width: 100%; padding: 14px; background: var(--gold); border: none; color: black; font-weight: 600; cursor: pointer; border-radius: 4px; transition: 0.3s; }
         button:hover { background: #E8D48B; }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -106,10 +103,10 @@
                 <form id="formImovel">
                     <div class="grid-form">
                         
-                        <!-- TÍTULO (BLOQUEADO) -->
+                        <!-- TÍTULO (EDITÁVEL) -->
                         <div class="form-group full-width">
-                            <label>Título do Anúncio (Gerado por IA)</label>
-                            <input type="text" id="imoTitulo" value="A Inteligência Artificial criará o título após a análise..." disabled>
+                            <label>Título do Anúncio (Gerado por IA ou Manual)</label>
+                            <input type="text" id="imoTitulo" placeholder="A Inteligência Artificial criará o título após a análise, mas você pode editar livremente...">
                         </div>
                         
                         <div class="form-group">
@@ -175,7 +172,7 @@
                             <input type="number" id="imoVagas" value="0">
                         </div>
 
-                        <!-- PERGUNTA SOBRE MOBÍLIA (COM BOTÕES ESTILIZADOS LADO A LADO) -->
+                        <!-- PERGUNTA SOBRE MOBÍLIA -->
                         <div class="form-group full-width">
                             <label>O imóvel é mobiliado?</label>
                             <div class="btn-group">
@@ -248,10 +245,10 @@
                             <input type="text" id="imoEstado" value="RJ">
                         </div>
 
-                        <!-- DESCRIÇÃO (BLOQUEADA) -->
+                        <!-- DESCRIÇÃO (EDITÁVEL) -->
                         <div class="form-group full-width">
-                            <label>Descrição Detalhada (Gerada por IA)</label>
-                            <textarea id="imoDescricao" rows="6" disabled>A Inteligência Artificial fará a leitura das fotos, da mobília e das características acima para redigir o melhor anúncio...</textarea>
+                            <label>Descrição Detalhada (Gerada por IA ou Manual)</label>
+                            <textarea id="imoDescricao" rows="6" placeholder="A Inteligência Artificial fará a leitura das fotos, da mobília e das características acima para redigir o melhor anúncio, mas você pode editar livremente..."></textarea>
                         </div>
 
                         <!-- FOTOS -->
