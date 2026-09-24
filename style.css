@@ -327,6 +327,13 @@ section { padding: 100px 0; }
 }
 
 @media (max-width: 768px) {
+    /* Ajuste da Apresentação (Splash Video) para Celular */
+    #splashVideo {
+        object-fit: contain; 
+        width: 85%; 
+        height: 100%;
+    }
+
     /* Menu Mobile */
     .nav-links, .btn-nav { display: none; }
     .menu-toggle { display: flex; }
