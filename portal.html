@@ -154,6 +154,25 @@
                             <input type="number" id="imoVagas" value="0">
                         </div>
 
+                        <!-- PERGUNTA SOBRE MOBÍLIA -->
+                        <div class="form-group full-width">
+                            <label>O imóvel é mobiliado?</label>
+                            <div style="margin-top: 5px;">
+                                <label style="margin-right: 15px; cursor: pointer;">
+                                    <input type="radio" name="mobiliado" value="sim" onchange="toggleMobiliaDetalhes()"> Sim
+                                </label>
+                                <label style="cursor: pointer;">
+                                    <input type="radio" name="mobiliado" value="nao" checked onchange="toggleMobiliaDetalhes()"> Não
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- CAMPO DE DETALHES DA MOBÍLIA (Escondido por padrão) -->
+                        <div class="form-group full-width" id="div-detalhes-mobilia" style="display: none;">
+                            <label for="detalhes_mobilia">Detalhes da Mobília (O que fica no imóvel?)</label>
+                            <textarea id="detalhes_mobilia" name="detalhes_mobilia" rows="3" placeholder="Ex: Armários embutidos na cozinha, cama de casal, sofá da sala..."></textarea>
+                        </div>
+
                         <!-- ENDEREÇO DESMEMBRADO ZAP -->
                         <div class="form-group">
                             <label>CEP</label>
