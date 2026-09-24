@@ -30,7 +30,8 @@ Retorne EXATAMENTE um objeto JSON válido com as chaves:
 "titulo": "Um título chamativo e profissional para o anúncio (máx 60 caracteres)"
 "descricao": "Uma descrição detalhada, engajadora e comercial valorizando os pontos fortes visíveis nas fotos e os dados fornecidos. Formate o texto em parágrafos agradáveis para leitura."`;
 
-    const fotosParaAnalisar = (fotosUrls && Array.isArray(fotosUrls)) ? fotosUrls.slice(0, 4) : [];
+    // CORREÇÃO GROQ: O novo modelo de visão aceita no máximo 3 imagens.
+    const fotosParaAnalisar = (fotosUrls && Array.isArray(fotosUrls)) ? fotosUrls.slice(0, 3) : [];
 
     // Array para a API do Gemini (que exige imagens em base64)
     const geminiParts = [{ text: promptText }];
@@ -47,7 +48,7 @@ Retorne EXATAMENTE um objeto JSON válido com as chaves:
       }
     }));
 
-    // 1. TENTAR GEMINI (Corrigido para flash-latest)
+    // 1. TENTAR GEMINI
     try {
       console.log("Tentando GEMINI...");
       const respGemini = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.PORTAL_GEMINI_API_KEY}`, {
@@ -55,7 +56,8 @@ Retorne EXATAMENTE um objeto JSON válido com as chaves:
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: geminiParts }],
-          systemInstruction: [{ text: "Responda APENAS com JSON com 'titulo' e 'descricao'" }],
+          // CORREÇÃO GEMINI: systemInstruction formatado como Objeto (Content Object) e não como Array
+          systemInstruction: { parts: [{ text: "Responda APENAS com um objeto JSON com as chaves 'titulo' e 'descricao'" }] },
           generationConfig: { responseMimeType: "application/json" }
         })
       });
@@ -71,7 +73,7 @@ Retorne EXATAMENTE um objeto JSON válido com as chaves:
       }
     } catch(e) { console.log("Erro GEMINI:", e.message); }
 
-    // 2. TENTAR GROQ (Corrigido para o novo modelo de visão)
+    // 2. TENTAR GROQ
     try {
       console.log("Tentando GROQ...");
       const respGroq = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -81,7 +83,7 @@ Retorne EXATAMENTE um objeto JSON válido com as chaves:
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "qwen/qwen3.8-27b", // Novo modelo multimodal oficial suportado pela Groq
+          model: "qwen/qwen3.8-27b",
           messages: [
             { role: "system", content: "Responda APENAS em JSON com 'titulo' e 'descricao', sem markdown." },
             { role: "user", content: [{ type: "text", text: promptText }].concat(fotosParaAnalisar.map(url => ({ type: "image_url", image_url: { url } }))) }
@@ -101,7 +103,7 @@ Retorne EXATAMENTE um objeto JSON válido com as chaves:
       }
     } catch(e) { console.log("Erro GROQ:", e.message); }
 
-    // 3. TENTAR OPENROUTER (Necessita de saldo na conta)
+    // 3. TENTAR OPENROUTER
     try {
       console.log("Tentando OPENROUTER...");
       const respOR = await fetch("https://openrouter.ai/api/v1/chat/completions", {
