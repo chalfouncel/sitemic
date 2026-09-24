@@ -66,9 +66,9 @@ function mudarAba(aba) {
     }
 }
 
-// Função para mostrar/esconder detalhes da mobília
+// Lógica da Mobília (Mostra/Esconde a caixa de texto)
 function toggleMobiliaDetalhes() {
-    const radioSim = document.querySelector('input[name="mobiliado"][value="sim"]');
+    const radioSim = document.getElementById('mobSim');
     const divDetalhes = document.getElementById('div-detalhes-mobilia');
     const textareaDetalhes = document.getElementById('detalhes_mobilia');
 
@@ -76,7 +76,7 @@ function toggleMobiliaDetalhes() {
         divDetalhes.style.display = 'block';
     } else {
         divDetalhes.style.display = 'none';
-        if(textareaDetalhes) textareaDetalhes.value = ''; // Limpa o texto se desmarcar
+        if (textareaDetalhes) textareaDetalhes.value = ''; 
     }
 }
 
@@ -84,7 +84,7 @@ function toggleMobiliaDetalhes() {
 const cepInput = document.getElementById('imoCep');
 if (cepInput) {
     cepInput.addEventListener('blur', async function() {
-        let cep = this.value.replace(/\D/g, ''); // Remove traços e pontos
+        let cep = this.value.replace(/\D/g, ''); 
         
         if (cep.length === 8) {
             try {
@@ -96,7 +96,6 @@ if (cepInput) {
                     document.getElementById('imoBairro').value = dados.bairro;
                     document.getElementById('imoCidade').value = dados.localidade;
                     document.getElementById('imoEstado').value = dados.uf;
-                    // Foca no número automaticamente para facilitar
                     document.getElementById('imoNumero').focus();
                 }
             } catch (error) {
@@ -186,11 +185,19 @@ if (formImovel) {
         }
 
         // Pega valores da mobília
-        const isMobiliado = document.querySelector('input[name="mobiliado"][value="sim"]').checked;
+        const isMobiliado = document.getElementById('mobSim').checked;
         const detalhesMobilia = document.getElementById('detalhes_mobilia').value;
 
+        // Pega os itens de lazer marcados
+        const itensLazer = [];
+        document.querySelectorAll('input[name="lazer"]:checked').forEach(checkbox => {
+            itensLazer.push(checkbox.value);
+        });
+
         const payload = {
-            titulo: document.getElementById('imoTitulo').value,
+            // Título e Descrição são mandados com um texto padrão provisório até a IA agir
+            titulo: 'Pendente geração por Inteligência Artificial',
+            descricao: 'Pendente geração por Inteligência Artificial',
             tipo: document.getElementById('imoTipo').value,
             finalidade: document.getElementById('imoFinalidade').value,
             valor_venda: document.getElementById('imoVenda').value || null,
@@ -203,8 +210,11 @@ if (formImovel) {
             suites: document.getElementById('imoSuites').value || 0,
             banheiros: document.getElementById('imoBanheiros').value || 0,
             vagas: document.getElementById('imoVagas').value || 0,
+            
             mobiliado: isMobiliado,
             detalhes_mobilia: detalhesMobilia,
+            itens_lazer: itensLazer,
+            
             cep: document.getElementById('imoCep').value,
             endereco: document.getElementById('imoEndereco').value,
             numero: document.getElementById('imoNumero').value,
@@ -212,7 +222,6 @@ if (formImovel) {
             bairro: document.getElementById('imoBairro').value,
             cidade: document.getElementById('imoCidade').value,
             estado: document.getElementById('imoEstado').value,
-            descricao: document.getElementById('imoDescricao').value,
             fotos: fotosUrls,
             status: 'Ativo'
         };
@@ -227,7 +236,8 @@ if (formImovel) {
             msg.style.color = '#25D366'; 
             msg.innerText = 'Imóvel e fotos guardados com sucesso!';
             formImovel.reset();
-            // Volta a esconder a mobília ao resetar
+            
+            // Volta a esconder a mobília
             document.getElementById('div-detalhes-mobilia').style.display = 'none'; 
             document.getElementById('previewFotos').innerHTML = '';
             fotosProcessadas = [];
@@ -246,7 +256,6 @@ async function carregarLeads() {
     loading.style.display = 'block';
     tabela.style.display = 'none';
 
-    // Puxa os leads ordenados do mais recente para o mais antigo
     const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
 
     loading.style.display = 'none';
@@ -264,7 +273,6 @@ async function carregarLeads() {
         data.forEach(lead => {
             const dataFormatada = new Date(lead.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
             
-            // Define a classe CSS baseada no status atual
             let badgeClass = 'novo';
             if(lead.status === 'Em atendimento') badgeClass = 'atendimento';
             if(lead.status === 'Concluído') badgeClass = 'concluido';
@@ -289,13 +297,11 @@ async function carregarLeads() {
     tabela.style.display = 'table';
 }
 
-// Função para atualizar o status do lead direto no Supabase
 async function atualizarStatusLead(id, novoStatus) {
     const { error } = await supabase.from('leads').update({ status: novoStatus }).eq('id', id);
     if(error) {
         alert('Erro ao atualizar o status do lead.');
     } else {
-        // Atualiza a cor da badge visualmente
         const badge = document.getElementById(`badge-${id}`);
         badge.className = 'badge';
         if(novoStatus === 'Novo') badge.classList.add('novo');
