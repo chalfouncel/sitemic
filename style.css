@@ -325,16 +325,67 @@ section { padding: 100px 0; }
     .contato-container { grid-template-columns: 1fr; }
     .footer-grid { grid-template-columns: 1fr 1fr; }
 }
+
 @media (max-width: 768px) {
+    /* Menu Mobile */
     .nav-links, .btn-nav { display: none; }
     .menu-toggle { display: flex; }
-    .nav-links.active { display: flex; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: rgba(27, 32, 38, 0.98); backdrop-filter: blur(20px); padding: 24px; gap: 20px; border-bottom: 1px solid rgba(201, 168, 76, 0.1); }
-    .search-box { flex-direction: column; }
-    .imoveis-grid { grid-template-columns: 1fr; }
-    .form-row { grid-template-columns: 1fr; }
-    .footer-grid { grid-template-columns: 1fr; }
-    .contato-form { padding: 24px; }
-    section { padding: 60px 0; }
+    .nav-links.active { 
+        display: flex; flex-direction: column; position: absolute; 
+        top: 100%; left: 0; right: 0; 
+        background: rgba(27, 32, 38, 0.98); backdrop-filter: blur(20px); 
+        padding: 24px; gap: 20px; 
+        border-bottom: 1px solid rgba(201, 168, 76, 0.1); 
+    }
+
+    /* Hero Section (Topo) - Otimizado para celular */
+    .hero { padding: 100px 16px 60px; }
+    .hero h1 { font-size: 2.2rem; }
+    .hero p { font-size: 1rem; margin-bottom: 30px; }
+    .hero-buttons { flex-direction: column; width: 100%; gap: 12px; margin-bottom: 40px; }
+    .btn-primary, .btn-secondary { width: 100%; } /* Botões ocupam a tela toda */
+
+    /* Caixa de Busca - Otimizada para o toque */
+    .search-box { 
+        flex-direction: column; 
+        padding: 16px; 
+        gap: 12px;
+        align-items: stretch; /* Faz inputs e botão ocuparem 100% da largura */
+    }
+    .search-field { width: 100%; }
+    .btn-search { width: 100%; height: 50px; margin-top: 5px; }
+
+    /* Grid de Imóveis */
+    .imoveis-grid { grid-template-columns: 1fr; gap: 20px; }
+    
+    /* Modal (Janela do Imóvel) - Cara de App */
+    .modal-content { width: 95%; max-height: 85vh; }
     .carousel-container { height: 250px; }
-    .modal-title { font-size: 1.5rem; }
+    .modal-body { padding: 20px; }
+    .modal-title { font-size: 1.5rem; line-height: 1.3; }
+    .modal-price { font-size: 1.5rem; }
+    .btn-whatsapp-modal { width: 100%; justify-content: center; margin-top: 10px; } /* Botão do Whats gigante no imóvel */
+
+    /* Estrutura Geral */
+    section { padding: 60px 0; }
+    .section-header h2 { font-size: 1.8rem; }
+    
+    /* Formulário de Contato */
+    .form-row { grid-template-columns: 1fr; }
+    .contato-form { padding: 24px 16px; }
+
+    /* Footer Centralizado para Mobile */
+    .footer-grid { grid-template-columns: 1fr; gap: 30px; text-align: center; }
+    .footer-brand .footer-logo { margin: 0 auto 20px; }
+    .footer-creci-box { flex-direction: column; text-align: center; justify-content: center; gap: 10px; }
+    .social-links { justify-content: center; margin-bottom: 10px; }
+    
+    /* Botão Flutuante do WhatsApp (Não atrapalhar a leitura) */
+    .whatsapp-float { bottom: 20px; right: 20px; width: 50px; height: 50px; }
+}
+
+/* Telas muito pequenas (ex: iPhone SE, celulares antigos) */
+@media (max-width: 480px) {
+    .hero h1 { font-size: 1.8rem; }
+    .imovel-img { height: 200px; }
 }
