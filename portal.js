@@ -120,8 +120,10 @@ if(fileInput) {
         document.getElementById('btnSubmit').disabled = true;
         document.getElementById('btnGerarIA').innerText = '✨ Analisar e Gerar Anúncio com IA';
         document.getElementById('btnGerarIA').disabled = false;
-        document.getElementById('imoTitulo').value = 'A Inteligência Artificial criará o título após a análise...';
-        document.getElementById('imoDescricao').value = 'A Inteligência Artificial fará a leitura das fotos, da mobília e das características acima para redigir o melhor anúncio...';
+        
+        // Limpa os campos para o placeholder aparecer
+        document.getElementById('imoTitulo').value = '';
+        document.getElementById('imoDescricao').value = '';
 
         const previewContainer = document.getElementById('previewFotos');
         previewContainer.innerHTML = '<span style="color: var(--gold);">Processando imagens com marca d\'água...</span>';
@@ -234,13 +236,13 @@ async function gerarTextoIA() {
 
         const dadosIA = await response.json();
 
-        // Passo 3: Preencher os campos bloqueados
+        // Passo 3: Preencher os campos editáveis
         document.getElementById('imoTitulo').value = dadosIA.titulo || "Título gerado indisponível";
         document.getElementById('imoDescricao').value = dadosIA.descricao || "Descrição gerada indisponível";
 
         // Passo 4: Habilitar publicação
         document.getElementById('btnSubmit').disabled = false;
-        btnIA.innerText = '✅ Anúncio Gerado com Sucesso!';
+        btnIA.innerText = '✅ Anúncio Gerado com Sucesso! Sinta-se livre para editar os textos acima.';
         btnIA.style.background = '#0F9D58'; // Verde mais escuro pra mostrar que concluiu
 
     } catch (error) {
