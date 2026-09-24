@@ -258,24 +258,18 @@ section { padding: 100px 0; }
 
 /* Logomarca principal do topo do footer - Aumentada a proporção */
 .footer-brand .footer-logo { 
-    max-height: 90px; 
+    max-height: 140px; 
     width: auto; 
     object-fit: contain; 
     margin-bottom: 24px; 
 }
 
-/* Caixa alinhada para o CRECI e logo ao lado */
+/* Caixa alinhada para o CRECI */
 .footer-creci-box { 
     display: flex; 
     align-items: center; 
     gap: 16px; 
     margin-bottom: 24px; 
-}
-.footer-creci-logo { 
-    height: 48px; 
-    width: auto; 
-    object-fit: contain; 
-    border-radius: 4px; 
 }
 .footer-creci-text { 
     color: var(--silver); 
