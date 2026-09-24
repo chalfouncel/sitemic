@@ -10,10 +10,10 @@
         body { font-family: 'Inter', sans-serif; background: var(--black); color: var(--white); margin: 0; padding: 0; }
         .container { max-width: 1000px; margin: 0 auto; padding: 24px; }
         .header { text-align: center; padding: 30px 0; border-bottom: 1px solid rgba(201,168,76,0.2); margin-bottom: 30px; }
-        .header h1 { font-family: 'Playfair Display', serif; color: var(--gold); margin: 0 0 10px 0; }
+        .header img { height: 60px; margin-bottom: 15px; }
+        .header h1 { font-family: 'Playfair Display', serif; color: var(--gold); margin: 0 0 10px 0; display: none; }
         .header p { margin: 0; color: var(--gray); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* Secção de Login */
         #loginSection { max-width: 400px; margin: 60px auto; background: var(--black-light); padding: 40px; border-radius: 8px; border: 1px solid rgba(201,168,76,0.2); }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; color: var(--gray); font-size: 13px; text-transform: uppercase; }
@@ -22,7 +22,6 @@
         button { width: 100%; padding: 14px; background: var(--gold); border: none; color: black; font-weight: 600; cursor: pointer; border-radius: 4px; transition: 0.3s; }
         button:hover { background: #E8D48B; }
         
-        /* Secção do Dashboard */
         #dashboardSection { display: none; }
         .nav-tabs { display: flex; gap: 12px; margin-bottom: 30px; }
         .nav-tabs button { width: auto; padding: 12px 24px; background: transparent; color: var(--gold); border: 1px solid var(--gold); }
@@ -35,12 +34,15 @@
         .card { background: var(--black-light); padding: 30px; border-radius: 8px; border: 1px solid rgba(201,168,76,0.2); }
         .card h2 { font-family: 'Playfair Display', serif; color: var(--gold); margin-top: 0; margin-bottom: 24px; border-bottom: 1px solid rgba(201,168,76,0.1); padding-bottom: 12px; }
         
+        #previewFotos { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        #previewFotos img { height: 100px; border-radius: 4px; border: 1px solid var(--gold); }
+
         @media (max-width: 768px) { .grid-form { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>M&IC Portal</h1>
+        <img src="logo.png" alt="M&IC Logo">
         <p>Gestão Exclusiva para Corretores</p>
     </div>
 
@@ -60,7 +62,7 @@
             <p id="loginMsg" style="color:#ff4444; font-size:14px; text-align:center; display:none; margin-top:16px;"></p>
         </div>
 
-        <!-- DASHBOARD (Invisível até o login) -->
+        <!-- DASHBOARD -->
         <div id="dashboardSection">
             <div class="nav-tabs">
                 <button class="active">Cadastrar Imóvel</button>
@@ -117,6 +119,10 @@
                             <input type="number" id="imoAreaUtil">
                         </div>
                         <div class="form-group">
+                            <label>Área Total (m²)</label>
+                            <input type="number" id="imoAreaTotal">
+                        </div>
+                        <div class="form-group">
                             <label>Quartos</label>
                             <input type="number" id="imoQuartos" value="0">
                         </div>
@@ -125,17 +131,54 @@
                             <input type="number" id="imoSuites" value="0">
                         </div>
                         <div class="form-group">
+                            <label>Banheiros</label>
+                            <input type="number" id="imoBanheiros" value="0">
+                        </div>
+                        <div class="form-group">
                             <label>Vagas de Garagem</label>
                             <input type="number" id="imoVagas" value="0">
                         </div>
 
-                        <div class="form-group full-width">
-                            <label>Endereço Completo (Rua, Número, Bairro, CEP)</label>
-                            <input type="text" id="imoEndereco" placeholder="Obrigatório para o Zap Imóveis">
+                        <!-- ENDEREÇO DESMEMBRADO ZAP -->
+                        <div class="form-group">
+                            <label>CEP</label>
+                            <input type="text" id="imoCep" placeholder="00000-000">
                         </div>
+                        <div class="form-group">
+                            <label>Logradouro (Rua/Av)</label>
+                            <input type="text" id="imoEndereco" placeholder="Ex: Av. Atlântica">
+                        </div>
+                        <div class="form-group">
+                            <label>Número</label>
+                            <input type="text" id="imoNumero" placeholder="Ex: 1000">
+                        </div>
+                        <div class="form-group">
+                            <label>Complemento (Apenas uso interno)</label>
+                            <input type="text" id="imoComplemento" placeholder="Ex: Apto 302, Bloco B">
+                        </div>
+                        <div class="form-group">
+                            <label>Bairro</label>
+                            <input type="text" id="imoBairro" placeholder="Ex: Copacabana">
+                        </div>
+                        <div class="form-group">
+                            <label>Cidade</label>
+                            <input type="text" id="imoCidade" value="Rio de Janeiro">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Estado (UF)</label>
+                            <input type="text" id="imoEstado" value="RJ">
+                        </div>
+
                         <div class="form-group full-width">
                             <label>Descrição Detalhada</label>
                             <textarea id="imoDescricao" rows="5" placeholder="Descreva os diferenciais do imóvel..."></textarea>
+                        </div>
+
+                        <!-- FOTOS -->
+                        <div class="form-group full-width">
+                            <label>Fotos do Imóvel (A marca d'água será aplicada automaticamente no centro)</label>
+                            <input type="file" id="imoFotos" multiple accept="image/*">
+                            <div id="previewFotos"></div>
                         </div>
                     </div>
                     <button type="submit" style="margin-top:20px; width: 100%; max-width: 300px; display: block; margin-left: auto; margin-right: auto;">Publicar Imóvel</button>
