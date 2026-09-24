@@ -3,7 +3,7 @@ var SUPABASE_URL = 'https://uztsmkhlvoemjbbyebcr.supabase.co';
 var SUPABASE_ANON_KEY = 'sb_publishable_nmolEh_G5_hKcfdgy2Xpeg_s4T6ePAz';
 var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// --- LÓGICA DO SPLASH SCREEN ---
+// --- LÓGICA DO SPLASH SCREEN & INICIALIZAÇÃO ---
 document.addEventListener("DOMContentLoaded", () => {
     const splashScreen = document.getElementById('splashScreen');
     const splashVideo = document.getElementById('splashVideo');
@@ -24,7 +24,24 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
     }
 
-    // Carrega os imóveis assim que a página abre
+    // --- NOVA LÓGICA: Evento de clique no botão "Buscar" ---
+    const btnSearch = document.querySelector('.btn-search');
+    if (btnSearch) {
+        btnSearch.addEventListener('click', () => {
+            const finalidade = document.getElementById('buscaFinalidade') ? document.getElementById('buscaFinalidade').value : 'Todos';
+            const tipo = document.getElementById('buscaTipo') ? document.getElementById('buscaTipo').value : 'Todos';
+            const localizacao = document.getElementById('buscaLocalizacao') ? document.getElementById('buscaLocalizacao').value.trim() : '';
+            const preco = document.getElementById('buscaPreco') ? document.getElementById('buscaPreco').value : 'Qualquer valor';
+
+            // Rola suavemente para a seção de imóveis para o cliente ver o resultado
+            document.getElementById('imoveis').scrollIntoView({ behavior: 'smooth' });
+
+            // Dispara a busca com os filtros selecionados
+            carregarImoveisSite({ finalidade, tipo, localizacao, preco });
+        });
+    }
+
+    // Carrega os imóveis assim que a página abre (sem filtros)
     carregarImoveisSite();
 });
 
@@ -115,16 +132,54 @@ if (form) {
 let imoveisCarregados = [];
 let slideAtual = 0;
 
-async function carregarImoveisSite() {
+// Agora a função recebe um objeto de filtros opcional
+async function carregarImoveisSite(filtros = null) {
     const grid = document.getElementById('gridImoveis');
     if (!grid) return;
 
     grid.innerHTML = '<p style="color: var(--gold); text-align: center; width: 100%;">A buscar oportunidades exclusivas...</p>';
 
-    const { data, error } = await supabase
+    // Inicia a query básica
+    let query = supabase
         .from('imoveis')
         .select('*')
         .order('created_at', { ascending: false });
+
+    // --- NOVA LÓGICA: Aplicação de Filtros ---
+    if (filtros) {
+        // Filtro de Finalidade (Comprar ou Alugar)
+        if (filtros.finalidade && filtros.finalidade !== 'Todos') {
+            // Usamos ilike para pegar casos onde o imóvel está como "Venda e Aluguel"
+            query = query.ilike('finalidade', `%${filtros.finalidade}%`);
+        }
+        
+        // Filtro de Tipo (Apartamento, Casa, etc.)
+        if (filtros.tipo && filtros.tipo !== 'Todos') {
+            query = query.eq('tipo', filtros.tipo);
+        }
+        
+        // Filtro de Localização (Bairro ou Cidade)
+        if (filtros.localizacao) {
+            query = query.or(`bairro.ilike.%${filtros.localizacao}%,cidade.ilike.%${filtros.localizacao}%`);
+        }
+        
+        // Filtro de Preço (Até X valor)
+        if (filtros.preco && filtros.preco !== 'Qualquer valor' && !filtros.preco.includes('+')) {
+            // Extrai apenas os números (ex: "R$ 500.000" vira 500000)
+            const valorMaximo = parseInt(filtros.preco.replace(/\D/g, ''));
+            if (valorMaximo > 0) {
+                // Se estiver buscando aluguel, filtra pelo valor do aluguel, senão, valor de venda
+                if (filtros.finalidade === 'Aluguel') {
+                    query = query.lte('valor_aluguel', valorMaximo);
+                } else {
+                    query = query.lte('valor_venda', valorMaximo);
+                }
+            }
+        }
+    }
+
+    // Executa a busca no banco
+    const { data, error } = await query;
 
     if (error) {
         console.error('Erro Supabase:', error);
@@ -133,7 +188,7 @@ async function carregarImoveisSite() {
     }
 
     if (!data || data.length === 0) {
-        grid.innerHTML = '<p style="color: var(--silver); text-align: center; width: 100%;">Nenhum imóvel disponível no momento.</p>';
+        grid.innerHTML = '<p style="color: var(--silver); text-align: center; width: 100%;">Nenhum imóvel encontrado com esses filtros.</p>';
         return;
     }
 
@@ -188,11 +243,11 @@ async function carregarImoveisSite() {
         grid.innerHTML += card;
     });
 
-    // --- NOVA LÓGICA: Verifica se tem um ID na URL para abrir o modal direto ---
+    // --- LÓGICA: Verifica se tem um ID na URL para abrir o modal direto ---
     const urlParams = new URLSearchParams(window.location.search);
     const idNaUrl = urlParams.get('id');
     if (idNaUrl) {
-        setTimeout(() => abrirModal(idNaUrl), 100); // Abre o modal do imóvel automaticamente
+        setTimeout(() => abrirModal(idNaUrl), 100); 
     }
 }
 
@@ -222,12 +277,10 @@ function abrirModal(id) {
     if (imovel.valor_iptu > 0) featuresHtml += `<span>📄 IPTU: R$ ${Number(imovel.valor_iptu).toLocaleString('pt-BR')}</span>`;
     document.getElementById('modalFeatures').innerHTML = featuresHtml;
 
-    // --- NOVA LÓGICA: Geração de Link e Botão do WhatsApp ---
-    // Cria o link combinando a página atual + o ID do imóvel
+    // --- LÓGICA: Geração de Link e Botão do WhatsApp ---
     const urlAtual = window.location.origin + window.location.pathname;
     const linkDoImovel = `${urlAtual}?id=${imovel.id}`;
     
-    // Formata a mensagem com o link para você saber exatamente qual anúncio é
     const textoWhatsApp = `Olá! Tenho interesse neste imóvel:\n\n*${imovel.titulo}*\n*Valor:* ${precoFormatado}\n\n*Veja o anúncio aqui:* ${linkDoImovel}`;
     const msgZap = encodeURIComponent(textoWhatsApp);
     
@@ -252,7 +305,7 @@ function fecharModal() {
     document.getElementById('imovelModal').classList.remove('active');
     document.body.style.overflow = 'auto'; 
     
-    // --- NOVA LÓGICA: Limpa a URL ao fechar o modal para evitar reabertura acidental no refresh ---
+    // Limpa a URL ao fechar o modal para evitar reabertura acidental no refresh
     const urlLimpa = window.location.origin + window.location.pathname;
     window.history.replaceState({}, document.title, urlLimpa);
 }
