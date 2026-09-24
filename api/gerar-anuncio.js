@@ -30,7 +30,7 @@ Retorne EXATAMENTE um objeto JSON válido com as chaves:
 "titulo": "Um título chamativo e profissional para o anúncio (máx 60 caracteres)"
 "descricao": "Uma descrição detalhada, engajadora e comercial valorizando os pontos fortes visíveis nas fotos e os dados fornecidos. Formate o texto em parágrafos agradáveis para leitura."`;
 
-    // CORREÇÃO GROQ: O novo modelo de visão aceita no máximo 3 imagens.
+    // Limite de 3 imagens para respeitar a Groq
     const fotosParaAnalisar = (fotosUrls && Array.isArray(fotosUrls)) ? fotosUrls.slice(0, 3) : [];
 
     // Array para a API do Gemini (que exige imagens em base64)
@@ -51,12 +51,12 @@ Retorne EXATAMENTE um objeto JSON válido com as chaves:
     // 1. TENTAR GEMINI
     try {
       console.log("Tentando GEMINI...");
-      const respGemini = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.PORTAL_GEMINI_API_KEY}`, {
+      // CORREÇÃO GEMINI: Removido o "-latest" para usar o modelo estável padrão
+      const respGemini = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.PORTAL_GEMINI_API_KEY}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: geminiParts }],
-          // CORREÇÃO GEMINI: systemInstruction formatado como Objeto (Content Object) e não como Array
           systemInstruction: { parts: [{ text: "Responda APENAS com um objeto JSON com as chaves 'titulo' e 'descricao'" }] },
           generationConfig: { responseMimeType: "application/json" }
         })
@@ -88,7 +88,8 @@ Retorne EXATAMENTE um objeto JSON válido com as chaves:
             { role: "system", content: "Responda APENAS em JSON com 'titulo' e 'descricao', sem markdown." },
             { role: "user", content: [{ type: "text", text: promptText }].concat(fotosParaAnalisar.map(url => ({ type: "image_url", image_url: { url } }))) }
           ],
-          response_format: { type: "json_object" }
+          response_format: { type: "json_object" },
+          max_tokens: 800 // CORREÇÃO GROQ: Limitando para não estourar o limite de 1000 tokens do plano
         })
       });
       if (respGroq.ok) {
