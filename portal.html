@@ -23,7 +23,7 @@
         button:hover { background: #E8D48B; }
         
         #dashboardSection { display: none; }
-        .nav-tabs { display: flex; gap: 12px; margin-bottom: 30px; }
+        .nav-tabs { display: flex; gap: 12px; margin-bottom: 30px; flex-wrap: wrap; }
         .nav-tabs button { width: auto; padding: 12px 24px; background: transparent; color: var(--gold); border: 1px solid var(--gold); }
         .nav-tabs button.active { background: var(--gold); color: black; }
         .nav-tabs button.btn-danger { border-color: #ff4444; color: #ff4444; margin-left: auto; }
@@ -37,7 +37,21 @@
         #previewFotos { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
         #previewFotos img { height: 100px; border-radius: 4px; border: 1px solid var(--gold); }
 
-        @media (max-width: 768px) { .grid-form { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
+        /* Tabela de Leads */
+        .leads-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        .leads-table th, .leads-table td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .leads-table th { color: var(--gold); font-weight: 600; text-transform: uppercase; font-size: 12px; }
+        .leads-table select { padding: 6px; background: var(--black); border: 1px solid var(--gold); color: white; border-radius: 4px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .badge.novo { background: rgba(37, 211, 102, 0.2); color: #25D366; }
+        .badge.atendimento { background: rgba(201, 168, 76, 0.2); color: var(--gold); }
+        .badge.concluido { background: rgba(154, 154, 154, 0.2); color: var(--gray); }
+
+        @media (max-width: 768px) { 
+            .grid-form { grid-template-columns: 1fr; } 
+            .full-width { grid-column: span 1; } 
+            .leads-table { display: block; overflow-x: auto; }
+        }
     </style>
 </head>
 <body>
@@ -65,12 +79,13 @@
         <!-- DASHBOARD -->
         <div id="dashboardSection">
             <div class="nav-tabs">
-                <button class="active">Cadastrar Imóvel</button>
-                <button onclick="alert('O painel de leads será a nossa Etapa 4!')">Leads Recebidos</button>
+                <button id="btnAbaImovel" class="active" onclick="mudarAba('imovel')">Cadastrar Imóvel</button>
+                <button id="btnAbaLeads" onclick="mudarAba('leads')">Leads Recebidos</button>
                 <button class="btn-danger" onclick="fazerLogout()">Sair do Sistema</button>
             </div>
 
-            <div class="card">
+            <!-- ABA CADASTRO DE IMÓVEL -->
+            <div id="abaImovel" class="card">
                 <h2>Novo Imóvel (Padrão Integração)</h2>
                 <form id="formImovel">
                     <div class="grid-form">
@@ -185,6 +200,27 @@
                     <p id="imovelMsg" style="text-align:center; margin-top:15px; font-weight: 600;"></p>
                 </form>
             </div>
+
+            <!-- ABA LEADS -->
+            <div id="abaLeads" class="card" style="display:none;">
+                <h2>Contatos Recebidos pelo Site</h2>
+                <div id="loadingLeads" style="color: var(--gold);">Carregando leads...</div>
+                <table class="leads-table" id="tabelaLeads" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Contato</th>
+                            <th>Interesse</th>
+                            <th>Mensagem</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabelaLeads">
+                        <!-- Leads serão inseridos aqui via JS -->
+                    </tbody>
+                </table>
+            </div>
+
         </div>
     </div>
 
