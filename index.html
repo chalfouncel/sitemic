@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>M&IC Corretores de Imóveis | Alto Padrão</title>
-    <meta name="description" content="M&IC Corretores de Imóveis - Especialistas em imóveis de alto padrão. Encontre o imóvel dos seus sonhos.">
+    <meta name="description" content="M&IC Corretores de Imóveis - Especialistas em imóveis. Encontre o imóvel dos seus sonhos.">
     <link rel="icon" type="image/png" href="logo.png">
     
-    <!-- Redirecionamento Automático para Subdomínios -->
     <script>
         if (window.location.hostname === 'app.miccorretores.com.br') { 
             window.location.replace('/app.html'); 
@@ -23,7 +22,6 @@
 </head>
 <body class="no-scroll">
 
-    <!-- SPLASH SCREEN ANIMADO -->
     <div id="splashScreen">
         <video id="splashVideo" autoplay muted playsinline>
             <source src="Logo%20animado.mp4" type="video/mp4">
@@ -32,13 +30,11 @@
         <button id="skipSplash" class="btn-skip">Pular Introdução</button>
     </div>
 
-    <!-- RETRATOS FIXOS (COMPUTADOR) -->
     <div class="fixed-portraits">
         <img src="ivy.png" alt="Ivy Carla" class="portrait-left">
         <img src="mario.png" alt="Mario Jr" class="portrait-right">
     </div>
 
-    <!-- NAVBAR -->
     <nav class="navbar" id="navbar">
         <div class="container nav-container">
             <a href="#" class="logo">
@@ -60,13 +56,12 @@
         </div>
     </nav>
 
-    <!-- HERO -->
     <section class="hero" id="inicio">
         <div class="hero-overlay"></div>
         <div class="hero-content">
             <span class="hero-badge">✦ Corretores Autônomos</span>
             <h1>Nosso propósito é realizar<br><span class="gold-text">seu sonho da casa própria</span></h1>
-            <p>Trabalhamos com imóveis prontos, na planta e locação. Do Minha Casa Minha Vida ao mais alto padrão.</p>
+            <p>Trabalhamos com imóveis prontos, na planta e locação.<br>Do Minha Casa Minha Vida ao mais alto padrão.</p>
             <div class="hero-buttons">
                 <a href="#imoveis" class="btn-primary">Ver Imóveis</a>
                 <a href="#contato" class="btn-secondary">Agendar Visita</a>
@@ -78,7 +73,6 @@
         </div>
     </section>
 
-    <!-- BUSCA -->
     <section class="search-section">
         <div class="container">
             <div class="search-box">
@@ -107,12 +101,11 @@
                         <option>R$ 5.000.000+</option>
                     </select>
                 </div>
-                <button class="btn-search"> Buscar</button>
+                <button class="btn-search">Buscar</button>
             </div>
         </div>
     </section>
 
-    <!-- IMÓVEIS -->
     <section class="imoveis" id="imoveis">
         <div class="container">
             <div class="section-header">
@@ -122,8 +115,7 @@
             </div>
             
             <div class="imoveis-grid" id="gridImoveis">
-                <!-- Imóveis gerados via script.js -->
-            </div>
+                </div>
             
             <div class="text-center">
                 <a href="#contato" class="btn-primary">Ver Todos os Imóveis</a>
@@ -131,7 +123,6 @@
         </div>
     </section>
 
-    <!-- SOBRE -->
     <section class="sobre" id="sobre">
         <div class="container sobre-container">
             <div class="sobre-content">
@@ -165,16 +156,12 @@
             </div>
             <div class="sobre-image">
                 <div class="sobre-img-box">
-                    <div class="img-placeholder">
-                        <span>M&IC</span>
-                        <small>Corretores de Imóveis</small>
-                    </div>
+                    <img src="ambos.png" alt="Ivy Carla e Mario Jr">
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- SERVIÇOS -->
     <section class="servicos" id="servicos">
         <div class="container">
             <div class="section-header">
@@ -217,7 +204,6 @@
         </div>
     </section>
 
-    <!-- CTA -->
     <section class="cta-section">
         <div class="container">
             <div class="cta-box">
@@ -228,7 +214,6 @@
         </div>
     </section>
 
-    <!-- CONTATO -->
     <section class="contato" id="contato">
         <div class="container">
             <div class="section-header">
@@ -260,7 +245,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Formulário de Contato -->
                 <form class="contato-form" id="contatoForm">
                     <div class="form-row">
                         <div class="form-group">
@@ -298,16 +282,18 @@
         </div>
     </section>
 
-    <!-- FOOTER -->
     <footer class="footer">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
                     <img src="logo.png" alt="M&IC" class="footer-logo">
-                    <p style="margin-bottom: 15px; color: var(--silver);">
-                        <strong>Ivy Carla</strong> (CRECI 75179)<br>
-                        <strong>Mario Jr</strong> (CRECI 101338)
-                    </p>
+                    <div class="footer-creci-box">
+                        <img src="logo.png" alt="Logo" class="footer-creci-logo">
+                        <div class="footer-creci-text">
+                            <strong>Ivy Carla</strong> (CRECI 75179)<br>
+                            <strong>Mario Jr</strong> (CRECI 101338)
+                        </div>
+                    </div>
                     <div class="social-links">
                         <a href="https://instagram.com/ivy_corretora" target="_blank" aria-label="Instagram">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
@@ -330,10 +316,10 @@
                 <div class="footer-links">
                     <h4>Serviços</h4>
                     <ul>
-                        <li><a href="#">Compra & Venda</a></li>
-                        <li><a href="#">Locação</a></li>
-                        <li><a href="#">Leilões</a></li>
-                        <li><a href="#">Avaliação</a></li>
+                        <li><a href="#servicos">Compra & Venda</a></li>
+                        <li><a href="#servicos">Locação</a></li>
+                        <li><a href="#servicos">Leilões</a></li>
+                        <li><a href="#servicos">Avaliação</a></li>
                     </ul>
                 </div>
                 <div class="footer-contact">
@@ -348,20 +334,16 @@
         </div>
     </footer>
 
-    <!-- WhatsApp Float -->
     <a href="https://wa.me/5521979748388" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
     </a>
 
-    <!-- MODAL DE IMÓVEL -->
     <div class="modal-overlay" id="imovelModal">
         <div class="modal-content">
             <div class="modal-close" onclick="fecharModal()">×</div>
             <div class="carousel-container">
                 <button class="carousel-btn carousel-prev" onclick="mudarSlide(-1)">❮</button>
-                <div id="carouselSlides">
-                    <!-- Imagens injetadas via JS -->
-                </div>
+                <div id="carouselSlides"></div>
                 <button class="carousel-btn carousel-next" onclick="mudarSlide(1)">❯</button>
             </div>
             <div class="modal-body">
@@ -370,20 +352,13 @@
                     <p class="modal-local" id="modalLocal">📍 Localização</p>
                     <span class="modal-price" id="modalPreco">R$ 0,00</span>
                 </div>
-                <div class="modal-features" id="modalFeatures">
-                    <!-- Features injetadas via JS -->
-                </div>
-                <div class="modal-desc" id="modalDesc">
-                    Descrição
-                </div>
-                <a href="#" class="btn-whatsapp-modal" id="modalZap" target="_blank">
-                    Falar com Corretor 💬
-                </a>
+                <div class="modal-features" id="modalFeatures"></div>
+                <div class="modal-desc" id="modalDesc">Descrição</div>
+                <a href="#" class="btn-whatsapp-modal" id="modalZap" target="_blank">Falar com Corretor 💬</a>
             </div>
         </div>
     </div>
 
-    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 </body>
