@@ -54,37 +54,65 @@ document.querySelectorAll('.nav-links a').forEach(link => {
     });
 });
 
-// --- FORMULÁRIO DE CONTATO (Envio para o Supabase) ---
+// --- FORMULÁRIO DE CONTATO (Envio por E-mail + WhatsApp) ---
 const form = document.getElementById('contatoForm');
 const formFeedback = document.getElementById('formFeedback');
 
 if (form) {
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    form.addEventListener('submit', (e) => {
+        e.preventDefault(); // Evita recarregar a página
+
+        // Puxa os valores dos campos
         const nome = document.getElementById('nomeLead').value;
         const telefone = document.getElementById('telefoneLead').value;
         const email = document.getElementById('emailLead').value;
         const interesse = document.getElementById('interesseLead').value;
         const mensagem = document.getElementById('mensagemLead').value;
 
+        // Feedback na tela
         formFeedback.style.display = 'block';
-        formFeedback.style.color = 'var(--silver)';
-        formFeedback.innerText = 'A enviar a sua mensagem...';
+        formFeedback.style.color = 'var(--gold)';
+        formFeedback.innerText = 'Processando a sua mensagem...';
 
-        const { error } = await supabase
-            .from('leads')
-            .insert([{ nome: nome, telefone: telefone, email: email, interesse: interesse, mensagem: mensagem }]);
+        // Envia via FormSubmit de forma invisível
+        fetch("https://formsubmit.co/ajax/chalfouncorretor@gmail.com", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                Nome: nome,
+                Telefone: telefone,
+                Email: email,
+                Interesse: interesse,
+                Mensagem: mensagem
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Se o e-mail enviar com sucesso, formata e abre o WhatsApp
+            const msgWp = `*Novo Lead via Site M&IC*\n\n*Nome:* ${nome}\n*Telefone:* ${telefone}\n*E-mail:* ${email}\n*Interesse:* ${interesse}\n*Mensagem:* ${mensagem}`;
+            const urlWp = `https://wa.me/5521979748388?text=${encodeURIComponent(msgWp)}`;
 
-        if (error) {
-            console.error('Erro ao guardar lead:', error);
-            formFeedback.style.color = '#ff4444';
-            formFeedback.innerText = 'Ocorreu um erro ao enviar. Tente novamente ou contacte por WhatsApp.';
-        } else {
-            formFeedback.style.color = 'var(--gold)';
-            formFeedback.innerText = 'Mensagem enviada com sucesso! Entraremos em contacto em breve.';
+            formFeedback.innerText = 'Tudo certo! Redirecionando para o WhatsApp...';
+
+            setTimeout(() => {
+                window.open(urlWp, '_blank');
+                form.reset();
+                formFeedback.style.display = 'none';
+            }, 1500);
+        })
+        .catch(error => {
+            console.error('Erro no FormSubmit:', error);
+            // Fallback: Se der erro no e-mail, pelo menos salva o lead enviando direto pro WhatsApp
+            const msgWp = `*Novo Lead via Site M&IC*\n\n*Nome:* ${nome}\n*Telefone:* ${telefone}\n*E-mail:* ${email}\n*Interesse:* ${interesse}\n*Mensagem:* ${mensagem}`;
+            const urlWp = `https://wa.me/5521979748388?text=${encodeURIComponent(msgWp)}`;
+            
+            window.open(urlWp, '_blank');
             form.reset();
-            setTimeout(() => { formFeedback.style.display = 'none'; }, 5000);
-        }
+            formFeedback.style.display = 'none';
+        });
     });
 }
 
@@ -98,7 +126,7 @@ async function carregarImoveisSite() {
 
     grid.innerHTML = '<p style="color: var(--gold); text-align: center; width: 100%;">A buscar oportunidades exclusivas...</p>';
 
-    // Puxa todos os imóveis (removido temporariamente o filtro estrito de 'Ativo' caso o teste tenha sido gravado sem status)
+    // Puxa todos os imóveis
     const { data, error } = await supabase
         .from('imoveis')
         .select('*')
