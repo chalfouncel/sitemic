@@ -25,38 +25,43 @@ export default async function handler(req, res) {
       Lazer/Comodidades: ${lazer && lazer.length > 0 ? lazer.join(', ') : 'Nenhum informado'}
     `;
 
+    // 3. Prompt Base
     const promptText = `Atue como um corretor de imóveis de alto padrão e copywriter especialista.
-      Analise as fotos enviadas e as características abaixo para criar um anúncio persuasivo.
-      
-      Características do Imóvel:
-      ${caracteristicas}
-      
-      Retorne EXATAMENTE um objeto JSON válido com as chaves:
-      "titulo": "Um título chamativo e profissional para o anúncio (máx 60 caracteres)"
-      "descricao": "Uma descrição detalhada, engajadora e comercial valorizando os pontos fortes visíveis nas fotos e os dados fornecidos. Formate o texto em parágrafos agradáveis para leitura."`;
+    Analise as fotos enviadas e as características abaixo para criar um anúncio persuasivo.
+    
+    Características do Imóvel:
+    ${caracteristicas}
+    
+    Retorne EXATAMENTE um objeto JSON válido com as chaves:
+    "titulo": "Um título chamativo e profissional para o anúncio (máx 60 caracteres)"
+    "descricao": "Uma descrição detalhada, engajadora e comercial valorizando os pontos fortes visíveis nas fotos e os dados fornecidos. Formate o texto em parágrafos agradáveis para leitura."`;
 
     // Limitar a 5 fotos para economizar processamento
     const fotosParaAnalisar = (fotosUrls && Array.isArray(fotosUrls)) ? fotosUrls.slice(0, 5) : [];
 
+    // Array padrão de mensagens (usado pelo OpenRouter e Groq)
+    const openAiContentArray = [{ type: "text", text: promptText }];
+    fotosParaAnalisar.forEach(url => {
+      openAiContentArray.push({ type: "image_url", image_url: { url: url } });
+    });
+
+    let anuncioGerado = null; // Variável que vai armazenar o resultado final
+
     // ====================================================================
-    // TENTATIVA 1: GROQ (Rápido e aceita URLs nativamente)
+    // TENTATIVA 1: OPENROUTER
     // ====================================================================
     try {
-      console.log("Tentando gerar anúncio via GROQ...");
-      
-      const groqContentArray = [{ type: "text", text: promptText }];
-      fotosParaAnalisar.forEach(url => {
-        groqContentArray.push({ type: "image_url", image_url: { url: url } });
-      });
-
-      const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      console.log("Tentando gerar anúncio via OPENROUTER...");
+      const orResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-          "Content-Type": "application/json"
+          "Authorization": `Bearer ${process.env.PORTAL_OPEN_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://mic-imoveis.vercel.app", 
+          "X-Title": "Portal MIC Imóveis"
         },
         body: JSON.stringify({
-          model: "llama-3.2-90b-vision-preview", // Modelo de visão do Groq
+          model: "openai/gpt-4o-mini", 
           messages: [
             {
               role: "system",
@@ -64,84 +69,139 @@ export default async function handler(req, res) {
             },
             {
               role: "user",
-              content: groqContentArray
+              content: openAiContentArray
             }
           ],
           response_format: { type: "json_object" }
         })
       });
 
-      if (groqResponse.ok) {
-        const jsonResponse = await groqResponse.json();
-        let respostaIA = jsonResponse.choices[0].message.content;
+      if (orResponse.ok) {
+        const orJson = await orResponse.json();
+        let respostaIA = orJson.choices[0].message.content;
         
-        // Limpar possíveis formatações markdown do JSON
+        // Limpar possíveis marcações de markdown do JSON
         respostaIA = respostaIA.replace(/```json/g, '').replace(/```/g, '').trim();
-        const resultado = JSON.parse(respostaIA);
-        
-        console.log("Sucesso via Groq!");
-        return res.status(200).json(resultado);
+        anuncioGerado = JSON.parse(respostaIA);
+        console.log("Sucesso via OpenRouter!");
       } else {
-        const errorData = await groqResponse.text();
-        console.warn("Groq falhou, iniciando fallback para Gemini. Detalhes:", errorData);
-        throw new Error("Falha no Groq");
+        const errText = await orResponse.text();
+        console.warn("OpenRouter falhou (possível falta de créditos):", errText);
       }
+    } catch (e) {
+      console.warn("Erro de rede ao chamar OpenRouter:", e.message);
+    }
 
-    } catch (groqError) {
-      // ====================================================================
-      // TENTATIVA 2: GEMINI (Fallback seguro da Google)
-      // ====================================================================
-      console.log("Tentando gerar anúncio via GEMINI (Fallback)...");
-      
-      // A API REST do Gemini precisa das imagens em Base64, então vamos baixar rapidamente
-      const geminiParts = [{ text: promptText }];
-      
-      if (fotosParaAnalisar.length > 0) {
-        await Promise.all(fotosParaAnalisar.map(async (url) => {
-          try {
-            const imgRes = await fetch(url);
-            const arrayBuffer = await imgRes.arrayBuffer();
-            const base64 = Buffer.from(arrayBuffer).toString('base64');
-            const mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
-            geminiParts.push({ inlineData: { data: base64, mimeType: mimeType } });
-          } catch (e) {
-            console.log("Aviso: Falha ao baixar uma imagem para o Gemini, pulando esta imagem.");
-          }
-        }));
-      }
-
-      const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: geminiParts }],
-          systemInstruction: {
-            parts: [{ text: "Você é um especialista em marketing imobiliário. Você responde apenas em formato JSON com as chaves 'titulo' e 'descricao'." }]
+    // ====================================================================
+    // TENTATIVA 2: GROQ (FALLBACK 1 - Só roda se o OpenRouter falhar)
+    // ====================================================================
+    if (!anuncioGerado) {
+      try {
+        console.log("Tentando gerar anúncio via GROQ (Fallback 1)...");
+        const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${process.env.PORTAL_GROQ_API_KEY}`,
+            "Content-Type": "application/json"
           },
-          generationConfig: {
-            responseMimeType: "application/json"
-          }
-        })
-      });
+          body: JSON.stringify({
+            model: "llama-3.2-90b-vision-preview",
+            messages: [
+              {
+                role: "system",
+                content: "Você é um assistente especialista em marketing imobiliário. Você responde apenas em formato JSON com as chaves 'titulo' e 'descricao', sem formatação markdown."
+              },
+              {
+                role: "user",
+                content: openAiContentArray
+              }
+            ],
+            response_format: { type: "json_object" }
+          })
+        });
 
-      if (geminiResponse.ok) {
-        const jsonResponse = await geminiResponse.json();
-        const respostaIA = jsonResponse.candidates[0].content.parts[0].text;
-        
-        const resultado = JSON.parse(respostaIA);
-        console.log("Sucesso via Gemini!");
-        return res.status(200).json(resultado);
-      } else {
-        const errorData = await geminiResponse.text();
-        console.error("Gemini também falhou:", errorData);
-        throw new Error("Ambas as IAs falharam.");
+        if (groqResponse.ok) {
+          const groqJson = await groqResponse.json();
+          let respostaIA = groqJson.choices[0].message.content;
+          
+          respostaIA = respostaIA.replace(/```json/g, '').replace(/```/g, '').trim();
+          anuncioGerado = JSON.parse(respostaIA);
+          console.log("Sucesso via Groq!");
+        } else {
+          const errText = await groqResponse.text();
+          console.warn("Groq falhou:", errText);
+        }
+      } catch (e) {
+        console.warn("Erro de rede ao chamar Groq:", e.message);
       }
+    }
+
+    // ====================================================================
+    // TENTATIVA 3: GEMINI (FALLBACK 2 - Só roda se OpenRouter e Groq falharem)
+    // ====================================================================
+    if (!anuncioGerado) {
+      try {
+        console.log("Tentando gerar anúncio via GEMINI (Fallback 2)...");
+        const geminiParts = [{ text: promptText }];
+        
+        // Gemini exige que as imagens sejam convertidas para Base64
+        if (fotosParaAnalisar.length > 0) {
+          await Promise.all(fotosParaAnalisar.map(async (url) => {
+            try {
+              const imgRes = await fetch(url);
+              const arrayBuffer = await imgRes.arrayBuffer();
+              const base64 = Buffer.from(arrayBuffer).toString('base64');
+              const mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
+              geminiParts.push({ inlineData: { data: base64, mimeType: mimeType } });
+            } catch (e) {
+              console.log(`Aviso: Falha ao baixar imagem (${url}) para o Gemini. Ignorando esta imagem.`);
+            }
+          }));
+        }
+
+        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.PORTAL_GEMINI_API_KEY}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: geminiParts }],
+            systemInstruction: {
+              parts: [{ text: "Você é um especialista em marketing imobiliário. Você responde apenas em formato JSON com as chaves 'titulo' e 'descricao'." }]
+            },
+            generationConfig: {
+              responseMimeType: "application/json"
+            }
+          })
+        });
+
+        if (geminiResponse.ok) {
+          const geminiJson = await geminiResponse.json();
+          const respostaIA = geminiJson.candidates[0].content.parts[0].text;
+          anuncioGerado = JSON.parse(respostaIA);
+          console.log("Sucesso via Gemini!");
+        } else {
+          const errText = await geminiResponse.text();
+          console.error("Gemini falhou:", errText);
+        }
+      } catch (e) {
+         console.warn("Erro de rede ao chamar Gemini:", e.message);
+      }
+    }
+
+    // ====================================================================
+    // RETORNO FINAL PARA O FRONTEND
+    // ====================================================================
+    if (anuncioGerado) {
+      // Se qualquer uma das 3 IAs funcionou, retornamos os dados com sucesso!
+      return res.status(200).json(anuncioGerado);
+    } else {
+      // Se o fluxo chegou aqui, é porque as 3 APIs falharam sequencialmente.
+      throw new Error("Todas as 3 APIs de Inteligência Artificial (OpenRouter, Groq, Gemini) falharam na tentativa de gerar o anúncio.");
     }
 
   } catch (error) {
     console.error("Erro fatal ao gerar anúncio:", error);
     return res.status(500).json({ 
-      erro: "Falha ao analisar imagens e gerar texto após tentar múltiplos provedores.", 
+      erro: "Falha ao analisar imagens e gerar texto. Tentamos múltiplos provedores de IA sem sucesso.", 
       detalhes: error.message 
     });
   }
