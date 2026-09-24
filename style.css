@@ -252,19 +252,16 @@ section { padding: 100px 0; }
 .form-group textarea { resize: vertical; min-height: 100px; }
 .btn-full { width: 100%; height: auto; }
 
-/* ===== FOOTER (CORREÇÃO DE PROPORÇÃO E ALINHAMENTO) ===== */
+/* ===== FOOTER ===== */
 .footer { background: var(--black); border-top: 1px solid rgba(201, 168, 76, 0.1); padding: 60px 0 0; position: relative; z-index: 2; }
 .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 40px; padding-bottom: 40px; }
 
-/* Logomarca principal do topo do footer - Aumentada a proporção */
 .footer-brand .footer-logo { 
     max-height: 140px; 
     width: auto; 
     object-fit: contain; 
     margin-bottom: 24px; 
 }
-
-/* Caixa alinhada para o CRECI */
 .footer-creci-box { 
     display: flex; 
     align-items: center; 
@@ -277,18 +274,19 @@ section { padding: 100px 0; }
     line-height: 1.5; 
 }
 
-/* Ícones sociais idênticos à imagem (caixa escura com cantos arredondados) */
+/* Ícones Sociais (Aumentados e espaçados) */
 .social-links { 
     display: flex; 
-    gap: 12px; 
+    gap: 16px; 
     align-items: center; 
+    margin-top: 8px;
 }
 .social-links a { 
-    width: 44px; 
-    height: 44px; 
+    width: 56px; 
+    height: 56px; 
     background: #1A1A1A; 
     border: 1px solid rgba(255, 255, 255, 0.05); 
-    border-radius: 12px; 
+    border-radius: 14px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
