@@ -1,35 +1,45 @@
-/* ===== FOTOS DA EQUIPE NO HERO ===== */
-.hero-images {
-    position: absolute;
-    inset: 0;
-    pointer-events: none; /* Deixa os cliques passarem para os botões atrás */
-    z-index: 1; /* Fica atrás do texto principal */
-}
-.hero-img-box {
-    position: absolute;
-    bottom: 0;
-    width: 32vw; /* Largura ajustada para ocupar as laterais */
-    max-width: 420px;
-    height: 85vh; /* Altura mantendo proporção até a base da tela */
-    background-image: url('equipe.png');
-    background-size: 200% auto; /* Duplica a foto porque original tem 2 pessoas */
-    background-repeat: no-repeat;
-    filter: drop-shadow(0 0 25px rgba(0,0,0,0.9)); /* Sombra para o recorte ficar limpo no fundo */
-}
-.man-box {
-    left: 1vw;
-    background-position: right bottom; /* Puxa o lado direito da foto original (Mario) */
-}
-.woman-box {
-    right: 1vw;
-    background-position: left bottom; /* Puxa o lado esquerdo da foto original (Ivy) */
-}
+/* ===== LOGOMARCA AJUSTADA ===== */
+.logo img { height: 80px; width: auto; transition: var(--transition); }
+.navbar.scrolled .logo img { height: 60px; }
 
-@media (max-width: 1100px) {
-    /* Diminui a opacidade e aproxima as imagens em telas médias */
-    .hero-img-box { opacity: 0.25; width: 40vw; }
+/* ===== SPLASH SCREEN ===== */
+#splashScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 1s ease-out;
 }
-@media (max-width: 768px) {
-    /* Oculta totalmente nos telemóveis para não poluir o pequeno ecrã */
-    .hero-img-box { display: none; } 
+#splashVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+}
+.btn-skip {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: var(--transition);
+    z-index: 10000;
+}
+.btn-skip:hover {
+    background: rgba(201, 168, 76, 0.3);
+    border-color: var(--gold);
+}
+body.no-scroll {
+    overflow: hidden;
 }
