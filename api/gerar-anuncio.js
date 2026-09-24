@@ -17,12 +17,11 @@ export default async function handler(req, res) {
       Quartos: ${quartos} (${suites} suítes)
       Banheiros: ${banheiros}
       Vagas: ${vagas}
-      Localização: Bairro ${bairro}, Cidade ${cidade}
+      Localização: ${bairro}, ${cidade}
       Mobiliado: ${mobiliado ? 'Sim - ' + detalhes_mobilia : 'Não'}
       Lazer/Comodidades: ${lazer && lazer.length > 0 ? lazer.join(', ') : 'Nenhum informado'}
     `;
 
-    // AQUI ESTÁ A MUDANÇA: Prompt blindado contra invenções de localização
     const promptText = `Atue como um corretor de imóveis de alto padrão e copywriter especialista.
 Analise as fotos e as características abaixo para criar um anúncio persuasivo.
 
@@ -30,9 +29,9 @@ DADOS REAIS DO IMÓVEL:
 ${caracteristicas}
 
 REGRAS ESTRITAS E OBRIGATÓRIAS:
-1. Seja 100% fiel à localização fornecida (${bairro}, ${cidade}). NÃO invente regiões (como "Zona Sul", "Zona Norte", "Centro"). Fale APENAS o nome do bairro real que foi fornecido.
-2. Não invente comodidades, móveis ou áreas de lazer que não estejam nas características ou nas fotos.
-3. Foque em valorizar os dados reais de forma comercial.
+1. Seja 100% fiel à localização fornecida (${bairro}, ${cidade}). NÃO invente regiões (como "Zona Sul", "Zona Norte", "Centro"). Fale APENAS o nome do bairro e da cidade reais que foram fornecidos.
+2. Não invente comodidades, móveis ou áreas de lazer que não estejam explicitamente nas características ou claramente visíveis nas fotos.
+3. Foque em valorizar os dados reais de forma comercial e atraente.
 
 Retorne EXATAMENTE um objeto JSON válido com as chaves:
 "titulo": "Um título chamativo e profissional para o anúncio (máx 60 caracteres)"
@@ -96,7 +95,7 @@ Retorne EXATAMENTE um objeto JSON válido com as chaves:
             { role: "user", content: [{ type: "text", text: promptText }].concat(fotosParaAnalisar.map(url => ({ type: "image_url", image_url: { url } }))) }
           ],
           response_format: { type: "json_object" },
-          max_tokens: 800 
+          max_tokens: 800
         })
       });
       if (respGroq.ok) {
