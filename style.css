@@ -256,36 +256,54 @@ section { padding: 100px 0; }
 .footer { background: var(--black); border-top: 1px solid rgba(201, 168, 76, 0.1); padding: 60px 0 0; position: relative; z-index: 2; }
 .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 40px; padding-bottom: 40px; }
 
-/* Logomarca principal do topo do footer */
-.footer-logo { height: 45px; width: auto; object-fit: contain; margin-bottom: 20px; }
+/* Logomarca principal do topo do footer - Aumentada a proporção */
+.footer-brand .footer-logo { 
+    max-height: 90px; 
+    width: auto; 
+    object-fit: contain; 
+    margin-bottom: 24px; 
+}
 
-/* Caixa alinhada para o CRECI e logo proporcional ao lado */
-.footer-creci-box { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
-.footer-creci-logo { height: 38px; width: 38px; object-fit: contain; border-radius: 4px; }
-.footer-creci-text { color: var(--silver); font-size: 13px; line-height: 1.4; }
+/* Caixa alinhada para o CRECI e logo ao lado */
+.footer-creci-box { 
+    display: flex; 
+    align-items: center; 
+    gap: 16px; 
+    margin-bottom: 24px; 
+}
+.footer-creci-logo { 
+    height: 48px; 
+    width: auto; 
+    object-fit: contain; 
+    border-radius: 4px; 
+}
+.footer-creci-text { 
+    color: var(--silver); 
+    font-size: 14px; 
+    line-height: 1.5; 
+}
 
-/* Ícones sociais coloridos e proporcionais */
-.social-links { display: flex; gap: 12px; align-items: center; }
+/* Ícones sociais idênticos à imagem (caixa escura com cantos arredondados) */
+.social-links { 
+    display: flex; 
+    gap: 12px; 
+    align-items: center; 
+}
 .social-links a { 
-    width: 40px; 
-    height: 40px; 
-    background: var(--black-lighter); 
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    border-radius: 8px; 
+    width: 44px; 
+    height: 44px; 
+    background: #1A1A1A; 
+    border: 1px solid rgba(255, 255, 255, 0.05); 
+    border-radius: 12px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     transition: var(--transition); 
 }
-.social-links a img {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-}
 .social-links a:hover { 
-    background: rgba(201, 168, 76, 0.15); 
-    border-color: var(--gold); 
-    transform: translateY(-2px);
+    background: #252525; 
+    border-color: rgba(201, 168, 76, 0.3); 
+    transform: translateY(-3px);
 }
 
 .footer-links h4, .footer-contact h4 { font-size: 1rem; margin-bottom: 20px; color: var(--gold); }
