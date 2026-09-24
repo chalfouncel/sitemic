@@ -1,8 +1,8 @@
 // --- CONFIGURAÇÃO DO SUPABASE ---
-const SUPABASE_URL = 'https://uztsmkhlvoemjbbyebcr.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_nmolEh_G5_hKcfdgy2Xpeg_s4T6ePAz';
+var SUPABASE_URL = 'https://uztsmkhlvoemjbbyebcr.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_nmolEh_G5_hKcfdgy2Xpeg_s4T6ePAz';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Navbar scroll effect
 const navbar = document.getElementById('navbar');
