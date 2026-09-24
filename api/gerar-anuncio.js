@@ -17,15 +17,23 @@ export default async function handler(req, res) {
       Quartos: ${quartos} (${suites} suítes)
       Banheiros: ${banheiros}
       Vagas: ${vagas}
-      Localização: ${bairro}, ${cidade}
+      Localização: Bairro ${bairro}, Cidade ${cidade}
       Mobiliado: ${mobiliado ? 'Sim - ' + detalhes_mobilia : 'Não'}
       Lazer/Comodidades: ${lazer && lazer.length > 0 ? lazer.join(', ') : 'Nenhum informado'}
     `;
 
+    // AQUI ESTÁ A MUDANÇA: Prompt blindado contra invenções de localização
     const promptText = `Atue como um corretor de imóveis de alto padrão e copywriter especialista.
 Analise as fotos e as características abaixo para criar um anúncio persuasivo.
-Características do Imóvel:
+
+DADOS REAIS DO IMÓVEL:
 ${caracteristicas}
+
+REGRAS ESTRITAS E OBRIGATÓRIAS:
+1. Seja 100% fiel à localização fornecida (${bairro}, ${cidade}). NÃO invente regiões (como "Zona Sul", "Zona Norte", "Centro"). Fale APENAS o nome do bairro real que foi fornecido.
+2. Não invente comodidades, móveis ou áreas de lazer que não estejam nas características ou nas fotos.
+3. Foque em valorizar os dados reais de forma comercial.
+
 Retorne EXATAMENTE um objeto JSON válido com as chaves:
 "titulo": "Um título chamativo e profissional para o anúncio (máx 60 caracteres)"
 "descricao": "Uma descrição detalhada, engajadora e comercial valorizando os pontos fortes visíveis nas fotos e os dados fornecidos. Formate o texto em parágrafos agradáveis para leitura."`;
@@ -51,7 +59,6 @@ Retorne EXATAMENTE um objeto JSON válido com as chaves:
     // 1. TENTAR GEMINI
     try {
       console.log("Tentando GEMINI...");
-      // CORREÇÃO GEMINI: Removido o "-latest" para usar o modelo estável padrão
       const respGemini = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.PORTAL_GEMINI_API_KEY}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -89,7 +96,7 @@ Retorne EXATAMENTE um objeto JSON válido com as chaves:
             { role: "user", content: [{ type: "text", text: promptText }].concat(fotosParaAnalisar.map(url => ({ type: "image_url", image_url: { url } }))) }
           ],
           response_format: { type: "json_object" },
-          max_tokens: 800 // CORREÇÃO GROQ: Limitando para não estourar o limite de 1000 tokens do plano
+          max_tokens: 800 
         })
       });
       if (respGroq.ok) {
