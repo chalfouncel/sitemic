@@ -252,7 +252,7 @@ section { padding: 100px 0; }
 .form-group textarea { resize: vertical; min-height: 100px; }
 .btn-full { width: 100%; height: auto; }
 
-/* ===== FOOTER (CORREÇÃO DE PROPORÇÃO E ALINHAMENTO) ===== */
+/* ===== FOOTER (CORREÇÃO DE PROPORÇÃO E ÍCONES SOCIAIS MAIORES) ===== */
 .footer { background: var(--black); border-top: 1px solid rgba(201, 168, 76, 0.1); padding: 60px 0 0; position: relative; z-index: 2; }
 .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 40px; padding-bottom: 40px; }
 
@@ -264,22 +264,22 @@ section { padding: 100px 0; }
 .footer-creci-logo { height: 38px; width: 38px; object-fit: contain; border-radius: 4px; }
 .footer-creci-text { color: var(--silver); font-size: 13px; line-height: 1.4; }
 
-/* Ícones sociais coloridos e proporcionais */
-.social-links { display: flex; gap: 12px; align-items: center; }
+/* Ícones sociais maiores, proporcionais e com cores oficiais */
+.social-links { display: flex; gap: 14px; align-items: center; }
 .social-links a { 
-    width: 40px; 
-    height: 40px; 
+    width: 48px; 
+    height: 48px; 
     background: var(--black-lighter); 
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    border-radius: 8px; 
+    border: 1px solid rgba(255, 255, 255, 0.12); 
+    border-radius: 10px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     transition: var(--transition); 
 }
 .social-links a img {
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     object-fit: contain;
 }
 .social-links a:hover { 
