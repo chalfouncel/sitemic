@@ -1,3 +1,10 @@
+// --- CONFIGURAÇÃO DO SUPABASE ---
+// Substitua pelas credenciais do seu projeto Supabase (Project Settings -> API)
+const SUPABASE_URL = 'SUA_URL_DO_SUPABASE';
+const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANON_DO_SUPABASE';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // Navbar scroll effect
 const navbar = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
@@ -57,13 +64,47 @@ if (statsSection) {
     observer.observe(statsSection);
 }
 
-// Form submission
+// --- FORMULÁRIO DE CONTATO (Envio para o Supabase) ---
 const form = document.getElementById('contatoForm');
+const formFeedback = document.getElementById('formFeedback');
+
 if (form) {
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');
-        form.reset();
+
+        // Capturar os valores dos campos
+        const nome = document.getElementById('nomeLead').value;
+        const telefone = document.getElementById('telefoneLead').value;
+        const email = document.getElementById('emailLead').value;
+        const interesse = document.getElementById('interesseLead').value;
+        const mensagem = document.getElementById('mensagemLead').value;
+
+        // Mostrar mensagem de envio em curso
+        formFeedback.style.display = 'block';
+        formFeedback.style.color = 'var(--silver)';
+        formFeedback.innerText = 'A enviar a sua mensagem...';
+
+        // Inserir na tabela 'leads' no Supabase
+        const { data, error } = await supabase
+            .from('leads')
+            .insert([
+                { nome: nome, telefone: telefone, email: email, interesse: interesse, mensagem: mensagem }
+            ]);
+
+        if (error) {
+            console.error('Erro ao guardar lead:', error);
+            formFeedback.style.color = '#ff4444'; // Vermelho para erro
+            formFeedback.innerText = 'Ocorreu um erro ao enviar. Tente novamente ou contacte por WhatsApp.';
+        } else {
+            formFeedback.style.color = 'var(--gold)'; // Dourado para sucesso
+            formFeedback.innerText = 'Mensagem enviada com sucesso! Entraremos em contacto em breve.';
+            form.reset(); // Limpa o formulário
+            
+            // Esconder a mensagem de sucesso após 5 segundos
+            setTimeout(() => {
+                formFeedback.style.display = 'none';
+            }, 5000);
+        }
     });
 }
 
