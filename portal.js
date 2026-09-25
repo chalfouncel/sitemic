@@ -6,6 +6,9 @@ var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const loginSection = document.getElementById('loginSection');
 const dashboardSection = document.getElementById('dashboardSection');
 
+// Variável de controle para falhas da IA
+let tentativasIA = 0;
+
 // Verifica sessão
 async function checarSessao() {
     const { data: { session } } = await supabase.auth.getSession();
@@ -115,8 +118,9 @@ let urlsDasFotosEnviadas = []; // Salva as URLs após o upload pela IA para não
 const fileInput = document.getElementById('imoFotos');
 if(fileInput) {
     fileInput.addEventListener('change', async function(e) {
-        // Se trocar as fotos, obriga a gerar a IA de novo
+        // Se trocar as fotos, obriga a gerar a IA de novo (ou zera a contingência)
         urlsDasFotosEnviadas = [];
+        tentativasIA = 0; // Zera as tentativas ao trocar de foto
         document.getElementById('btnSubmit').disabled = true;
         document.getElementById('btnGerarIA').innerText = '✨ Analisar e Gerar Anúncio com IA';
         document.getElementById('btnGerarIA').disabled = false;
@@ -183,6 +187,7 @@ async function gerarTextoIA() {
 
     const btnIA = document.getElementById('btnGerarIA');
     const msg = document.getElementById('imovelMsg');
+    const btnSubmit = document.getElementById('btnSubmit');
     
     btnIA.disabled = true;
     btnIA.innerText = '⏳ Fazendo upload e analisando... (Isso pode demorar alguns segundos)';
@@ -225,7 +230,7 @@ async function gerarTextoIA() {
             fotosUrls: urlsDasFotosEnviadas // Mandamos os links para a IA olhar
         };
 
-        // Passo 2: Mandar para a sua rota na Vercel (onde você conectará o Gemini/ChatGPT)
+        // Passo 2: Mandar para a rota na Vercel
         const response = await fetch('/api/gerar-anuncio', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -240,17 +245,38 @@ async function gerarTextoIA() {
         document.getElementById('imoTitulo').value = dadosIA.titulo || "Título gerado indisponível";
         document.getElementById('imoDescricao').value = dadosIA.descricao || "Descrição gerada indisponível";
 
-        // Passo 4: Habilitar publicação
-        document.getElementById('btnSubmit').disabled = false;
+        // Sucesso: Zera as tentativas e habilita a publicação
+        tentativasIA = 0;
+        btnSubmit.disabled = false;
         btnIA.innerText = '✅ Anúncio Gerado com Sucesso! Sinta-se livre para editar os textos acima.';
-        btnIA.style.background = '#0F9D58'; // Verde mais escuro pra mostrar que concluiu
+        btnIA.style.background = '#0F9D58'; // Verde mais escuro
 
     } catch (error) {
         console.error(error);
+        tentativasIA++; // Incrementa o contador de falhas
+        
         btnIA.disabled = false;
-        btnIA.innerText = '❌ Falha ao gerar. Tentar novamente';
-        msg.style.color = '#ff4444';
-        msg.innerText = 'Erro de comunicação com a IA. A rota /api/gerar-anuncio está configurada na Vercel?';
+        
+        if (tentativasIA >= 2) {
+            // Se falhou 2 vezes, ativa o plano de contingência (libera botão manual)
+            btnIA.innerText = '⚠️ IA Indisponível. Publicação Manual Liberada.';
+            btnIA.style.background = '#e6a100'; // Laranja de aviso
+            btnIA.disabled = true; // Desabilita o botão da IA para evitar frustração contínua
+            
+            msg.style.color = '#e6a100';
+            msg.innerHTML = 'Houve instabilidade nos servidores de IA. <br><b>O botão de publicar foi desbloqueado!</b> Você pode preencher o Título e a Descrição manualmente e publicar o imóvel.';
+            
+            // Foca no título para induzir o usuário a preencher
+            document.getElementById('imoTitulo').focus();
+            
+            // LIBERA O BOTÃO DE SUBMIT!
+            btnSubmit.disabled = false;
+        } else {
+            // Primeira falha: Pede para tentar de novo
+            btnIA.innerText = '❌ Falha ao gerar. Tentar novamente (' + tentativasIA + '/2)';
+            msg.style.color = '#ff4444';
+            msg.innerText = 'Erro de comunicação com a IA. Os servidores podem estar sobrecarregados. Tente novamente.';
+        }
     }
 }
 
@@ -263,12 +289,24 @@ if (formImovel) {
         msg.style.color = 'var(--gold)';
         msg.innerText = 'Gravando imóvel no banco de dados...';
 
+        // Validação extra caso seja publicação manual via contingência
+        const titulo = document.getElementById('imoTitulo').value.trim();
+        const descricao = document.getElementById('imoDescricao').value.trim();
+        
+        if (tentativasIA >= 2 && (!titulo || !descricao)) {
+            msg.style.color = '#ff4444';
+            msg.innerText = 'Por favor, preencha manualmente o Título e a Descrição antes de publicar.';
+            if(!titulo) document.getElementById('imoTitulo').focus();
+            else document.getElementById('imoDescricao').focus();
+            return;
+        }
+
         const itensLazer = [];
         document.querySelectorAll('input[name="lazer"]:checked').forEach(cb => itensLazer.push(cb.value));
 
         const payload = {
-            titulo: document.getElementById('imoTitulo').value,
-            descricao: document.getElementById('imoDescricao').value,
+            titulo: titulo,
+            descricao: descricao,
             tipo: document.getElementById('imoTipo').value,
             finalidade: document.getElementById('imoFinalidade').value,
             valor_venda: document.getElementById('imoVenda').value || null,
@@ -310,7 +348,8 @@ if (formImovel) {
             msg.innerText = 'Imóvel publicado com sucesso!';
             formImovel.reset();
             
-            // Reseta a interface
+            // Reseta a interface e a contingência
+            tentativasIA = 0;
             document.getElementById('div-detalhes-mobilia').style.display = 'none'; 
             document.getElementById('previewFotos').innerHTML = '';
             fotosProcessadas = [];
