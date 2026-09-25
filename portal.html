@@ -26,7 +26,7 @@
         
         #dashboardSection { display: none; }
         .nav-tabs { display: flex; gap: 12px; margin-bottom: 30px; flex-wrap: wrap; }
-        .nav-tabs button { width: auto; padding: 12px 24px; background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+        .nav-tabs button { width: auto; padding: 12px 18px; background: transparent; color: var(--gold); border: 1px solid var(--gold); }
         .nav-tabs button.active { background: var(--gold); color: black; }
         .nav-tabs button.btn-danger { border-color: #ff4444; color: #ff4444; margin-left: auto; }
         .nav-tabs button.btn-danger:hover { background: #ff4444; color: white; }
@@ -60,46 +60,40 @@
         .badge.atendimento { background: rgba(201, 168, 76, 0.2); color: var(--gold); }
         .badge.concluido { background: rgba(154, 154, 154, 0.2); color: var(--gray); }
 
-        /* ===== RESPONSIVIDADE PARA CELULAR (Mesma dinâmica do Site) ===== */
+        /* ===== RESPONSIVIDADE PARA CELULAR ===== */
         @media (max-width: 768px) { 
             .container { padding: 16px; }
             .header { padding: 20px 0; margin-bottom: 20px; }
             .header img { height: 50px; } 
             
-            /* Ajustes no Login */
             #loginSection { margin: 20px auto; padding: 24px 20px; width: 100%; box-sizing: border-box; }
             
-            /* Abas de Navegação maiores e empilhadas */
             .nav-tabs { flex-direction: column; gap: 10px; margin-bottom: 20px; }
             .nav-tabs button { width: 100%; text-align: center; height: 50px; }
             .nav-tabs button.btn-danger { margin-left: 0; }
             
-            /* Grid do Formulário em 1 coluna */
             .grid-form { grid-template-columns: 1fr; gap: 16px; } 
             .full-width { grid-column: span 1; } 
             
-            /* Cartões com margens menores */
             .card { padding: 20px 16px; }
             .card h2 { font-size: 1.5rem; text-align: center; }
 
-            /* Botões Mobília (Sim/Não) ocupando toda a tela */
             .btn-group { flex-direction: column; gap: 8px; }
             .btn-group label { width: 100%; box-sizing: border-box; height: 46px; display: flex; align-items: center; justify-content: center; }
             
-            /* Checkboxes em formato de lista p/ toque fácil */
             .checkbox-grid { grid-template-columns: 1fr; gap: 16px; padding: 16px; }
             .checkbox-item { font-size: 15px; padding: 4px 0; }
             .checkbox-item input[type="checkbox"] { width: 22px; height: 22px; }
 
-            /* Botões Finais de Ação Gigantes */
             #btnGerarIA, #btnSubmit { max-width: 100%; height: 54px; font-size: 15px; margin-top: 10px; }
             
-            /* Tabela de Leads adaptada */
             .leads-table { display: block; overflow-x: auto; white-space: nowrap; }
             .leads-table th, .leads-table td { padding: 12px 10px; font-size: 13px; }
             
-            /* Layout Mobile para as imagens upadas */
             #previewFotos { justify-content: center; }
+            
+            .box-busca { flex-direction: column; }
+            .box-busca button { width: 100% !important; }
         }
     </style>
 </head>
@@ -129,6 +123,7 @@
         <div id="dashboardSection">
             <div class="nav-tabs">
                 <button id="btnAbaImovel" class="active" onclick="mudarAba('imovel')">Cadastrar Imóvel</button>
+                <button id="btnAbaGestao" onclick="mudarAba('gestao')">Gerenciar Imóveis</button>
                 <button id="btnAbaLeads" onclick="mudarAba('leads')">Leads Recebidos</button>
                 <button class="btn-danger" onclick="fazerLogout()">Sair do Sistema</button>
             </div>
@@ -139,7 +134,7 @@
                 <form id="formImovel">
                     <div class="grid-form">
                         
-                        <!-- TÍTULO (EDITÁVEL) COM TRAVA DE 100 CARACTERES -->
+                        <!-- TÍTULO -->
                         <div class="form-group full-width">
                             <label>Título do Anúncio (Gerado por IA ou Manual)</label>
                             <input type="text" id="imoTitulo" maxlength="100" placeholder="A Inteligência Artificial criará o título após a análise, mas você pode editar livremente...">
@@ -250,7 +245,7 @@
                             </div>
                         </div>
 
-                        <!-- ENDEREÇO DESMEMBRADO ZAP -->
+                        <!-- ENDEREÇO -->
                         <div class="form-group">
                             <label>CEP</label>
                             <input type="text" id="imoCep" placeholder="00000-000">
@@ -293,7 +288,7 @@
                             <div id="previewFotos"></div>
                         </div>
                         
-                        <!-- NOVO: VÍDEO -->
+                        <!-- VÍDEO -->
                         <div class="form-group full-width">
                             <label>Vídeo de Apresentação (Opcional - MP4)</label>
                             <input type="file" id="imoVideo" accept="video/mp4,video/x-m4v,video/*">
@@ -301,13 +296,26 @@
                         </div>
                     </div>
                     
-                    <!-- BOTÕES DE AÇÃO -->
                     <button type="button" id="btnGerarIA" onclick="gerarTextoIA()" style="margin-top:20px; width: 100%; max-width: 400px; display: block; margin-left: auto; margin-right: auto; background: #25D366; color: white;">✨ Analisar e Gerar Anúncio com IA</button>
                     
                     <button type="submit" id="btnSubmit" style="margin-top:15px; width: 100%; max-width: 400px; display: block; margin-left: auto; margin-right: auto;" disabled>Publicar Imóvel</button>
                     
                     <p id="imovelMsg" style="text-align:center; margin-top:15px; font-weight: 600;"></p>
                 </form>
+            </div>
+
+            <!-- ABA GERENCIAR IMÓVEIS (NOVA) -->
+            <div id="abaGestao" class="card" style="display:none;">
+                <h2>Buscar e Gerenciar Anúncio</h2>
+                <div class="form-group box-busca" style="display: flex; gap: 10px;">
+                    <input type="text" id="buscaRef" placeholder="Digite a referência (Ex: MIC_0001)" style="text-transform: uppercase;">
+                    <button onclick="buscarAnuncio()" style="width: auto; padding: 0 30px;">Buscar</button>
+                </div>
+                <p id="msgBusca" style="font-size: 14px; margin-top: 0;"></p>
+                
+                <div id="resultadoBusca" style="display:none; background: var(--black); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-top: 20px;">
+                    <!-- Preenchido via JS -->
+                </div>
             </div>
 
             <!-- ABA LEADS -->
