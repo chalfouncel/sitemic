@@ -289,10 +289,14 @@ if (formImovel) {
         msg.style.color = 'var(--gold)';
         msg.innerText = 'Gravando imóvel no banco de dados...';
 
-        // Validação extra caso seja publicação manual via contingência
-        const titulo = document.getElementById('imoTitulo').value.trim();
-        const descricao = document.getElementById('imoDescricao').value.trim();
+        // Captura e força o limite máximo de caracteres (Corte de Segurança para Zap Imóveis)
+        const tituloBruto = document.getElementById('imoTitulo').value.trim();
+        const descricaoBruta = document.getElementById('imoDescricao').value.trim();
         
+        const titulo = tituloBruto.substring(0, 100);
+        const descricao = descricaoBruta.substring(0, 3000);
+
+        // Validação extra caso seja publicação manual via contingência (ou se a IA falhou em trazer texto)
         if (tentativasIA >= 2 && (!titulo || !descricao)) {
             msg.style.color = '#ff4444';
             msg.innerText = 'Por favor, preencha manualmente o Título e a Descrição antes de publicar.';
