@@ -50,13 +50,19 @@ async function fazerLogout() {
 
 function mudarAba(aba) {
     document.getElementById('btnAbaImovel').classList.remove('active');
+    document.getElementById('btnAbaGestao').classList.remove('active');
     document.getElementById('btnAbaLeads').classList.remove('active');
+    
     document.getElementById('abaImovel').style.display = 'none';
+    document.getElementById('abaGestao').style.display = 'none';
     document.getElementById('abaLeads').style.display = 'none';
 
     if(aba === 'imovel') {
         document.getElementById('btnAbaImovel').classList.add('active');
         document.getElementById('abaImovel').style.display = 'block';
+    } else if(aba === 'gestao') {
+        document.getElementById('btnAbaGestao').classList.add('active');
+        document.getElementById('abaGestao').style.display = 'block';
     } else {
         document.getElementById('btnAbaLeads').classList.add('active');
         document.getElementById('abaLeads').style.display = 'block';
@@ -291,9 +297,7 @@ if (formImovel) {
             return;
         }
 
-        // ==========================================
-        // UPLOAD DO VÍDEO (NOVO)
-        // ==========================================
+        // UPLOAD DO VÍDEO
         let videoUrl = null;
         const videoInput = document.getElementById('imoVideo');
         if (videoInput && videoInput.files.length > 0) {
@@ -310,7 +314,6 @@ if (formImovel) {
                 console.error("Erro no upload do vídeo:", vError);
             }
         }
-        // ==========================================
 
         const itensLazer = [];
         document.querySelectorAll('input[name="lazer"]:checked').forEach(cb => itensLazer.push(cb.value));
@@ -344,7 +347,7 @@ if (formImovel) {
             estado: document.getElementById('imoEstado').value,
             
             fotos: urlsDasFotosEnviadas, 
-            video: videoUrl, // INSERE A URL DO VÍDEO NO BANCO
+            video: videoUrl,
             status: 'Ativo'
         };
 
@@ -377,7 +380,172 @@ if (formImovel) {
     });
 }
 
-// Lógica de Leads (Inalterada)
+// ==========================================
+// NOVA LÓGICA: GESTÃO DE ANÚNCIOS (Inativar/Excluir)
+// ==========================================
+let imovelEmGestao = null;
+
+async function buscarAnuncio() {
+    let ref = document.getElementById('buscaRef').value.trim().toUpperCase();
+    const msg = document.getElementById('msgBusca');
+    const resultDiv = document.getElementById('resultadoBusca');
+    
+    if(!ref) {
+        msg.style.color = '#ff4444';
+        msg.innerText = 'Digite uma referência válida (ex: MIC_0001).';
+        return;
+    }
+
+    msg.style.color = 'var(--gold)';
+    msg.innerText = 'Buscando anúncio...';
+    resultDiv.style.display = 'none';
+    cancelarAcao(); // Fecha painel de confirmação se estiver aberto
+
+    // Busca no banco por referência
+    const { data, error } = await supabase.from('imoveis').select('*').eq('referencia', ref).single();
+
+    if (error || !data) {
+        msg.style.color = '#ff4444';
+        msg.innerText = 'Nenhum imóvel encontrado com essa referência. Tente novamente.';
+        return;
+    }
+
+    msg.innerText = '';
+    imovelEmGestao = data;
+    
+    // Status atual verifica maiúscula/minúscula (Ativo, ativo, Inativo)
+    const isAtivo = (data.status === 'Ativo' || data.status === 'ativo');
+    const statusAtualTexto = isAtivo ? 'Ativo (Visível no site)' : 'Inativo (Oculto)';
+    const statusAtualCor = isAtivo ? '#25D366' : '#ff4444';
+    
+    const btnInativarTexto = isAtivo ? 'Inativar Anúncio' : 'Reativar Anúncio';
+    const btnInativarCor = isAtivo ? '#e6a100' : '#25D366';
+    const novoStatus = isAtivo ? 'Inativo' : 'Ativo';
+
+    resultDiv.innerHTML = `
+        <h3 style="color: var(--gold); margin-top: 0; margin-bottom: 10px;">${data.titulo}</h3>
+        <p style="margin: 5px 0;"><strong>Referência:</strong> ${data.referencia}</p>
+        <p style="margin: 5px 0;"><strong>Status Atual:</strong> <span style="color: ${statusAtualCor}; font-weight: bold;">${statusAtualTexto}</span></p>
+        <p style="margin: 5px 0;"><strong>Finalidade:</strong> ${data.finalidade} | <strong>Tipo:</strong> ${data.tipo}</p>
+        <p style="margin: 5px 0;"><strong>Local:</strong> ${data.bairro || ''} - ${data.cidade || ''}</p>
+        
+        <div style="display: flex; gap: 10px; margin-top: 25px; flex-wrap: wrap;">
+            <button id="btnAcaoInativar" onclick="confirmarAcao('inativar', '${data.id}', '${novoStatus}')" style="background: ${btnInativarCor}; color: white; width: auto; flex: 1;">${btnInativarTexto}</button>
+            <button id="btnAcaoExcluir" onclick="confirmarAcao('excluir', '${data.id}')" style="background: #ff4444; color: white; width: auto; flex: 1;">Excluir Permanentemente</button>
+        </div>
+        
+        <!-- PAINEL DE DUPLA CONFIRMAÇÃO -->
+        <div id="areaConfirmacao" style="display:none; margin-top: 15px; padding: 20px; background: rgba(255,68,68,0.1); border: 1px solid #ff4444; border-radius: 4px;">
+            <p id="textoConfirmacao" style="margin-top: 0; margin-bottom: 20px; font-weight: 500; font-size: 15px;"></p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button id="btnConfirmaSim" style="background: #ff4444; color: white; flex: 1;">SIM, TENHO CERTEZA</button>
+                <button onclick="cancelarAcao()" style="background: transparent; border: 1px solid var(--gray); color: var(--gray); flex: 1;">Cancelar</button>
+            </div>
+        </div>
+    `;
+    resultDiv.style.display = 'block';
+}
+
+function confirmarAcao(acao, id, parametroExtra = null) {
+    const area = document.getElementById('areaConfirmacao');
+    const texto = document.getElementById('textoConfirmacao');
+    const btnSim = document.getElementById('btnConfirmaSim');
+
+    area.style.display = 'block';
+    document.getElementById('btnAcaoInativar').style.display = 'none';
+    document.getElementById('btnAcaoExcluir').style.display = 'none';
+
+    if(acao === 'inativar') {
+        area.style.background = 'rgba(230,161,0,0.1)';
+        area.style.borderColor = '#e6a100';
+        texto.innerText = parametroExtra === 'Inativo' ? 'Tem certeza que deseja OCULTAR este anúncio do site público?' : 'Tem certeza que deseja REATIVAR este anúncio e mostrá-lo no site público?';
+        btnSim.style.background = '#e6a100';
+        btnSim.onclick = () => executarStatus(id, parametroExtra);
+    } else if (acao === 'excluir') {
+        area.style.background = 'rgba(255,68,68,0.1)';
+        area.style.borderColor = '#ff4444';
+        texto.innerHTML = '<strong>ATENÇÃO (IRREVERSÍVEL):</strong> Esta ação apagará o imóvel e excluirá todas as suas fotos e vídeos do banco de dados para não ocupar espaço. Tem certeza?';
+        btnSim.style.background = '#ff4444';
+        btnSim.onclick = () => executarExclusao(id);
+    }
+}
+
+function cancelarAcao() {
+    const area = document.getElementById('areaConfirmacao');
+    if(area) area.style.display = 'none';
+    
+    const btnInat = document.getElementById('btnAcaoInativar');
+    const btnExcl = document.getElementById('btnAcaoExcluir');
+    if(btnInat) btnInat.style.display = 'block';
+    if(btnExcl) btnExcl.style.display = 'block';
+}
+
+async function executarStatus(id, novoStatus) {
+    document.getElementById('textoConfirmacao').innerText = 'Processando...';
+    document.getElementById('btnConfirmaSim').disabled = true;
+
+    const { error } = await supabase.from('imoveis').update({ status: novoStatus }).eq('id', id);
+    
+    if(!error) {
+        alert(`O anúncio foi marcado como ${novoStatus} com sucesso!`);
+        buscarAnuncio(); // Recarrega os dados do anúncio na tela
+    } else {
+        alert('Erro ao tentar mudar o status.');
+        cancelarAcao();
+    }
+}
+
+// Função para descobrir o nome interno do arquivo no Supabase Storage a partir do Link Público
+function extrairPathDoStorage(url) {
+    if(!url) return null;
+    const nomeBucket = 'imoveis_fotos/';
+    if(url.includes(nomeBucket)) {
+        return url.split(nomeBucket)[1];
+    }
+    return null;
+}
+
+async function executarExclusao(id) {
+    document.getElementById('textoConfirmacao').innerText = 'Limpando mídias e excluindo registro... Por favor, não feche a página.';
+    document.getElementById('btnConfirmaSim').disabled = true;
+
+    let arquivosParaApagar = [];
+    
+    // Lista fotos para apagar
+    if(imovelEmGestao.fotos && imovelEmGestao.fotos.length > 0) {
+        imovelEmGestao.fotos.forEach(url => {
+            let path = extrairPathDoStorage(url);
+            if(path) arquivosParaApagar.push(path);
+        });
+    }
+    
+    // Lista vídeo para apagar
+    if(imovelEmGestao.video) {
+        let pathVideo = extrairPathDoStorage(imovelEmGestao.video);
+        if(pathVideo) arquivosParaApagar.push(pathVideo);
+    }
+
+    // 1. Apaga do Storage (evita lixo acumulado no servidor)
+    if(arquivosParaApagar.length > 0) {
+        await supabase.storage.from('imoveis_fotos').remove(arquivosParaApagar);
+    }
+
+    // 2. Apaga da tabela Imóveis
+    const { error } = await supabase.from('imoveis').delete().eq('id', id);
+
+    if(!error) {
+        alert('Imóvel excluído permanentemente com sucesso!');
+        document.getElementById('resultadoBusca').style.display = 'none';
+        document.getElementById('buscaRef').value = '';
+        imovelEmGestao = null;
+    } else {
+        alert('Erro ao tentar excluir o registro do banco.');
+        cancelarAcao();
+    }
+}
+// ==========================================
+
+// Lógica de Leads
 async function carregarLeads() {
     const loading = document.getElementById('loadingLeads');
     const tabela = document.getElementById('tabelaLeads');
