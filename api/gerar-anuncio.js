@@ -64,8 +64,8 @@ REGRAS ESTRITAS E OBRIGATÓRIAS:
 RETORNE EXATAMENTE UM JSON. INICIE COM { E TERMINE COM }. NÃO ESCREVA MAIS NADA ALÉM DO JSON.
 Exemplo de formato esperado:
 {
-  "titulo": "Título com máximo de 60 caracteres",
-  "descricao": "Descrição detalhada separada por parágrafos agradáveis..."
+  "titulo": "Título com no máximo 100 caracteres",
+  "descricao": "Descrição detalhada com no máximo 3000 caracteres, separada por parágrafos agradáveis..."
 }`;
 
     // Pega apenas a primeira URL para não estourar limites
