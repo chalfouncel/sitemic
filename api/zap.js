@@ -4,8 +4,8 @@ export default async function handler(req, res) {
     const SUPABASE_ANON_KEY = 'sb_publishable_nmolEh_G5_hKcfdgy2Xpeg_s4T6ePAz';
 
     try {
-        // Vai buscar todos os imóveis Ativos diretamente à sua base de dados
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/imoveis?status=eq.Ativo&select=*`, {
+        // Busca os imóveis que estão ativos (cobre "Ativo" e "ativo" para evitar erros)
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/imoveis?status=in.(Ativo,ativo)&select=*`, {
             headers: {
                 'apikey': SUPABASE_ANON_KEY,
                 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
@@ -19,7 +19,15 @@ export default async function handler(req, res) {
         // Transforma cada imóvel no formato XML exigido pelo portal
         imoveis.forEach(imovel => {
             xml += `  <Imovel>\n`;
-            xml += `    <CodigoImovel>${imovel.id}</CodigoImovel>\n`;
+            
+            // UTILIZANDO A REFERÊNCIA CURTA COMO CÓDIGO (Ex: MIC_0001)
+            xml += `    <CodigoImovel>${imovel.referencia || imovel.id}</CodigoImovel>\n`;
+            
+            // TÍTULO GERADO PELA IA
+            if (imovel.titulo) {
+                xml += `    <TituloImovel><![CDATA[${imovel.titulo}]]></TituloImovel>\n`;
+            }
+
             xml += `    <TipoImovel>${imovel.tipo}</TipoImovel>\n`;
             xml += `    <SubTipoImovel>${imovel.tipo}</SubTipoImovel>\n`;
             xml += `    <CategoriaImovel>Padrão</CategoriaImovel>\n`;
@@ -40,7 +48,21 @@ export default async function handler(req, res) {
             if (imovel.area_util) xml += `    <AreaUtil>${imovel.area_util}</AreaUtil>\n`;
             if (imovel.area_total) xml += `    <AreaTotal>${imovel.area_total}</AreaTotal>\n`;
 
-            // O Zap exige a localização desmembrada
+            // CARACTERÍSTICAS (Itens de lazer e mobília que afetam os filtros do Zap)
+            if ((imovel.itens_lazer && imovel.itens_lazer.length > 0) || imovel.mobiliado) {
+                xml += `    <Caracteristicas>\n`;
+                if (imovel.itens_lazer) {
+                    imovel.itens_lazer.forEach(item => {
+                        xml += `      <Caracteristica>${item}</Caracteristica>\n`;
+                    });
+                }
+                if (imovel.mobiliado) {
+                    xml += `      <Caracteristica>Mobiliado</Caracteristica>\n`;
+                }
+                xml += `    </Caracteristicas>\n`;
+            }
+
+            // LOCALIZAÇÃO
             xml += `    <Localizacao>\n`;
             xml += `      <CEP>${imovel.cep || ''}</CEP>\n`;
             xml += `      <Estado>${imovel.estado || ''}</Estado>\n`;
@@ -48,13 +70,13 @@ export default async function handler(req, res) {
             xml += `      <Bairro>${imovel.bairro || ''}</Bairro>\n`;
             xml += `      <Logradouro>${imovel.endereco || ''}</Logradouro>\n`;
             xml += `      <Numero>${imovel.numero || ''}</Numero>\n`;
-            // O complemento é interno, geralmente não se envia para o Zap por segurança, mas se quiser enviar, basta descomentar a linha abaixo:
             // xml += `      <Complemento>${imovel.complemento || ''}</Complemento>\n`;
             xml += `    </Localizacao>\n`;
 
-            // Descrição e Fotos
+            // DESCRIÇÃO
             xml += `    <Observacao><![CDATA[${imovel.descricao || ''}]]></Observacao>\n`;
 
+            // FOTOS
             if (imovel.fotos && imovel.fotos.length > 0) {
                 xml += `    <Fotos>\n`;
                 imovel.fotos.forEach((fotoUrl, idx) => {
@@ -65,6 +87,15 @@ export default async function handler(req, res) {
                     xml += `      </Foto>\n`;
                 });
                 xml += `    </Fotos>\n`;
+            }
+
+            // VÍDEO NOVO ADICIONADO
+            if (imovel.video) {
+                xml += `    <Videos>\n`;
+                xml += `      <Video>\n`;
+                xml += `        <URLArquivo>${imovel.video}</URLArquivo>\n`;
+                xml += `      </Video>\n`;
+                xml += `    </Videos>\n`;
             }
 
             xml += `  </Imovel>\n`;
