@@ -113,19 +113,17 @@ if (cepInput) {
 
 // Processamento de Fotos (Marca D'água)
 let fotosProcessadas = [];
-let urlsDasFotosEnviadas = []; // Salva as URLs após o upload pela IA para não duplicar no Publish
+let urlsDasFotosEnviadas = []; 
 
 const fileInput = document.getElementById('imoFotos');
 if(fileInput) {
     fileInput.addEventListener('change', async function(e) {
-        // Se trocar as fotos, obriga a gerar a IA de novo (ou zera a contingência)
         urlsDasFotosEnviadas = [];
-        tentativasIA = 0; // Zera as tentativas ao trocar de foto
+        tentativasIA = 0; 
         document.getElementById('btnSubmit').disabled = true;
         document.getElementById('btnGerarIA').innerText = '✨ Analisar e Gerar Anúncio com IA';
         document.getElementById('btnGerarIA').disabled = false;
         
-        // Limpa os campos para o placeholder aparecer
         document.getElementById('imoTitulo').value = '';
         document.getElementById('imoDescricao').value = '';
 
@@ -194,7 +192,6 @@ async function gerarTextoIA() {
     msg.innerText = '';
 
     try {
-        // Passo 1: Fazer upload das fotos para o Supabase (se ainda não foram feitas)
         if (urlsDasFotosEnviadas.length === 0) {
             for(let file of fotosProcessadas) {
                 const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
@@ -207,7 +204,6 @@ async function gerarTextoIA() {
             }
         }
 
-        // Capturar características para mandar para a IA
         const itensLazer = [];
         document.querySelectorAll('input[name="lazer"]:checked').forEach(cb => itensLazer.push(cb.value));
         const isMobiliado = document.getElementById('mobSim').checked;
@@ -227,10 +223,9 @@ async function gerarTextoIA() {
             mobiliado: isMobiliado,
             detalhes_mobilia: detalhesMobilia,
             lazer: itensLazer,
-            fotosUrls: urlsDasFotosEnviadas // Mandamos os links para a IA olhar
+            fotosUrls: urlsDasFotosEnviadas
         };
 
-        // Passo 2: Mandar para a rota na Vercel
         const response = await fetch('/api/gerar-anuncio', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -241,38 +236,31 @@ async function gerarTextoIA() {
 
         const dadosIA = await response.json();
 
-        // Passo 3: Preencher os campos editáveis
         document.getElementById('imoTitulo').value = dadosIA.titulo || "Título gerado indisponível";
         document.getElementById('imoDescricao').value = dadosIA.descricao || "Descrição gerada indisponível";
 
-        // Sucesso: Zera as tentativas e habilita a publicação
         tentativasIA = 0;
         btnSubmit.disabled = false;
         btnIA.innerText = '✅ Anúncio Gerado com Sucesso! Sinta-se livre para editar os textos acima.';
-        btnIA.style.background = '#0F9D58'; // Verde mais escuro
+        btnIA.style.background = '#0F9D58'; 
 
     } catch (error) {
         console.error(error);
-        tentativasIA++; // Incrementa o contador de falhas
+        tentativasIA++; 
         
         btnIA.disabled = false;
         
         if (tentativasIA >= 2) {
-            // Se falhou 2 vezes, ativa o plano de contingência (libera botão manual)
             btnIA.innerText = '⚠️ IA Indisponível. Publicação Manual Liberada.';
-            btnIA.style.background = '#e6a100'; // Laranja de aviso
-            btnIA.disabled = true; // Desabilita o botão da IA para evitar frustração contínua
+            btnIA.style.background = '#e6a100'; 
+            btnIA.disabled = true; 
             
             msg.style.color = '#e6a100';
             msg.innerHTML = 'Houve instabilidade nos servidores de IA. <br><b>O botão de publicar foi desbloqueado!</b> Você pode preencher o Título e a Descrição manualmente e publicar o imóvel.';
             
-            // Foca no título para induzir o usuário a preencher
             document.getElementById('imoTitulo').focus();
-            
-            // LIBERA O BOTÃO DE SUBMIT!
             btnSubmit.disabled = false;
         } else {
-            // Primeira falha: Pede para tentar de novo
             btnIA.innerText = '❌ Falha ao gerar. Tentar novamente (' + tentativasIA + '/2)';
             msg.style.color = '#ff4444';
             msg.innerText = 'Erro de comunicação com a IA. Os servidores podem estar sobrecarregados. Tente novamente.';
@@ -287,16 +275,14 @@ if (formImovel) {
         e.preventDefault();
         const msg = document.getElementById('imovelMsg');
         msg.style.color = 'var(--gold)';
-        msg.innerText = 'Gravando imóvel no banco de dados...';
+        msg.innerText = 'Gravando imóvel e fazendo upload das mídias...';
 
-        // Captura e força o limite máximo de caracteres (Corte de Segurança para Zap Imóveis)
         const tituloBruto = document.getElementById('imoTitulo').value.trim();
         const descricaoBruta = document.getElementById('imoDescricao').value.trim();
         
         const titulo = tituloBruto.substring(0, 100);
         const descricao = descricaoBruta.substring(0, 3000);
 
-        // Validação extra caso seja publicação manual via contingência (ou se a IA falhou em trazer texto)
         if (tentativasIA >= 2 && (!titulo || !descricao)) {
             msg.style.color = '#ff4444';
             msg.innerText = 'Por favor, preencha manualmente o Título e a Descrição antes de publicar.';
@@ -304,6 +290,27 @@ if (formImovel) {
             else document.getElementById('imoDescricao').focus();
             return;
         }
+
+        // ==========================================
+        // UPLOAD DO VÍDEO (NOVO)
+        // ==========================================
+        let videoUrl = null;
+        const videoInput = document.getElementById('imoVideo');
+        if (videoInput && videoInput.files.length > 0) {
+            msg.innerText = 'Fazendo upload do vídeo... Por favor aguarde.';
+            const videoFile = videoInput.files[0];
+            const videoName = `video_${Date.now()}_${videoFile.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+            
+            const { data: vData, error: vError } = await supabase.storage.from('imoveis_fotos').upload(videoName, videoFile);
+            
+            if (!vError) {
+                const { data: vPublicUrl } = supabase.storage.from('imoveis_fotos').getPublicUrl(videoName);
+                videoUrl = vPublicUrl.publicUrl;
+            } else {
+                console.error("Erro no upload do vídeo:", vError);
+            }
+        }
+        // ==========================================
 
         const itensLazer = [];
         document.querySelectorAll('input[name="lazer"]:checked').forEach(cb => itensLazer.push(cb.value));
@@ -336,8 +343,8 @@ if (formImovel) {
             cidade: document.getElementById('imoCidade').value,
             estado: document.getElementById('imoEstado').value,
             
-            // As fotos já foram upadas pela IA! Economiza tempo e processamento.
             fotos: urlsDasFotosEnviadas, 
+            video: videoUrl, // INSERE A URL DO VÍDEO NO BANCO
             status: 'Ativo'
         };
 
@@ -352,10 +359,11 @@ if (formImovel) {
             msg.innerText = 'Imóvel publicado com sucesso!';
             formImovel.reset();
             
-            // Reseta a interface e a contingência
             tentativasIA = 0;
             document.getElementById('div-detalhes-mobilia').style.display = 'none'; 
             document.getElementById('previewFotos').innerHTML = '';
+            if(document.getElementById('imoVideo')) document.getElementById('imoVideo').value = '';
+            
             fotosProcessadas = [];
             urlsDasFotosEnviadas = [];
             
