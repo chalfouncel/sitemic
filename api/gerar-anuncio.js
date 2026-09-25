@@ -1,14 +1,30 @@
 export const config = {
-  maxDuration: 120, // Aumenta o tempo limite da Vercel para evitar timeout
+  maxDuration: 120,
   api: { bodyParser: { sizeLimit: '15mb' } }
 };
+
+// Função auxiliar para forçar a extração de JSON da resposta da IA
+function extrairJSON(texto) {
+  try {
+    // Tenta limpar crases de markdown
+    let limpo = texto.replace(/```json/gi, '').replace(/```/g, '').trim();
+    // Tenta encontrar o primeiro { e o último }
+    const match = limpo.match(/\{[\s\S]*\}/);
+    if (match) {
+      return JSON.parse(match[0]);
+    }
+    return JSON.parse(limpo);
+  } catch (e) {
+    throw new Error("A IA não retornou um formato JSON válido. Retorno bruto: " + texto.substring(0, 100));
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
-  // Captura as chaves de API tentando várias possibilidades de nomes
+  // Mapeamento abrangente de chaves API
   const openApiKey = process.env.OPENROUTE2_API_KEY || process.env.OPENROUTE_APY_KEY || process.env.PORTAL_OPEN_API_KEY || process.env.VISTORIA_OPEN_API_KEY;
   const geminiApiKey = process.env.GEMINI_API_KEY || process.env.PORTAL_GEMINI_API_KEY;
   const groqApiKey = process.env.GROQ2_API_KEY || process.env.PORTAL_GROQ_API_KEY;
@@ -45,16 +61,14 @@ ${caracteristicas}
 REGRAS ESTRITAS E OBRIGATÓRIAS:
 1. Seja 100% fiel à localização fornecida (${bairro}, ${cidade}). NÃO invente regiões. Fale APENAS o nome do bairro e da cidade reais que foram fornecidos.
 2. Não invente comodidades, móveis ou áreas de lazer que não estejam explicitamente nas características ou evidentes nas imagens.
-3. Foque em valorizar os dados reais de forma comercial e atraente.`;
+3. Foque em valorizar os dados reais de forma comercial e atraente.
 
-    const schema = {
-      type: "object",
-      properties: {
-        titulo: { type: "string", description: "Um título chamativo e profissional para o anúncio (máx 60 caracteres)" },
-        descricao: { type: "string", description: "Uma descrição detalhada, engajadora e comercial em parágrafos agradáveis para leitura." }
-      },
-      required: ["titulo", "descricao"]
-    };
+RETORNE EXATAMENTE UM JSON. INICIE COM { E TERMINE COM }. NÃO ESCREVA MAIS NADA ALÉM DO JSON.
+Exemplo de formato esperado:
+{
+  "titulo": "Título com máximo de 60 caracteres",
+  "descricao": "Descrição detalhada separada por parágrafos agradáveis..."
+}`;
 
     // Pega apenas a primeira URL para não estourar o Rate Limit
     const primeiraFotoUrl = (fotosUrls && Array.isArray(fotosUrls) && fotosUrls.length > 0) ? fotosUrls[0] : null;
@@ -81,106 +95,75 @@ REGRAS ESTRITAS E OBRIGATÓRIAS:
     // 1ª TENTATIVA: COM FOTO
     // ============================================================================
     if (primeiraFotoUrl) {
-      // 1. OpenRouter
-      if (!resultado && openApiKey) {
-        try {
-          console.log("Tentando OpenRouter (Com Foto)...");
-          resultado = await chamarOpenRouter(openApiKey, primeiraFotoUrl, promptText, schema, false);
-        } catch (err) { erros.push('OpenRouter (Foto): ' + err.message); }
-      }
-      
-      // 2. Gemini
+      // 1. Gemini (Prioridade 1, pois lida melhor com visão)
       if (!resultado && geminiApiKey && fotoBase64) {
         try {
           console.log("Tentando Gemini (Com Foto)...");
-          resultado = await chamarGemini(geminiApiKey, fotoBase64, fotoMimeType, promptText, schema, false);
+          resultado = await chamarGemini(geminiApiKey, fotoBase64, fotoMimeType, promptText, false);
         } catch (err) { erros.push('Gemini (Foto): ' + err.message); }
       }
 
+      // 2. OpenRouter
+      if (!resultado && openApiKey) {
+        try {
+          console.log("Tentando OpenRouter (Com Foto)...");
+          resultado = await chamarOpenRouter(openApiKey, primeiraFotoUrl, promptText, false);
+        } catch (err) { erros.push('OpenRouter (Foto): ' + err.message); }
+      }
+      
       // 3. Groq
       if (!resultado && groqApiKey) {
         try {
           console.log("Tentando Groq (Com Foto)...");
-          resultado = await chamarGroq(groqApiKey, primeiraFotoUrl, promptText, schema, false);
+          resultado = await chamarGroq(groqApiKey, primeiraFotoUrl, promptText, false);
         } catch (err) { erros.push('Groq (Foto): ' + err.message); }
       }
     }
 
     // ============================================================================
-    // 2ª TENTATIVA: FALLBACK APENAS TEXTO (Caso as IAs bloqueiem imagem por créditos/limites)
+    // 2ª TENTATIVA: FALLBACK APENAS TEXTO
     // ============================================================================
     if (!resultado) {
       console.log("Iniciando Fallback (Somente Texto)...");
       
-      // 1. OpenRouter (Texto)
-      if (!resultado && openApiKey) {
-        try { resultado = await chamarOpenRouter(openApiKey, null, promptText, schema, true); } 
-        catch (err) { erros.push('OpenRouter (Texto): ' + err.message); }
-      }
-      
-      // 2. Gemini (Texto)
+      // 1. Gemini (Texto)
       if (!resultado && geminiApiKey) {
-        try { resultado = await chamarGemini(geminiApiKey, null, null, promptText, schema, true); } 
+        try { resultado = await chamarGemini(geminiApiKey, null, null, promptText, true); } 
         catch (err) { erros.push('Gemini (Texto): ' + err.message); }
+      }
+
+      // 2. OpenRouter (Texto)
+      if (!resultado && openApiKey) {
+        try { resultado = await chamarOpenRouter(openApiKey, null, promptText, true); } 
+        catch (err) { erros.push('OpenRouter (Texto): ' + err.message); }
       }
 
       // 3. Groq (Texto)
       if (!resultado && groqApiKey) {
-        try { resultado = await chamarGroq(groqApiKey, null, promptText, schema, true); } 
+        try { resultado = await chamarGroq(groqApiKey, null, promptText, true); } 
         catch (err) { erros.push('Groq (Texto): ' + err.message); }
       }
     }
 
     if (!resultado) {
+      console.error("=== FALHA TOTAL ===");
+      console.error(JSON.stringify(erros, null, 2));
       return res.status(500).json({ erro: "Nenhuma IA conseguiu gerar o anúncio.", detalhes: erros });
     }
 
     return res.status(200).json(resultado);
 
   } catch (e) {
-    console.error("Erro fatal:", e);
+    console.error("Erro fatal não tratado:", e);
     return res.status(500).json({ erro: "Erro inesperado", detalhes: e.message });
   }
 }
 
 // ============================================================================
-// FUNÇÕES DOS PROVEDORES (Integrando Lógica da Vistoria)
+// FUNÇÕES DOS PROVEDORES
 // ============================================================================
 
-async function chamarOpenRouter(apiKey, imageUrl, prompt, schema, isTextOnly) {
-  const content = [{ type: "text", text: prompt + '\n\nResponda APENAS com um JSON válido, seguindo este schema: ' + JSON.stringify(schema) }];
-  
-  if (!isTextOnly && imageUrl) {
-    content.push({ type: "image_url", image_url: { url: imageUrl } });
-  }
-
-  // GPT-4o-mini é super barato e funciona bem com fotos
-  const model = isTextOnly ? "openrouter/auto" : "openai/gpt-4o-mini";
-
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-      'HTTP-Referer': 'https://mic-imoveis.vercel.app',
-      'X-Title': 'Portal MIC Imóveis'
-    },
-    body: JSON.stringify({
-      model: model,
-      messages: [{ role: "user", content }],
-      response_format: { type: "json_object" }
-    })
-  });
-
-  if (!response.ok) throw new Error(await response.text());
-  
-  const data = await response.json();
-  const jsonLimpo = data.choices[0].message.content.replace(/```json\s?|```/g, '').trim();
-  return JSON.parse(jsonLimpo);
-}
-
-
-async function chamarGemini(apiKey, base64, mimeType, prompt, schema, isTextOnly) {
+async function chamarGemini(apiKey, base64, mimeType, prompt, isTextOnly) {
   const parts = [{ text: prompt }];
   if (!isTextOnly && base64) {
     parts.push({ inlineData: { mimeType: mimeType, data: base64 } });
@@ -189,18 +172,15 @@ async function chamarGemini(apiKey, base64, mimeType, prompt, schema, isTextOnly
   const payload = JSON.stringify({
     contents: [{ parts }],
     generationConfig: {
-      responseMimeType: "application/json",
-      responseJsonSchema: schema,
+      responseMimeType: "application/json"
     }
   });
 
-  // Lista dinâmica de modelos (Tenta do mais novo ao mais antigo)
+  // Tenta as versões modernas do Gemini sequencialmente
   const targetModels = [
     "gemini-2.0-flash",
-    "gemini-2.5-flash",
     "gemini-1.5-flash-latest",
-    "gemini-1.5-flash",
-    "gemini-1.5-pro"
+    "gemini-1.5-flash"
   ];
 
   for (const model of targetModels) {
@@ -212,25 +192,64 @@ async function chamarGemini(apiKey, base64, mimeType, prompt, schema, isTextOnly
       });
 
       const data = await response.json();
-      if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        return JSON.parse(data.candidates[0].content.parts[0].text);
+      
+      if (!response.ok) {
+        throw new Error(`Erro API: ${JSON.stringify(data)}`);
+      }
+
+      if (data.candidates && data.candidates[0].content.parts[0].text) {
+        return extrairJSON(data.candidates[0].content.parts[0].text);
       }
     } catch (err) {
-      continue; // Falhou neste modelo? Tenta o próximo!
+      console.log(`[Gemini] Falha no modelo ${model}: ${err.message}`);
+      continue; // Tenta o próximo modelo
     }
   }
   throw new Error('Todos os modelos Gemini testados falharam.');
 }
 
 
-async function chamarGroq(apiKey, imageUrl, prompt, schema, isTextOnly) {
-  const content = [{ type: "text", text: prompt + '\n\nResponda APENAS com um JSON válido.' }];
+async function chamarOpenRouter(apiKey, imageUrl, prompt, isTextOnly) {
+  const content = [{ type: "text", text: prompt }];
   
   if (!isTextOnly && imageUrl) {
     content.push({ type: "image_url", image_url: { url: imageUrl } });
   }
 
-  // Llama Vision para foto (menos consumo de tokens que o Qwen), Llama-8b para texto
+  // Modelos 100% gratuitos do OpenRouter que suportam visão e texto
+  const model = isTextOnly ? "google/gemini-2.0-flash-lite-preview-02-05:free" : "google/gemini-2.0-flash-lite-preview-02-05:free";
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+      'HTTP-Referer': 'https://mic-imoveis.vercel.app',
+      'X-Title': 'Portal MIC Imóveis'
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: [{ role: "user", content }]
+      // Sem response_format restritivo para não quebrar modelos gratuitos
+    })
+  });
+
+  const text = await response.text();
+  if (!response.ok) throw new Error(text);
+  
+  const data = JSON.parse(text);
+  return extrairJSON(data.choices[0].message.content);
+}
+
+
+async function chamarGroq(apiKey, imageUrl, prompt, isTextOnly) {
+  const content = [{ type: "text", text: prompt }];
+  
+  if (!isTextOnly && imageUrl) {
+    content.push({ type: "image_url", image_url: { url: imageUrl } });
+  }
+
+  // Llama Vision para foto, Llama-8b para texto
   const model = isTextOnly ? "llama3-8b-8192" : "llama-3.2-11b-vision-preview";
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -241,15 +260,14 @@ async function chamarGroq(apiKey, imageUrl, prompt, schema, isTextOnly) {
     },
     body: JSON.stringify({
       model: model,
-      messages: [{ role: "user", content }],
-      response_format: { type: "json_object" },
-      max_tokens: 800
+      messages: [{ role: "user", content }]
+      // Sem response_format restritivo
     })
   });
 
-  if (!response.ok) throw new Error(await response.text());
+  const text = await response.text();
+  if (!response.ok) throw new Error(text);
 
-  const data = await response.json();
-  const jsonLimpo = data.choices[0].message.content.replace(/```json\s?|```/g, '').trim();
-  return JSON.parse(jsonLimpo);
+  const data = JSON.parse(text);
+  return extrairJSON(data.choices[0].message.content);
 }
