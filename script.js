@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
     }
 
-    // --- NOVA LÓGICA: Evento de clique no botão "Buscar" ---
+    // --- Evento de clique no botão "Buscar" ---
     const btnSearch = document.querySelector('.btn-search');
     if (btnSearch) {
         btnSearch.addEventListener('click', () => {
@@ -33,15 +33,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const localizacao = document.getElementById('buscaLocalizacao') ? document.getElementById('buscaLocalizacao').value.trim() : '';
             const preco = document.getElementById('buscaPreco') ? document.getElementById('buscaPreco').value : 'Qualquer valor';
 
-            // Rola suavemente para a seção de imóveis para o cliente ver o resultado
             document.getElementById('imoveis').scrollIntoView({ behavior: 'smooth' });
-
-            // Dispara a busca com os filtros selecionados
             carregarImoveisSite({ finalidade, tipo, localizacao, preco });
         });
     }
 
-    // Carrega os imóveis assim que a página abre (sem filtros)
     carregarImoveisSite();
 });
 
@@ -64,7 +60,6 @@ if (menuToggle) {
     });
 }
 
-// Close mobile menu on link click
 document.querySelectorAll('.nav-links a').forEach(link => {
     link.addEventListener('click', () => {
         if (navLinks) navLinks.classList.remove('active');
@@ -132,43 +127,30 @@ if (form) {
 let imoveisCarregados = [];
 let slideAtual = 0;
 
-// Agora a função recebe um objeto de filtros opcional
 async function carregarImoveisSite(filtros = null) {
     const grid = document.getElementById('gridImoveis');
     if (!grid) return;
 
     grid.innerHTML = '<p style="color: var(--gold); text-align: center; width: 100%;">A buscar oportunidades exclusivas...</p>';
 
-    // Inicia a query básica
     let query = supabase
         .from('imoveis')
         .select('*')
         .order('created_at', { ascending: false });
 
-    // --- NOVA LÓGICA: Aplicação de Filtros ---
     if (filtros) {
-        // Filtro de Finalidade (Comprar ou Alugar)
         if (filtros.finalidade && filtros.finalidade !== 'Todos') {
-            // Usamos ilike para pegar casos onde o imóvel está como "Venda e Aluguel"
             query = query.ilike('finalidade', `%${filtros.finalidade}%`);
         }
-        
-        // Filtro de Tipo (Apartamento, Casa, etc.)
         if (filtros.tipo && filtros.tipo !== 'Todos') {
             query = query.eq('tipo', filtros.tipo);
         }
-        
-        // Filtro de Localização (Bairro ou Cidade)
         if (filtros.localizacao) {
             query = query.or(`bairro.ilike.%${filtros.localizacao}%,cidade.ilike.%${filtros.localizacao}%`);
         }
-        
-        // Filtro de Preço (Até X valor)
         if (filtros.preco && filtros.preco !== 'Qualquer valor' && !filtros.preco.includes('+')) {
-            // Extrai apenas os números (ex: "R$ 500.000" vira 500000)
             const valorMaximo = parseInt(filtros.preco.replace(/\D/g, ''));
             if (valorMaximo > 0) {
-                // Se estiver buscando aluguel, filtra pelo valor do aluguel, senão, valor de venda
                 if (filtros.finalidade === 'Aluguel') {
                     query = query.lte('valor_aluguel', valorMaximo);
                 } else {
@@ -178,7 +160,6 @@ async function carregarImoveisSite(filtros = null) {
         }
     }
 
-    // Executa a busca no banco
     const { data, error } = await query;
 
     if (error) {
@@ -243,7 +224,6 @@ async function carregarImoveisSite(filtros = null) {
         grid.innerHTML += card;
     });
 
-    // --- LÓGICA: Verifica se tem um ID na URL para abrir o modal direto ---
     const urlParams = new URLSearchParams(window.location.search);
     const idNaUrl = urlParams.get('id');
     if (idNaUrl) {
@@ -256,6 +236,7 @@ function abrirModal(id) {
     const imovel = imoveisCarregados.find(i => i.id === id);
     if(!imovel) return;
 
+    // 1. Textos da direita
     document.getElementById('modalTitulo').innerText = imovel.titulo;
     document.getElementById('modalLocal').innerText = `📍 ${imovel.endereco || ''} ${imovel.numero || ''} - ${imovel.bairro || ''}, ${imovel.cidade || ''} - ${imovel.estado || ''}`;
     document.getElementById('modalDesc').innerText = imovel.descricao || 'Sem descrição detalhada.';
@@ -277,15 +258,13 @@ function abrirModal(id) {
     if (imovel.valor_iptu > 0) featuresHtml += `<span>📄 IPTU: R$ ${Number(imovel.valor_iptu).toLocaleString('pt-BR')}</span>`;
     document.getElementById('modalFeatures').innerHTML = featuresHtml;
 
-    // --- LÓGICA: Geração de Link e Botão do WhatsApp ---
+    // 2. WhatsApp Dinâmico
     const urlAtual = window.location.origin + window.location.pathname;
     const linkDoImovel = `${urlAtual}?id=${imovel.id}`;
-    
     const textoWhatsApp = `Olá! Tenho interesse neste imóvel:\n\n*${imovel.titulo}*\n*Valor:* ${precoFormatado}\n\n*Veja o anúncio aqui:* ${linkDoImovel}`;
-    const msgZap = encodeURIComponent(textoWhatsApp);
-    
-    document.getElementById('modalZap').href = `https://wa.me/5521979748388?text=${msgZap}`;
+    document.getElementById('modalZap').href = `https://wa.me/5521979748388?text=${encodeURIComponent(textoWhatsApp)}`;
 
+    // 3. Fotos no Carrossel
     const carousel = document.getElementById('carouselSlides');
     carousel.innerHTML = '';
     if(imovel.fotos && imovel.fotos.length > 0) {
@@ -295,8 +274,35 @@ function abrirModal(id) {
     } else {
         carousel.innerHTML = `<div class="carousel-slide active" style="background: var(--black-lighter); width:100%; height:100%; display:flex; align-items:center; justify-content:center; color: var(--silver);">Sem fotos</div>`;
     }
-
     slideAtual = 0;
+
+    // 4. Lógica de Vídeo e Mapa na Mídia Inferior (Grid 1/4 + 1/4)
+    const mediaBottom = document.getElementById('mediaBottom');
+    const videoThumbnail = document.getElementById('videoThumbnail');
+    const lightboxPlayer = document.getElementById('lightboxVideoPlayer');
+    const mapFrame = document.getElementById('modalMapFrame');
+
+    // Monta a string do mapa
+    let enderecoCompleto = '';
+    if(imovel.endereco || imovel.bairro) {
+        enderecoCompleto = `${imovel.endereco || ''} ${imovel.numero || ''} ${imovel.bairro || ''} ${imovel.cidade || ''} RJ Brasil`;
+        mapFrame.src = `https://maps.google.com/maps?q=${encodeURIComponent(enderecoCompleto)}&t=m&z=15&output=embed&iwloc=near`;
+    } else {
+        mapFrame.src = '';
+    }
+
+    // Gerencia o Grid se tem vídeo ou não
+    if (imovel.video) {
+        videoThumbnail.style.display = 'flex';
+        mediaBottom.style.gridTemplateColumns = '1fr 1fr'; // Divide ao meio (1/4 de vídeo, 1/4 mapa)
+        lightboxPlayer.src = imovel.video;
+    } else {
+        videoThumbnail.style.display = 'none';
+        mediaBottom.style.gridTemplateColumns = '1fr'; // Se não tem vídeo, mapa ocupa tudo
+        lightboxPlayer.src = '';
+    }
+
+    // Exibe o modal
     document.getElementById('imovelModal').classList.add('active');
     document.body.style.overflow = 'hidden'; 
 }
@@ -305,9 +311,13 @@ function fecharModal() {
     document.getElementById('imovelModal').classList.remove('active');
     document.body.style.overflow = 'auto'; 
     
-    // Limpa a URL ao fechar o modal para evitar reabertura acidental no refresh
+    // Limpa URL
     const urlLimpa = window.location.origin + window.location.pathname;
     window.history.replaceState({}, document.title, urlLimpa);
+
+    // Limpa Iframe do Mapa e garante que o vídeo parou
+    document.getElementById('modalMapFrame').src = '';
+    fecharVideoPlayer();
 }
 
 function mudarSlide(direcao) {
@@ -321,6 +331,26 @@ function mudarSlide(direcao) {
     if(slideAtual < 0) slideAtual = slides.length - 1;
     
     slides[slideAtual].classList.add('active');
+}
+
+// --- FUNÇÕES DO LIGHTBOX DE VÍDEO ---
+function abrirVideoPlayer() {
+    const lightbox = document.getElementById('videoLightbox');
+    const player = document.getElementById('lightboxVideoPlayer');
+    
+    lightbox.classList.add('active');
+    // Tenta dar play automático
+    player.play().catch(error => {
+        console.log("Autoplay bloqueado pelo navegador, aguardando clique do usuário.");
+    });
+}
+
+function fecharVideoPlayer() {
+    const lightbox = document.getElementById('videoLightbox');
+    const player = document.getElementById('lightboxVideoPlayer');
+    
+    lightbox.classList.remove('active');
+    player.pause();
 }
 
 // Smooth reveal on scroll
