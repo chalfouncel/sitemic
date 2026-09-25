@@ -179,28 +179,58 @@ section { padding: 100px 0; }
 .btn-card { font-size: 13px; font-weight: 600; color: var(--gold); transition: var(--transition); cursor: pointer; background: none; border: none; }
 .btn-card:hover { color: var(--gold-light); }
 
-/* ===== MODAL / CARROSSEL ===== */
+/* =========================================================
+   MODAL / CARROSSEL (NOVO LAYOUT AIRBNB COM SPLIT VIEW) 
+   ========================================================= */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(5px); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
 .modal-overlay.active { display: flex; }
-.modal-content { background: var(--black-light); width: 100%; max-width: 900px; max-height: 90vh; border-radius: 8px; border: 1px solid rgba(201,168,76,0.3); overflow-y: auto; position: relative; display: flex; flex-direction: column; }
-.modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; color: var(--gold); cursor: pointer; background: rgba(0,0,0,0.5); border: 1px solid var(--gold); width: 40px; height: 40px; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
+
+.modal-content { background: var(--black-light); width: 100%; max-width: 1150px; height: 85vh; border-radius: 8px; border: 1px solid rgba(201,168,76,0.3); overflow: hidden; position: relative; display: flex; flex-direction: row; }
+
+.modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; color: var(--gold); cursor: pointer; background: rgba(0,0,0,0.5); border: 1px solid var(--gold); width: 40px; height: 40px; border-radius: 50%; z-index: 50; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
 .modal-close:hover { background: var(--gold); color: var(--black); }
-.carousel-container { position: relative; width: 100%; height: 450px; background: var(--black); display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.carousel-slide { width: 100%; height: 100%; object-fit: contain; display: none; }
+
+/* Lado Esquerdo - Mídias (Rola independentemente) */
+.modal-left { flex: 1.6; overflow-y: auto; background: var(--black); padding: 0; display: flex; flex-direction: column; }
+.modal-left::-webkit-scrollbar { width: 8px; }
+.modal-left::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
+
+.carousel-container { position: relative; width: 100%; height: 500px; background: var(--black); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.carousel-slide { width: 100%; height: 100%; display: none; }
 .carousel-slide.active { display: block; }
+.carousel-slide img { width: 100%; height: 100%; object-fit: contain; }
+
 .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.7); color: var(--gold); border: 1px solid var(--gold); width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: var(--transition); z-index: 5; }
 .carousel-btn:hover { background: var(--gold); color: var(--black); }
 .carousel-prev { left: 15px; }
 .carousel-next { right: 15px; }
-.modal-body { padding: 30px; }
+
+.media-title { font-family: var(--font-display); font-size: 1.5rem; color: var(--gold); padding: 30px 20px 15px; border-top: 1px solid rgba(255,255,255,0.05); }
+.media-box { padding: 0 20px 20px; }
+
+/* Vídeo */
+.video-wrapper { position: relative; width: 100%; }
+.video-wrapper video { width: 100%; border-radius: 8px; border: 1px solid rgba(201,168,76,0.2); background: #000; }
+.video-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 150px; opacity: 0.2; pointer-events: none; z-index: 10; }
+
+/* Mapa */
+.map-wrapper iframe { width: 100%; height: 350px; border-radius: 8px; border: 1px solid rgba(201,168,76,0.2); }
+
+/* Lado Direito - Informações (Fixo) */
+.modal-right { flex: 1; padding: 30px 30px 100px 30px; background: var(--black-light); overflow-y: auto; display: flex; flex-direction: column; position: relative; border-left: 1px solid rgba(201,168,76,0.1); }
+.modal-right::-webkit-scrollbar { width: 6px; }
+.modal-right::-webkit-scrollbar-thumb { background: var(--gray); border-radius: 4px; }
+
 .modal-header { margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
-.modal-title { font-family: var(--font-display); font-size: 2rem; color: var(--gold); margin-bottom: 10px; }
-.modal-local { color: var(--silver); font-size: 15px; margin-bottom: 15px; }
+.modal-title { font-family: var(--font-display); font-size: 1.8rem; color: var(--gold); margin-bottom: 10px; line-height: 1.2; }
+.modal-local { color: var(--silver); font-size: 14px; margin-bottom: 15px; display: flex; align-items: center; gap: 5px; }
 .modal-price { font-family: var(--font-display); font-size: 1.8rem; color: var(--white); font-weight: 700; margin-top: 10px; display: block; }
-.modal-desc { color: var(--silver); line-height: 1.7; margin-bottom: 30px; white-space: pre-line; }
-.modal-features { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 25px; }
-.modal-features span { background: var(--black-lighter); padding: 8px 16px; border-radius: 4px; border: 1px solid rgba(201,168,76,0.1); font-size: 14px; color: var(--white); }
-.btn-whatsapp-modal { display: inline-flex; align-items: center; gap: 10px; background: #25D366; color: white; padding: 14px 28px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: var(--transition); }
+.modal-features { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 25px; }
+.modal-features span { background: var(--black-lighter); padding: 8px 14px; border-radius: 4px; border: 1px solid rgba(201,168,76,0.1); font-size: 13px; color: var(--white); }
+.modal-desc { color: var(--silver); line-height: 1.7; font-size: 14px; white-space: pre-wrap; }
+
+/* Botão WhatsApp Fixo na parte inferior do modal */
+.btn-whatsapp-modal { position: absolute; bottom: 0; left: 0; right: 0; margin: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: white; padding: 16px 20px; border-radius: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; transition: var(--transition); box-shadow: 0 -10px 20px var(--black-light); }
 .btn-whatsapp-modal:hover { background: #20BA56; transform: translateY(-2px); }
 
 /* ===== SOBRE ===== */
@@ -274,7 +304,7 @@ section { padding: 100px 0; }
     line-height: 1.5; 
 }
 
-/* Ícones Sociais (Aumentados e espaçados) */
+/* Ícones Sociais */
 .social-links { 
     display: flex; 
     gap: 16px; 
@@ -326,15 +356,17 @@ section { padding: 100px 0; }
     .footer-grid { grid-template-columns: 1fr 1fr; }
 }
 
-@media (max-width: 768px) {
-    /* Ajuste da Apresentação (Splash Video) para Celular */
-    #splashVideo {
-        object-fit: contain; 
-        width: 85%; 
-        height: 100%;
-    }
+@media (max-width: 900px) {
+    /* Responsivo Especial do Modal */
+    .modal-content { flex-direction: column; height: 95vh; overflow-y: auto; display: block; }
+    .modal-left { overflow: visible; display: block; }
+    .modal-right { border-left: none; overflow: visible; display: block; padding-bottom: 100px; }
+    .carousel-container { height: 300px; }
+    .btn-whatsapp-modal { position: fixed; margin: 0; bottom: 2.5vh; left: 5%; width: 90%; z-index: 100; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+}
 
-    /* Menu Mobile */
+@media (max-width: 768px) {
+    #splashVideo { object-fit: contain; width: 85%; height: 100%; }
     .nav-links, .btn-nav { display: none; }
     .menu-toggle { display: flex; }
     .nav-links.active { 
@@ -345,53 +377,32 @@ section { padding: 100px 0; }
         border-bottom: 1px solid rgba(201, 168, 76, 0.1); 
     }
 
-    /* Hero Section (Topo) - Otimizado para celular */
     .hero { padding: 100px 16px 60px; }
     .hero h1 { font-size: 2.2rem; }
     .hero p { font-size: 1rem; margin-bottom: 30px; }
     .hero-buttons { flex-direction: column; width: 100%; gap: 12px; margin-bottom: 40px; }
-    .btn-primary, .btn-secondary { width: 100%; } /* Botões ocupam a tela toda */
+    .btn-primary, .btn-secondary { width: 100%; } 
 
-    /* Caixa de Busca - Otimizada para o toque */
-    .search-box { 
-        flex-direction: column; 
-        padding: 16px; 
-        gap: 12px;
-        align-items: stretch; /* Faz inputs e botão ocuparem 100% da largura */
-    }
+    .search-box { flex-direction: column; padding: 16px; gap: 12px; align-items: stretch; }
     .search-field { width: 100%; }
     .btn-search { width: 100%; height: 50px; margin-top: 5px; }
 
-    /* Grid de Imóveis */
     .imoveis-grid { grid-template-columns: 1fr; gap: 20px; }
     
-    /* Modal (Janela do Imóvel) - Cara de App */
-    .modal-content { width: 95%; max-height: 85vh; }
-    .carousel-container { height: 250px; }
-    .modal-body { padding: 20px; }
-    .modal-title { font-size: 1.5rem; line-height: 1.3; }
-    .modal-price { font-size: 1.5rem; }
-    .btn-whatsapp-modal { width: 100%; justify-content: center; margin-top: 10px; } /* Botão do Whats gigante no imóvel */
-
-    /* Estrutura Geral */
     section { padding: 60px 0; }
     .section-header h2 { font-size: 1.8rem; }
     
-    /* Formulário de Contato */
     .form-row { grid-template-columns: 1fr; }
     .contato-form { padding: 24px 16px; }
 
-    /* Footer Centralizado para Mobile */
     .footer-grid { grid-template-columns: 1fr; gap: 30px; text-align: center; }
     .footer-brand .footer-logo { margin: 0 auto 20px; }
     .footer-creci-box { flex-direction: column; text-align: center; justify-content: center; gap: 10px; }
     .social-links { justify-content: center; margin-bottom: 10px; }
     
-    /* Botão Flutuante do WhatsApp (Não atrapalhar a leitura) */
     .whatsapp-float { bottom: 20px; right: 20px; width: 50px; height: 50px; }
 }
 
-/* Telas muito pequenas (ex: iPhone SE, celulares antigos) */
 @media (max-width: 480px) {
     .hero h1 { font-size: 1.8rem; }
     .imovel-img { height: 200px; }
