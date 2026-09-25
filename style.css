@@ -180,22 +180,23 @@ section { padding: 100px 0; }
 .btn-card:hover { color: var(--gold-light); }
 
 /* =========================================================
-   MODAL / CARROSSEL (NOVO LAYOUT AIRBNB COM SPLIT VIEW) 
+   MODAL / CARROSSEL (NOVO LAYOUT SPLIT / AIRBNB 1/4) 
    ========================================================= */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(5px); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
 .modal-overlay.active { display: flex; }
 
-.modal-content { background: var(--black-light); width: 100%; max-width: 1150px; height: 85vh; border-radius: 8px; border: 1px solid rgba(201,168,76,0.3); overflow: hidden; position: relative; display: flex; flex-direction: row; }
+.modal-content { background: var(--black-light); width: 100%; max-width: 1200px; height: 85vh; border-radius: 8px; border: 1px solid rgba(201,168,76,0.3); overflow: hidden; position: relative; display: flex; flex-direction: row; }
 
 .modal-close { position: absolute; top: 15px; right: 20px; font-size: 28px; color: var(--gold); cursor: pointer; background: rgba(0,0,0,0.5); border: 1px solid var(--gold); width: 40px; height: 40px; border-radius: 50%; z-index: 50; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
 .modal-close:hover { background: var(--gold); color: var(--black); }
 
-/* Lado Esquerdo - Mídias (Rola independentemente) */
-.modal-left { flex: 1.6; overflow-y: auto; background: var(--black); padding: 0; display: flex; flex-direction: column; }
+/* Lado Esquerdo - Mídias */
+.modal-left { flex: 1.5; overflow-y: auto; background: var(--black); padding: 0; display: flex; flex-direction: column; }
 .modal-left::-webkit-scrollbar { width: 8px; }
 .modal-left::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
 
-.carousel-container { position: relative; width: 100%; height: 500px; background: var(--black); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+/* 2/4 - Carrossel (Ocupa a metade superior) */
+.carousel-container { position: relative; width: 100%; height: 50vh; min-height: 350px; background: var(--black-lighter); display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); }
 .carousel-slide { width: 100%; height: 100%; display: none; }
 .carousel-slide.active { display: block; }
 .carousel-slide img { width: 100%; height: 100%; object-fit: contain; }
@@ -205,18 +206,34 @@ section { padding: 100px 0; }
 .carousel-prev { left: 15px; }
 .carousel-next { right: 15px; }
 
-.media-title { font-family: var(--font-display); font-size: 1.5rem; color: var(--gold); padding: 30px 20px 15px; border-top: 1px solid rgba(255,255,255,0.05); }
-.media-box { padding: 0 20px 20px; }
+/* 1/4 + 1/4 - Grid Inferior (Vídeo e Mapa) */
+.modal-media-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; flex: 1; min-height: 250px; }
 
-/* Vídeo */
-.video-wrapper { position: relative; width: 100%; }
-.video-wrapper video { width: 100%; border-radius: 8px; border: 1px solid rgba(201,168,76,0.2); background: #000; }
-.video-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 150px; opacity: 0.2; pointer-events: none; z-index: 10; }
+/* Capa do Vídeo */
+.media-thumbnail { 
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80') center/cover;
+    border-radius: 8px; border: 1px solid rgba(201,168,76,0.3);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    cursor: pointer; transition: var(--transition);
+}
+.media-thumbnail:hover { border-color: var(--gold); transform: scale(0.98); background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80') center/cover; }
+.play-icon { width: 60px; height: 60px; background: rgba(201,168,76,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: var(--transition); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+.media-thumbnail:hover .play-icon { background: var(--gold); transform: scale(1.1); }
+.media-thumbnail span { color: var(--white); font-weight: 600; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
 
 /* Mapa */
-.map-wrapper iframe { width: 100%; height: 350px; border-radius: 8px; border: 1px solid rgba(201,168,76,0.2); }
+.media-map iframe { width: 100%; height: 100%; min-height: 200px; border-radius: 8px; border: 1px solid rgba(201,168,76,0.2); }
 
-/* Lado Direito - Informações (Fixo) */
+/* Lightbox do Vídeo (Tela Escura) */
+.video-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
+.video-lightbox.active { display: flex; }
+.lightbox-close { position: absolute; top: 20px; right: 30px; font-size: 40px; color: var(--gold); cursor: pointer; z-index: 3010; transition: var(--transition); }
+.lightbox-close:hover { transform: scale(1.1); }
+.lightbox-content { position: relative; width: 100%; max-width: 1000px; display: flex; justify-content: center; }
+.lightbox-content video { width: 100%; max-height: 85vh; border-radius: 8px; border: 1px solid rgba(201,168,76,0.4); box-shadow: 0 10px 40px rgba(0,0,0,0.8); outline: none; }
+.video-watermark { position: absolute; top: 20px; right: 20px; width: 100px; opacity: 0.4; pointer-events: none; z-index: 10; }
+
+/* Lado Direito - Informações */
 .modal-right { flex: 1; padding: 30px 30px 100px 30px; background: var(--black-light); overflow-y: auto; display: flex; flex-direction: column; position: relative; border-left: 1px solid rgba(201,168,76,0.1); }
 .modal-right::-webkit-scrollbar { width: 6px; }
 .modal-right::-webkit-scrollbar-thumb { background: var(--gray); border-radius: 4px; }
@@ -233,7 +250,7 @@ section { padding: 100px 0; }
 .btn-whatsapp-modal { position: absolute; bottom: 0; left: 0; right: 0; margin: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: white; padding: 16px 20px; border-radius: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; transition: var(--transition); box-shadow: 0 -10px 20px var(--black-light); }
 .btn-whatsapp-modal:hover { background: #20BA56; transform: translateY(-2px); }
 
-/* ===== SOBRE ===== */
+/* ===== SOBRE & SERVIÇOS & CTA & CONTATO & FOOTER... (mantidos iguais) ===== */
 .sobre { background: var(--black); position: relative; z-index: 2; }
 .sobre-container { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
 .sobre-content .section-tag { display: block; text-align: left; }
@@ -248,7 +265,6 @@ section { padding: 100px 0; }
 .sobre-img-box { width: 100%; max-width: 450px; aspect-ratio: 4/5; background: transparent; border: 1px solid rgba(201, 168, 76, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
 .sobre-img-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
 
-/* ===== SERVIÇOS ===== */
 .servicos { background: linear-gradient(180deg, var(--black-light) 0%, var(--black) 100%); position: relative; z-index: 2; }
 .servicos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
 .servico-card { padding: 40px 32px; background: var(--black-lighter); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px; transition: var(--transition); text-align: center; }
@@ -257,7 +273,6 @@ section { padding: 100px 0; }
 .servico-card h3 { font-family: var(--font-display); font-size: 1.3rem; margin-bottom: 12px; color: var(--gold); }
 .servico-card p { color: var(--silver); font-size: 14px; line-height: 1.7; }
 
-/* ===== CTA ===== */
 .cta-section { padding: 80px 0; background: var(--black); position: relative; z-index: 2; }
 .cta-box { text-align: center; padding: 80px 40px; background: linear-gradient(135deg, rgba(201, 168, 76, 0.1) 0%, rgba(201, 168, 76, 0.02) 100%); border: 1px solid rgba(201, 168, 76, 0.2); border-radius: 12px; position: relative; overflow: hidden; }
 .cta-box::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(201, 168, 76, 0.05) 0%, transparent 50%); animation: rotate 20s linear infinite; }
@@ -265,7 +280,6 @@ section { padding: 100px 0; }
 .cta-box h2 { font-family: var(--font-display); font-size: clamp(1.8rem, 3vw, 2.5rem); margin-bottom: 16px; }
 .cta-box p { color: var(--silver); font-size: 1.1rem; max-width: 500px; margin: 0 auto 32px; }
 
-/* ===== CONTATO ===== */
 .contato { background: var(--black-light); position: relative; z-index: 2; }
 .contato-container { display: grid; grid-template-columns: 1fr 1.2fr; gap: 60px; }
 .contato-info { display: flex; flex-direction: column; gap: 28px; }
@@ -282,52 +296,14 @@ section { padding: 100px 0; }
 .form-group textarea { resize: vertical; min-height: 100px; }
 .btn-full { width: 100%; height: auto; }
 
-/* ===== FOOTER ===== */
 .footer { background: var(--black); border-top: 1px solid rgba(201, 168, 76, 0.1); padding: 60px 0 0; position: relative; z-index: 2; }
 .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr; gap: 40px; padding-bottom: 40px; }
-
-.footer-brand .footer-logo { 
-    max-height: 140px; 
-    width: auto; 
-    object-fit: contain; 
-    margin-bottom: 24px; 
-}
-.footer-creci-box { 
-    display: flex; 
-    align-items: center; 
-    gap: 16px; 
-    margin-bottom: 24px; 
-}
-.footer-creci-text { 
-    color: var(--silver); 
-    font-size: 14px; 
-    line-height: 1.5; 
-}
-
-/* Ícones Sociais */
-.social-links { 
-    display: flex; 
-    gap: 16px; 
-    align-items: center; 
-    margin-top: 8px;
-}
-.social-links a { 
-    width: 56px; 
-    height: 56px; 
-    background: #1A1A1A; 
-    border: 1px solid rgba(255, 255, 255, 0.05); 
-    border-radius: 14px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    transition: var(--transition); 
-}
-.social-links a:hover { 
-    background: #252525; 
-    border-color: rgba(201, 168, 76, 0.3); 
-    transform: translateY(-3px);
-}
-
+.footer-brand .footer-logo { max-height: 140px; width: auto; object-fit: contain; margin-bottom: 24px; }
+.footer-creci-box { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+.footer-creci-text { color: var(--silver); font-size: 14px; line-height: 1.5; }
+.social-links { display: flex; gap: 16px; align-items: center; margin-top: 8px; }
+.social-links a { width: 56px; height: 56px; background: #1A1A1A; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 14px; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
+.social-links a:hover { background: #252525; border-color: rgba(201, 168, 76, 0.3); transform: translateY(-3px); }
 .footer-links h4, .footer-contact h4 { font-size: 1rem; margin-bottom: 20px; color: var(--gold); }
 .footer-links ul { list-style: none; }
 .footer-links li { margin-bottom: 12px; }
@@ -337,7 +313,6 @@ section { padding: 100px 0; }
 .footer-bottom { border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 20px 0; text-align: center; }
 .footer-bottom p { color: var(--gray); font-size: 13px; }
 
-/* ===== WHATSAPP FLOAT ===== */
 .whatsapp-float { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4); z-index: 2000; transition: var(--transition); animation: pulse 2s ease-in-out infinite; }
 .whatsapp-float:hover { transform: scale(1.1); }
 
@@ -360,8 +335,10 @@ section { padding: 100px 0; }
     /* Responsivo Especial do Modal */
     .modal-content { flex-direction: column; height: 95vh; overflow-y: auto; display: block; }
     .modal-left { overflow: visible; display: block; }
+    .carousel-container { height: 35vh; min-height: 250px; }
+    .modal-media-bottom { grid-template-columns: 1fr; height: auto; } /* No mobile empilha o vídeo e mapa */
+    .media-thumbnail { padding: 30px 0; }
     .modal-right { border-left: none; overflow: visible; display: block; padding-bottom: 100px; }
-    .carousel-container { height: 300px; }
     .btn-whatsapp-modal { position: fixed; margin: 0; bottom: 2.5vh; left: 5%; width: 90%; z-index: 100; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
 }
 
