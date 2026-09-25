@@ -6,9 +6,7 @@ export const config = {
 // Função auxiliar para forçar a extração de JSON da resposta da IA
 function extrairJSON(texto) {
   try {
-    // Tenta limpar crases de markdown
     let limpo = texto.replace(/```json/gi, '').replace(/```/g, '').trim();
-    // Tenta encontrar o primeiro { e o último }
     const match = limpo.match(/\{[\s\S]*\}/);
     if (match) {
       return JSON.parse(match[0]);
@@ -70,7 +68,7 @@ Exemplo de formato esperado:
   "descricao": "Descrição detalhada separada por parágrafos agradáveis..."
 }`;
 
-    // Pega apenas a primeira URL para não estourar o Rate Limit
+    // Pega apenas a primeira URL para não estourar limites
     const primeiraFotoUrl = (fotosUrls && Array.isArray(fotosUrls) && fotosUrls.length > 0) ? fotosUrls[0] : null;
     let fotoBase64 = null;
     let fotoMimeType = 'image/jpeg';
@@ -160,7 +158,7 @@ Exemplo de formato esperado:
 }
 
 // ============================================================================
-// FUNÇÕES DOS PROVEDORES
+// FUNÇÕES DOS PROVEDORES ATUALIZADOS
 // ============================================================================
 
 async function chamarGemini(apiKey, base64, mimeType, prompt, isTextOnly) {
@@ -176,14 +174,32 @@ async function chamarGemini(apiKey, base64, mimeType, prompt, isTextOnly) {
     }
   });
 
-  // Tenta as versões modernas do Gemini sequencialmente
-  const targetModels = [
-    "gemini-2.0-flash",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-flash"
-  ];
+  // Busca dinamicamente os modelos mais recentes do Google para evitar erros futuros
+  let modelosAtivos = [];
+  try {
+    const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+    if (listRes.ok) {
+      const listData = await listRes.json();
+      if (Array.isArray(listData.models)) {
+        modelosAtivos = listData.models
+          .filter(m => m.supportedGenerationMethods?.includes('generateContent') && m.name.includes('flash'))
+          .map(m => m.name.replace(/^models\//, ''))
+          .reverse(); // Coloca os mais novos na frente
+      }
+    }
+  } catch (e) { console.log("Aviso: Falha ao listar modelos do Gemini. Usando modelos fixos."); }
 
-  for (const model of targetModels) {
+  // Se a busca falhar, tenta os que o Google nos informou que funcionam hoje:
+  if (modelosAtivos.length === 0) {
+    modelosAtivos = [
+      "gemini-3.8-flash",
+      "gemini-3.5-flash",
+      "gemini-3.0-flash",
+      "gemini-pro"
+    ];
+  }
+
+  for (const model of modelosAtivos) {
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
         method: 'POST',
@@ -216,8 +232,8 @@ async function chamarOpenRouter(apiKey, imageUrl, prompt, isTextOnly) {
     content.push({ type: "image_url", image_url: { url: imageUrl } });
   }
 
-  // Modelos 100% gratuitos do OpenRouter que suportam visão e texto
-  const model = isTextOnly ? "google/gemini-2.0-flash-lite-preview-02-05:free" : "google/gemini-2.0-flash-lite-preview-02-05:free";
+  // Usando modelos estáveis e gratuitos atuais
+  const model = isTextOnly ? "openrouter/auto" : "meta-llama/llama-3.2-11b-vision-instruct:free";
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -230,7 +246,6 @@ async function chamarOpenRouter(apiKey, imageUrl, prompt, isTextOnly) {
     body: JSON.stringify({
       model: model,
       messages: [{ role: "user", content }]
-      // Sem response_format restritivo para não quebrar modelos gratuitos
     })
   });
 
@@ -249,8 +264,8 @@ async function chamarGroq(apiKey, imageUrl, prompt, isTextOnly) {
     content.push({ type: "image_url", image_url: { url: imageUrl } });
   }
 
-  // Llama Vision para foto, Llama-8b para texto
-  const model = isTextOnly ? "llama3-8b-8192" : "llama-3.2-11b-vision-preview";
+  // Modelos definitivos da Groq (Sem as tags 'preview' ou versões antigas)
+  const model = isTextOnly ? "llama-3.3-70b-versatile" : "llama-3.2-11b-vision-instruct";
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -260,8 +275,8 @@ async function chamarGroq(apiKey, imageUrl, prompt, isTextOnly) {
     },
     body: JSON.stringify({
       model: model,
-      messages: [{ role: "user", content }]
-      // Sem response_format restritivo
+      messages: [{ role: "user", content }],
+      max_tokens: 1500
     })
   });
 
