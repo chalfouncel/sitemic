@@ -139,10 +139,10 @@
                 <form id="formImovel">
                     <div class="grid-form">
                         
-                        <!-- TÍTULO (EDITÁVEL) -->
+                        <!-- TÍTULO (EDITÁVEL) COM TRAVA DE 100 CARACTERES -->
                         <div class="form-group full-width">
                             <label>Título do Anúncio (Gerado por IA ou Manual)</label>
-                            <input type="text" id="imoTitulo" placeholder="A Inteligência Artificial criará o título após a análise, mas você pode editar livremente...">
+                            <input type="text" id="imoTitulo" maxlength="100" placeholder="A Inteligência Artificial criará o título após a análise, mas você pode editar livremente...">
                         </div>
                         
                         <div class="form-group">
@@ -281,10 +281,10 @@
                             <input type="text" id="imoEstado" value="RJ">
                         </div>
 
-                        <!-- DESCRIÇÃO (EDITÁVEL) -->
+                        <!-- DESCRIÇÃO (EDITÁVEL) COM TRAVA DE 3000 CARACTERES -->
                         <div class="form-group full-width">
                             <label>Descrição Detalhada (Gerada por IA ou Manual)</label>
-                            <textarea id="imoDescricao" rows="6" placeholder="A Inteligência Artificial fará a leitura das fotos, da mobília e das características acima para redigir o melhor anúncio, mas você pode editar livremente..."></textarea>
+                            <textarea id="imoDescricao" rows="6" maxlength="3000" placeholder="A Inteligência Artificial fará a leitura das fotos, da mobília e das características acima para redigir o melhor anúncio, mas você pode editar livremente..."></textarea>
                         </div>
 
                         <!-- FOTOS -->
