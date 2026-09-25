@@ -241,22 +241,15 @@ section { padding: 100px 0; }
     flex-direction: column; 
     position: relative; 
     border-left: 1px solid rgba(201,168,76,0.1); 
-    overflow: hidden; /* Importante: Trava a rolagem na lateral inteira */
+    overflow: hidden; 
 }
 .modal-right-scrollable { 
     flex: 1; 
     padding: 30px; 
-    overflow-y: auto; /* A rolagem acontece SÓ aqui dentro */
+    overflow-y: auto; 
 }
 .modal-right-scrollable::-webkit-scrollbar { width: 6px; }
 .modal-right-scrollable::-webkit-scrollbar-thumb { background: var(--gray); border-radius: 4px; }
-
-.modal-right-footer { 
-    padding: 20px 30px; 
-    background: var(--black-light); 
-    border-top: 1px solid rgba(255,255,255,0.05); 
-    z-index: 10;
-}
 
 .modal-header { margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
 .modal-title { font-family: var(--font-display); font-size: 1.8rem; color: var(--gold); margin-bottom: 10px; line-height: 1.2; }
@@ -266,24 +259,44 @@ section { padding: 100px 0; }
 .modal-features span { background: var(--black-lighter); padding: 8px 14px; border-radius: 4px; border: 1px solid rgba(201,168,76,0.1); font-size: 13px; color: var(--white); }
 .modal-desc { color: var(--silver); line-height: 1.7; font-size: 14px; white-space: pre-wrap; }
 
-/* Botão WhatsApp Ajustado */
+/* =========================================================
+   RODAPÉ DO MODAL E BOTÃO WHATSAPP LINDÃO
+   ========================================================= */
+.modal-right-footer { 
+    padding: 20px 30px; 
+    background: var(--black-light); 
+    border-top: 1px solid rgba(201,168,76,0.2); 
+    box-shadow: 0 -10px 20px rgba(0,0,0,0.3);
+    z-index: 10;
+}
+
 .btn-whatsapp-modal { 
     display: flex; 
     width: 100%; 
     align-items: center; 
     justify-content: center; 
-    gap: 10px; 
-    background: #25D366; 
-    color: white; 
+    gap: 12px; 
+    background-color: #25D366 !important; 
+    color: #FFFFFF !important; 
     padding: 16px 20px; 
-    border-radius: 4px; 
+    border-radius: 8px; 
+    font-size: 15px;
     font-weight: 700; 
     text-transform: uppercase; 
     letter-spacing: 1px; 
     transition: var(--transition); 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+    white-space: nowrap; /* Impede o texto de quebrar */
+    text-decoration: none;
 }
-.btn-whatsapp-modal:hover { background: #20BA56; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.5); }
+.btn-whatsapp-modal svg {
+    fill: currentColor;
+    flex-shrink: 0;
+}
+.btn-whatsapp-modal:hover { 
+    background-color: #128C7E !important; 
+    transform: translateY(-2px); 
+    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4); 
+}
 
 /* ===== SOBRE & SERVIÇOS & CTA & CONTATO & FOOTER ===== */
 .sobre { background: var(--black); position: relative; z-index: 2; }
