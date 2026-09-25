@@ -233,10 +233,30 @@ section { padding: 100px 0; }
 .lightbox-content video { width: 100%; max-height: 85vh; border-radius: 8px; border: 1px solid rgba(201,168,76,0.4); box-shadow: 0 10px 40px rgba(0,0,0,0.8); outline: none; }
 .video-watermark { position: absolute; top: 20px; right: 20px; width: 100px; opacity: 0.4; pointer-events: none; z-index: 10; }
 
-/* Lado Direito - Informações */
-.modal-right { flex: 1; padding: 30px 30px 100px 30px; background: var(--black-light); overflow-y: auto; display: flex; flex-direction: column; position: relative; border-left: 1px solid rgba(201,168,76,0.1); }
-.modal-right::-webkit-scrollbar { width: 6px; }
-.modal-right::-webkit-scrollbar-thumb { background: var(--gray); border-radius: 4px; }
+/* Lado Direito - Estrutura Fixa + Rolagem */
+.modal-right { 
+    flex: 1; 
+    background: var(--black-light); 
+    display: flex; 
+    flex-direction: column; 
+    position: relative; 
+    border-left: 1px solid rgba(201,168,76,0.1); 
+    overflow: hidden; /* Importante: Trava a rolagem na lateral inteira */
+}
+.modal-right-scrollable { 
+    flex: 1; 
+    padding: 30px; 
+    overflow-y: auto; /* A rolagem acontece SÓ aqui dentro */
+}
+.modal-right-scrollable::-webkit-scrollbar { width: 6px; }
+.modal-right-scrollable::-webkit-scrollbar-thumb { background: var(--gray); border-radius: 4px; }
+
+.modal-right-footer { 
+    padding: 20px 30px; 
+    background: var(--black-light); 
+    border-top: 1px solid rgba(255,255,255,0.05); 
+    z-index: 10;
+}
 
 .modal-header { margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
 .modal-title { font-family: var(--font-display); font-size: 1.8rem; color: var(--gold); margin-bottom: 10px; line-height: 1.2; }
@@ -246,11 +266,26 @@ section { padding: 100px 0; }
 .modal-features span { background: var(--black-lighter); padding: 8px 14px; border-radius: 4px; border: 1px solid rgba(201,168,76,0.1); font-size: 13px; color: var(--white); }
 .modal-desc { color: var(--silver); line-height: 1.7; font-size: 14px; white-space: pre-wrap; }
 
-/* Botão WhatsApp Fixo na parte inferior do modal */
-.btn-whatsapp-modal { position: absolute; bottom: 0; left: 0; right: 0; margin: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: white; padding: 16px 20px; border-radius: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; transition: var(--transition); box-shadow: 0 -10px 20px var(--black-light); }
-.btn-whatsapp-modal:hover { background: #20BA56; transform: translateY(-2px); }
+/* Botão WhatsApp Ajustado */
+.btn-whatsapp-modal { 
+    display: flex; 
+    width: 100%; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 10px; 
+    background: #25D366; 
+    color: white; 
+    padding: 16px 20px; 
+    border-radius: 4px; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    transition: var(--transition); 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+}
+.btn-whatsapp-modal:hover { background: #20BA56; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.5); }
 
-/* ===== SOBRE & SERVIÇOS & CTA & CONTATO & FOOTER... (mantidos iguais) ===== */
+/* ===== SOBRE & SERVIÇOS & CTA & CONTATO & FOOTER ===== */
 .sobre { background: var(--black); position: relative; z-index: 2; }
 .sobre-container { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
 .sobre-content .section-tag { display: block; text-align: left; }
@@ -336,10 +371,22 @@ section { padding: 100px 0; }
     .modal-content { flex-direction: column; height: 95vh; overflow-y: auto; display: block; }
     .modal-left { overflow: visible; display: block; }
     .carousel-container { height: 35vh; min-height: 250px; }
-    .modal-media-bottom { grid-template-columns: 1fr; height: auto; } /* No mobile empilha o vídeo e mapa */
+    .modal-media-bottom { grid-template-columns: 1fr; height: auto; }
     .media-thumbnail { padding: 30px 0; }
-    .modal-right { border-left: none; overflow: visible; display: block; padding-bottom: 100px; }
-    .btn-whatsapp-modal { position: fixed; margin: 0; bottom: 2.5vh; left: 5%; width: 90%; z-index: 100; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+    
+    /* Configuração Mobile Lado Direito */
+    .modal-right { border-left: none; overflow: visible; display: block; padding: 0; }
+    .modal-right-scrollable { padding: 20px 20px 100px 20px; overflow: visible; }
+    
+    /* Prende o botão na base do celular também */
+    .modal-right-footer { 
+        position: fixed; 
+        bottom: 0; 
+        left: 0; 
+        width: 100%; 
+        padding: 15px 5%; 
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.8); 
+    }
 }
 
 @media (max-width: 768px) {
