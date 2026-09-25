@@ -198,7 +198,6 @@
                             <input type="number" id="imoSuites" value="0">
                         </div>
                         
-                        <!-- NOME DO BANHEIRO ALTERADO -->
                         <div class="form-group">
                             <label>Banheiros (exceto suíte)</label>
                             <input type="number" id="imoBanheiros" value="0">
@@ -281,7 +280,7 @@
                             <input type="text" id="imoEstado" value="RJ">
                         </div>
 
-                        <!-- DESCRIÇÃO (EDITÁVEL) COM TRAVA DE 3000 CARACTERES -->
+                        <!-- DESCRIÇÃO -->
                         <div class="form-group full-width">
                             <label>Descrição Detalhada (Gerada por IA ou Manual)</label>
                             <textarea id="imoDescricao" rows="6" maxlength="3000" placeholder="A Inteligência Artificial fará a leitura das fotos, da mobília e das características acima para redigir o melhor anúncio, mas você pode editar livremente..."></textarea>
@@ -292,6 +291,13 @@
                             <label>Fotos do Imóvel (A marca d'água será aplicada automaticamente no centro)</label>
                             <input type="file" id="imoFotos" multiple accept="image/*">
                             <div id="previewFotos"></div>
+                        </div>
+                        
+                        <!-- NOVO: VÍDEO -->
+                        <div class="form-group full-width">
+                            <label>Vídeo de Apresentação (Opcional - MP4)</label>
+                            <input type="file" id="imoVideo" accept="video/mp4,video/x-m4v,video/*">
+                            <small style="color: var(--gold); font-size: 12px; margin-top: 5px; display: block;">Selecione um arquivo de vídeo para exibir dentro do imóvel.</small>
                         </div>
                     </div>
                     
