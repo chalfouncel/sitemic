@@ -133,9 +133,11 @@ async function carregarImoveisSite(filtros = null) {
 
     grid.innerHTML = '<p style="color: var(--gold); text-align: center; width: 100%;">A buscar oportunidades exclusivas...</p>';
 
+    // AQUI ESTÁ A MUDANÇA: Exigindo que o status seja ativo 
     let query = supabase
         .from('imoveis')
         .select('*')
+        .in('status', ['Ativo', 'ativo']) 
         .order('created_at', { ascending: false });
 
     if (filtros) {
@@ -258,10 +260,11 @@ function abrirModal(id) {
     if (imovel.valor_iptu > 0) featuresHtml += `<span>📄 IPTU: R$ ${Number(imovel.valor_iptu).toLocaleString('pt-BR')}</span>`;
     document.getElementById('modalFeatures').innerHTML = featuresHtml;
 
-    // 2. WhatsApp Dinâmico
+    // 2. WhatsApp Dinâmico (Aqui está enviando a referência)
     const urlAtual = window.location.origin + window.location.pathname;
     const linkDoImovel = `${urlAtual}?id=${imovel.id}`;
-    const textoWhatsApp = `Olá! Tenho interesse neste imóvel:\n\n*${imovel.titulo}*\n*Valor:* ${precoFormatado}\n\n*Veja o anúncio aqui:* ${linkDoImovel}`;
+    const refImovel = imovel.referencia ? ` (Ref: ${imovel.referencia})` : '';
+    const textoWhatsApp = `Olá! Tenho interesse neste imóvel:\n\n*${imovel.titulo}*${refImovel}\n*Valor:* ${precoFormatado}\n\n*Veja o anúncio aqui:* ${linkDoImovel}`;
     document.getElementById('modalZap').href = `https://wa.me/5521979748388?text=${encodeURIComponent(textoWhatsApp)}`;
 
     // 3. Fotos no Carrossel
