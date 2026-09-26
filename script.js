@@ -71,42 +71,33 @@ const btnFaleConosco = document.getElementById('btnFaleConoscoBot');
 
 if (btnFaleConosco) {
     btnFaleConosco.addEventListener('click', (e) => {
-        e.preventDefault(); // Evita que a página pule para o topo
+        e.preventDefault(); 
         
-        // Verifica se é um dispositivo móvel (celular/tablet) ou computador
+        // Verifica se é um dispositivo móvel
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
         
         if (isMobile) {
-            // Se for celular: Abre direto o WhatsApp do corretor
+            // Celular: WhatsApp direto
             const numeroWhatsApp = "5521979748388"; 
             const mensagem = encodeURIComponent("Olá! Vim pelo site e gostaria de conversar com um corretor.");
             window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`, '_blank');
         } else {
-            // Se for Computador: Injeta e abre o Typebot dinamicamente
-            
-            // Verifica se o Typebot já foi injetado antes para não abrir dois
-            if (document.getElementById('typebot-script')) {
-                if (typeof Typebot !== 'undefined') Typebot.open();
-                return;
-            }
-
-            // Cria o script e injeta na página na hora do clique
-            const typebotScript = document.createElement('script');
-            typebotScript.type = 'module';
-            typebotScript.id = 'typebot-script';
-            typebotScript.innerHTML = `
-                import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js';
-                
-                Typebot.initPopup({
+            // Computador: Inicializa e abre o Typebot (usando o objeto global)
+            if (window.Typebot) {
+                window.Typebot.initPopup({
                     typebot: 'my-typebot-6i7md8s',
                     apiHost: 'https://bot.miccorretores.com.br',
                 });
                 
-                // Abre o popup imediatamente após inicializar
-                Typebot.open();
-            `;
-            
-            document.body.appendChild(typebotScript);
+                // Dá um tempinho mínimo (100ms) para inicializar antes de mandar abrir
+                setTimeout(() => {
+                    window.Typebot.open();
+                }, 100);
+                
+            } else {
+                // Se por acaso a biblioteca não carregou, desce pro formulário
+                document.getElementById('contato').scrollIntoView({ behavior: 'smooth' });
+            }
         }
     });
 }
