@@ -428,14 +428,35 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- SCRIPT DO TYPEBOT (BIBLIOTECA) -->
-    <script type="module">
-        import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js';
-        // Apenas expõe o Typebot globalmente para o script.js usar
-        window.Typebot = Typebot;
-    </script>
-
     <script src="script.js"></script>
+
+    <!-- SCRIPT DO TYPEBOT OFICIAL -->
+    <script type="module">
+        import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js'
+      
+        Typebot.initPopup({
+            typebot: 'my-typebot-6i7md8s',
+            apiHost: 'https://bot.miccorretores.com.br',
+            autoShowDelay: -1, 
+        });
+
+        // Event listener direto no script do Typebot (solução oficial documentada)
+        const btn = document.getElementById('btnFaleConoscoBot');
+        if(btn) {
+            btn.addEventListener('click', (event) => {
+                event.preventDefault();
+                
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+                
+                if (isMobile) {
+                    const numeroWhatsApp = "5521979748388"; 
+                    const mensagem = encodeURIComponent("Olá! Vim pelo site e gostaria de conversar com um corretor.");
+                    window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`, '_blank');
+                } else {
+                    Typebot.open();
+                }
+            });
+        }
+    </script>
 </body>
 </html>
