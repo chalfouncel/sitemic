@@ -1,403 +1,458 @@
-// --- CONFIGURAÇÃO DO SUPABASE ---
-var SUPABASE_URL = 'https://uztsmkhlvoemjbbyebcr.supabase.co';
-var SUPABASE_ANON_KEY = 'sb_publishable_nmolEh_G5_hKcfdgy2Xpeg_s4T6ePAz';
-var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// --- LÓGICA DO SPLASH SCREEN & INICIALIZAÇÃO ---
-document.addEventListener("DOMContentLoaded", () => {
-    const splashScreen = document.getElementById('splashScreen');
-    const splashVideo = document.getElementById('splashVideo');
-    const btnSkip = document.getElementById('skipSplash');
-
-    if (splashScreen && splashVideo) {
-        splashVideo.addEventListener('ended', fecharSplash);
-        if(btnSkip) {
-            btnSkip.addEventListener('click', fecharSplash);
-        }
-    }
-
-    function fecharSplash() {
-        splashScreen.style.opacity = '0';
-        document.body.classList.remove('no-scroll');
-        setTimeout(() => {
-            splashScreen.style.display = 'none';
-        }, 1000);
-    }
-
-    // --- Evento de clique no botão "Buscar" ---
-    const btnSearch = document.querySelector('.btn-search');
-    if (btnSearch) {
-        btnSearch.addEventListener('click', () => {
-            const finalidade = document.getElementById('buscaFinalidade') ? document.getElementById('buscaFinalidade').value : 'Todos';
-            const tipo = document.getElementById('buscaTipo') ? document.getElementById('buscaTipo').value : 'Todos';
-            const localizacao = document.getElementById('buscaLocalizacao') ? document.getElementById('buscaLocalizacao').value.trim() : '';
-            const preco = document.getElementById('buscaPreco') ? document.getElementById('buscaPreco').value : 'Qualquer valor';
-
-            document.getElementById('imoveis').scrollIntoView({ behavior: 'smooth' });
-            carregarImoveisSite({ finalidade, tipo, localizacao, preco });
-        });
-    }
-
-    carregarImoveisSite();
-});
-
-// Navbar scroll effect
-const navbar = document.getElementById('navbar');
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
-    }
-});
-
-// Mobile menu toggle
-const menuToggle = document.getElementById('menuToggle');
-const navLinks = document.getElementById('navLinks');
-if (menuToggle) {
-    menuToggle.addEventListener('click', () => {
-        navLinks.classList.toggle('active');
-    });
-}
-
-document.querySelectorAll('.nav-links a').forEach(link => {
-    link.addEventListener('click', () => {
-        if (navLinks) navLinks.classList.remove('active');
-    });
-});
-
-// --- LÓGICA INTELIGENTE DO BOTÃO "FALE CONOSCO" (Typebot vs WhatsApp) ---
-const btnFaleConosco = document.getElementById('btnFaleConoscoBot');
-
-if (btnFaleConosco) {
-    btnFaleConosco.addEventListener('click', (e) => {
-        e.preventDefault(); // Evita que a página pule para o topo
-        
-        // Verifica se é um dispositivo móvel (celular/tablet) ou computador
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-        
-        if (isMobile) {
-            // Se for celular: Abre direto o WhatsApp do corretor
-            const numeroWhatsApp = "5521979748388"; 
-            const mensagem = encodeURIComponent("Olá! Vim pelo site e gostaria de conversar com um corretor.");
-            window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`, '_blank');
-        } else {
-            // Se for Computador: Aciona o Typebot e abre o Popup no meio da tela
-            if (typeof Typebot !== 'undefined') {
-                Typebot.open();
-            } else {
-                // Fallback (plano B): Se der algum erro e o Typebot não carregar,
-                // rola a página para baixo até o formulário de contato original
-                document.getElementById('contato').scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-    });
-}
-
-// --- FORMULÁRIO DE CONTATO (Envio por E-mail + WhatsApp) ---
-const form = document.getElementById('contatoForm');
-const formFeedback = document.getElementById('formFeedback');
-
-if (form) {
-    form.addEventListener('submit', (e) => {
-        e.preventDefault(); 
-
-        const nome = document.getElementById('nomeLead').value;
-        const telefone = document.getElementById('telefoneLead').value;
-        const email = document.getElementById('emailLead').value;
-        const interesse = document.getElementById('interesseLead').value;
-        const mensagem = document.getElementById('mensagemLead').value;
-
-        formFeedback.style.display = 'block';
-        formFeedback.style.color = 'var(--gold)';
-        formFeedback.innerText = 'Processando a sua mensagem...';
-
-        fetch("https://formsubmit.co/ajax/chalfouncorretor@gmail.com", {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                Nome: nome,
-                Telefone: telefone,
-                Email: email,
-                Interesse: interesse,
-                Mensagem: mensagem
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            const msgWp = `*Novo Lead via Site M&IC*\n\n*Nome:* ${nome}\n*Telefone:* ${telefone}\n*E-mail:* ${email}\n*Interesse:* ${interesse}\n*Mensagem:* ${mensagem}`;
-            const urlWp = `https://wa.me/5521979748388?text=${encodeURIComponent(msgWp)}`;
-
-            formFeedback.innerText = 'Tudo certo! Redirecionando para o WhatsApp...';
-
-            setTimeout(() => {
-                window.open(urlWp, '_blank');
-                form.reset();
-                formFeedback.style.display = 'none';
-            }, 1500);
-        })
-        .catch(error => {
-            console.error('Erro no FormSubmit:', error);
-            const msgWp = `*Novo Lead via Site M&IC*\n\n*Nome:* ${nome}\n*Telefone:* ${telefone}\n*E-mail:* ${email}\n*Interesse:* ${interesse}\n*Mensagem:* ${mensagem}`;
-            const urlWp = `https://wa.me/5521979748388?text=${encodeURIComponent(msgWp)}`;
-            
-            window.open(urlWp, '_blank');
-            form.reset();
-            formFeedback.style.display = 'none';
-        });
-    });
-}
-
-// --- CARREGAMENTO DINÂMICO DE IMÓVEIS E MODAL ---
-let imoveisCarregados = [];
-let slideAtual = 0;
-
-async function carregarImoveisSite(filtros = null) {
-    const grid = document.getElementById('gridImoveis');
-    if (!grid) return;
-
-    grid.innerHTML = '<p style="color: var(--gold); text-align: center; width: 100%;">A buscar oportunidades exclusivas...</p>';
-
-    // AQUI ESTÁ A MUDANÇA: Exigindo que o status seja ativo 
-    let query = supabase
-        .from('imoveis')
-        .select('*')
-        .in('status', ['Ativo', 'ativo']) 
-        .order('created_at', { ascending: false });
-
-    if (filtros) {
-        if (filtros.finalidade && filtros.finalidade !== 'Todos') {
-            query = query.ilike('finalidade', `%${filtros.finalidade}%`);
-        }
-        if (filtros.tipo && filtros.tipo !== 'Todos') {
-            query = query.eq('tipo', filtros.tipo);
-        }
-        if (filtros.localizacao) {
-            query = query.or(`bairro.ilike.%${filtros.localizacao}%,cidade.ilike.%${filtros.localizacao}%`);
-        }
-        if (filtros.preco && filtros.preco !== 'Qualquer valor' && !filtros.preco.includes('+')) {
-            const valorMaximo = parseInt(filtros.preco.replace(/\D/g, ''));
-            if (valorMaximo > 0) {
-                if (filtros.finalidade === 'Aluguel') {
-                    query = query.lte('valor_aluguel', valorMaximo);
-                } else {
-                    query = query.lte('valor_venda', valorMaximo);
-                }
-            }
-        }
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-        console.error('Erro Supabase:', error);
-        grid.innerHTML = '<p style="color: #ff4444; text-align: center; width: 100%;">Não foi possível carregar o portfólio no momento.</p>';
-        return;
-    }
-
-    if (!data || data.length === 0) {
-        grid.innerHTML = '<p style="color: var(--silver); text-align: center; width: 100%;">Nenhum imóvel encontrado com esses filtros.</p>';
-        return;
-    }
-
-    imoveisCarregados = data;
-    grid.innerHTML = '';
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M&IC Corretores de Imóveis | Alto Padrão</title>
+    <meta name="description" content="M&IC Corretores de Imóveis - Especialistas em imóveis. Encontre o imóvel dos seus sonhos.">
+    <link rel="icon" type="image/png" href="logo.png">
     
-    data.forEach(imovel => {
-        let imgCapa = '';
-        if (imovel.fotos && imovel.fotos.length > 0) {
-            imgCapa = `background-image: url('${imovel.fotos[0]}'); background-size: cover; background-position: center;`;
-        } else {
-            imgCapa = `background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);`;
+    <script>
+        if (window.location.hostname === 'app.miccorretores.com.br') { 
+            window.location.replace('/app.html'); 
+        } else if (window.location.hostname === 'portal.miccorretores.com.br') { 
+            window.location.replace('/portal.html'); 
         }
+    </script>
 
-        let precoFormatado = 'Sob Consulta';
-        if (imovel.finalidade === 'Venda' && imovel.valor_venda) {
-            precoFormatado = `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}`;
-        } else if (imovel.finalidade === 'Aluguel' && imovel.valor_aluguel) {
-            precoFormatado = `R$ ${Number(imovel.valor_aluguel).toLocaleString('pt-BR')}/mês`;
-        } else if (imovel.finalidade === 'Venda e Aluguel') {
-            precoFormatado = imovel.valor_venda ? `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}` : 'Sob Consulta';
-        }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="no-scroll">
 
-        const destaqueHtml = imovel.destaque ? `<span class="imovel-tag destaque" style="margin-left: 8px;">Destaque</span>` : '';
+    <div id="splashScreen">
+        <video id="splashVideo" autoplay muted playsinline>
+            <source src="Logo%20animado.mp4" type="video/mp4">
+            Seu navegador não suporta vídeos.
+        </video>
+        <button id="skipSplash" class="btn-skip">Pular Introdução</button>
+    </div>
 
-        let featuresHtml = '';
-        if (imovel.quartos > 0) featuresHtml += `<span>🛏 ${imovel.quartos} Quartos</span>`;
-        if (imovel.area_util > 0) featuresHtml += `<span>📐 ${imovel.area_util}m²</span>`;
-        if (imovel.vagas > 0) featuresHtml += `<span>🚗 ${imovel.vagas} Vagas</span>`;
+    <div class="fixed-portraits">
+        <img src="ivy.png" alt="Ivy Carla" class="portrait-left">
+        <img src="mario.png" alt="Mario Jr" class="portrait-right">
+    </div>
 
-        const card = `
-            <div class="imovel-card">
-                <div class="imovel-img" style="${imgCapa}" onclick="abrirModal('${imovel.id}')">
-                    <div style="position:absolute; top:16px; left:16px;">
-                        <span class="imovel-tag">${imovel.finalidade || 'Venda'}</span>
-                        ${destaqueHtml}
-                    </div>
+    <nav class="navbar" id="navbar">
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <img src="logo.png" alt="M&IC Corretores de Imóveis">
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#inicio">Início</a></li>
+                <li><a href="#imoveis">Imóveis</a></li>
+                <li><a href="#sobre">Sobre</a></li>
+                <li><a href="#servicos">Serviços</a></li>
+                <li><a href="#contato">Contato</a></li>
+            </ul>
+            <!-- BOTÃO ALTERADO PARA CHAMAR O TYPEBOT -->
+            <a href="#" class="btn-nav" id="btnFaleConoscoBot">Fale Conosco</a>
+            <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <section class="hero" id="inicio">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <span class="hero-badge">✦ Corretores Autônomos</span>
+            <h1>Nosso propósito é realizar<br><span class="gold-text">seu sonho da casa própria</span></h1>
+            <p>Trabalhamos com imóveis prontos, na planta e locação.<br>Do Minha Casa Minha Vida ao mais alto padrão.</p>
+            <div class="hero-buttons">
+                <a href="#imoveis" class="btn-primary">Ver Imóveis</a>
+                <a href="#contato" class="btn-secondary">Agendar Visita</a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll</span>
+            <div class="scroll-line"></div>
+        </div>
+    </section>
+
+    <section class="search-section">
+        <div class="container">
+            <div class="search-box">
+                <div class="search-field">
+                    <label>Finalidade</label>
+                    <select id="buscaFinalidade">
+                        <option value="Todos">Comprar ou Alugar</option>
+                        <option value="Venda">Comprar</option>
+                        <option value="Aluguel">Alugar</option>
+                    </select>
                 </div>
-                <div class="imovel-info">
-                    <h3>${imovel.titulo}</h3>
-                    <p class="imovel-local">📍 ${imovel.bairro || 'Localização não informada'}, ${imovel.cidade || ''}</p>
-                    <div class="imovel-features">
-                        ${featuresHtml}
+                
+                <div class="search-field">
+                    <label>Tipo</label>
+                    <select id="buscaTipo">
+                        <option>Todos</option>
+                        <option>Apartamento</option>
+                        <option>Casa</option>
+                        <option>Cobertura</option>
+                        <option>Terreno</option>
+                        <option>Comercial</option>
+                    </select>
+                </div>
+                <div class="search-field">
+                    <label>Localização</label>
+                    <input type="text" id="buscaLocalizacao" placeholder="Bairro ou cidade">
+                </div>
+                <div class="search-field">
+                    <label>Preço até</label>
+                    <select id="buscaPreco">
+                        <option>Qualquer valor</option>
+                        <option>R$ 500.000</option>
+                        <option>R$ 1.000.000</option>
+                        <option>R$ 2.000.000</option>
+                        <option>R$ 5.000.000+</option>
+                    </select>
+                </div>
+                <button class="btn-search">Buscar</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="imoveis" id="imoveis">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Portfólio Exclusivo</span>
+                <h2>Imóveis em <span class="gold-text">Destaque</span></h2>
+                <p>Seleção especial dos melhores imóveis do mercado</p>
+            </div>
+            
+            <div class="imoveis-grid" id="gridImoveis">
+                <!-- Imóveis injetados por JS -->
+            </div>
+            
+            <div class="text-center">
+                <a href="#contato" class="btn-primary">Ver Todos os Imóveis</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="sobre" id="sobre">
+        <div class="container sobre-container">
+            <div class="sobre-content">
+                <span class="section-tag">Quem Somos</span>
+                <h2>Atendimento <span class="gold-text">humanizado</span></h2>
+                <p>Nosso propósito é realizar seu sonho da casa própria. Com atuação no mercado de imóveis em construção e prontos, oferecemos um atendimento consultivo, discreto e personalizado.</p>
+                <p>Garantimos, com a nossa experiência, as melhores oportunidades para nossos clientes. Sempre teremos um imóvel que cabe no seu bolso.</p>
+                <div class="sobre-features">
+                    <div class="feature">
+                        <div class="feature-icon">✦</div>
+                        <div>
+                            <h4>Atendimento Premium</h4>
+                            <p>Consultoria exclusiva do início ao fim</p>
+                        </div>
                     </div>
-                    <div class="imovel-footer">
-                        <span class="imovel-price">${precoFormatado}</span>
-                        <button onclick="abrirModal('${imovel.id}')" class="btn-card">Detalhes →</button>
+                    <div class="feature">
+                        <div class="feature-icon">✦</div>
+                        <div>
+                            <h4>Portfólio Selecionado</h4>
+                            <p>Apenas os melhores imóveis do mercado</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">✦</div>
+                        <div>
+                            <h4>Transparência Total</h4>
+                            <p>Processo claro e seguro em cada etapa</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        `;
-        grid.innerHTML += card;
-    });
+            <div class="sobre-image">
+                <div class="sobre-img-box">
+                    <img src="ambos.png" alt="Ivy Carla e Mario Jr">
+                </div>
+            </div>
+        </div>
+    </section>
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const idNaUrl = urlParams.get('id');
-    if (idNaUrl) {
-        setTimeout(() => abrirModal(idNaUrl), 100); 
-    }
-}
+    <section class="servicos" id="servicos">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">O que fazemos</span>
+                <h2>Nossos <span class="gold-text">Serviços</span></h2>
+                <p>Soluções completas para o seu patrimônio imobiliário</p>
+            </div>
+            <div class="servicos-grid">
+                <div class="servico-card">
+                    <div class="servico-icon">🏠</div>
+                    <h3>Compra & Venda</h3>
+                    <p>Assessoria completa na compra e venda de imóveis residenciais e comerciais.</p>
+                </div>
+                <div class="servico-card">
+                    <div class="servico-icon">🔑</div>
+                    <h3>Locação</h3>
+                    <p>Gestão profissional de locação com análise criteriosa de inquilinos e contratos seguros.</p>
+                </div>
+                <div class="servico-card">
+                    <div class="servico-icon">🔨</div>
+                    <h3>Assessoria em Leilões</h3>
+                    <p>Orientação e suporte completo em arrematações e oportunidades seguras em leilões imobiliários.</p>
+                </div>
+                <div class="servico-card">
+                    <div class="servico-icon">📊</div>
+                    <h3>Avaliação</h3>
+                    <p>Laudos técnicos de avaliação imobiliária com metodologia certificada pelo COFECI.</p>
+                </div>
+                <div class="servico-card">
+                    <div class="servico-icon">📋</div>
+                    <h3>Consultoria</h3>
+                    <p>Orientação estratégica para investimentos imobiliários com máximo retorno e segurança.</p>
+                </div>
+                <div class="servico-card">
+                    <div class="servico-icon">⚖️</div>
+                    <h3>Jurídico</h3>
+                    <p>Suporte jurídico especializado em contratos, documentação e regularização imobiliária.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-// Lógica de abertura do Modal
-function abrirModal(id) {
-    const imovel = imoveisCarregados.find(i => i.id === id);
-    if(!imovel) return;
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-box">
+                <h2>Pronto para encontrar seu <span class="gold-text">próximo lar</span>?</h2>
+                <p>Agende uma conversa com nossos especialistas e descubra as melhores oportunidades do mercado.</p>
+                <a href="#contato" class="btn-primary">Agendar Consultoria</a>
+            </div>
+        </div>
+    </section>
 
-    // 1. Textos da direita
-    document.getElementById('modalTitulo').innerText = imovel.titulo;
-    document.getElementById('modalLocal').innerText = `📍 ${imovel.endereco || ''} ${imovel.numero || ''} - ${imovel.bairro || ''}, ${imovel.cidade || ''} - ${imovel.estado || ''}`;
-    document.getElementById('modalDesc').innerText = imovel.descricao || 'Sem descrição detalhada.';
+    <section class="contato" id="contato">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Fale Conosco</span>
+                <h2>Entre em <span class="gold-text">Contato</span></h2>
+                <p>Estamos prontos para atender você</p>
+            </div>
+            <div class="contato-container">
+                <div class="contato-info">
+                    <div class="contato-item">
+                        <div class="contato-icon">📞</div>
+                        <div>
+                            <h4>Telefones</h4>
+                            <p>(21) 97974-8388<br>(21) 98289-5043</p>
+                        </div>
+                    </div>
+                    <div class="contato-item">
+                        <div class="contato-icon">✉️</div>
+                        <div>
+                            <h4>E-mail</h4>
+                            <p>chalfouncorretor@gmail.com</p>
+                        </div>
+                    </div>
+                    <div class="contato-item">
+                        <div class="contato-icon">🕐</div>
+                        <div>
+                            <h4>Horário</h4>
+                            <p>Seg a Sex: 9h às 18h<br>Sáb: 9h às 13h</p>
+                        </div>
+                    </div>
+                </div>
+                <form class="contato-form" id="contatoForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nome completo</label>
+                            <input type="text" id="nomeLead" placeholder="Seu nome">
+                        </div>
+                        <div class="form-group">
+                            <label>Telefone</label>
+                            <input type="tel" id="telefoneLead" placeholder="(21) 99999-9999">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>E-mail</label>
+                        <input type="email" id="emailLead" placeholder="seu@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Interesse</label>
+                        <select id="interesseLead">
+                            <option>Comprar imóvel</option>
+                            <option>Alugar imóvel</option>
+                            <option>Vender imóvel</option>
+                            <option>Avaliação</option>
+                            <option>Leilão Imobiliário</option>
+                            <option>Outros</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Mensagem</label>
+                        <textarea id="mensagemLead" rows="4" placeholder="Como podemos ajudar?"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">Enviar Mensagem</button>
+                    <div id="formFeedback" style="display:none; text-align:center; padding-top: 15px; color: var(--gold);"></div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="logo.png" alt="M&IC" class="footer-logo">
+                    <div class="footer-creci-box">
+                        <div class="footer-creci-text">
+                            <strong>Ivy Carla</strong> (CRECI 75179)<br>
+                            <strong>Mario Jr</strong> (CRECI 101338)
+                        </div>
+                    </div>
+                    <div class="social-links">
+                        <a href="https://instagram.com/ivy_corretora" target="_blank" aria-label="Instagram">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="igGrad" x1="12" y1="24" x2="12" y2="0" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#fd5949"/>
+                                        <stop offset="0.5" stop-color="#d6249f"/>
+                                        <stop offset="1" stop-color="#285AEB"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="url(#igGrad)"/>
+                            </svg>
+                        </a>
+                        <a href="https://wa.me/5521979748388" target="_blank" aria-label="WhatsApp">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" fill="#25D366"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Navegação</h4>
+                    <ul>
+                        <li><a href="#inicio">Início</a></li>
+                        <li><a href="#imoveis">Imóveis</a></li>
+                        <li><a href="#sobre">Sobre</a></li>
+                        <li><a href="#servicos">Serviços</a></li>
+                        <li><a href="#contato">Contato</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Serviços</h4>
+                    <ul>
+                        <li><a href="#servicos">Compra & Venda</a></li>
+                        <li><a href="#servicos">Locação</a></li>
+                        <li><a href="#servicos">Leilões</a></li>
+                        <li><a href="#servicos">Avaliação</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contato</h4>
+                    <p>📞 (21) 97974-8388 / 98289-5043</p>
+                    <p>✉️ chalfouncorretor@gmail.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 M&IC Corretores de Imóveis. Excelência em mediação imobiliária.</p>
+            </div>
+        </div>
+    </footer>
+
+    <a href="https://wa.me/5521979748388" class="whatsapp-float" target="_blank" aria-label="WhatsApp">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" fill="white"/>
+        </svg>
+    </a>
+
+    <!-- ============================================== -->
+    <!-- MODAL DO IMÓVEL (LAYOUT SPLIT ATUALIZADO 1/4)  -->
+    <!-- ============================================== -->
+    <div class="modal-overlay" id="imovelModal">
+        <div class="modal-close" onclick="fecharModal()">×</div>
+        
+        <div class="modal-content">
+            
+            <!-- LADO ESQUERDO (Mídia Rolável) -->
+            <div class="modal-left">
+                
+                <!-- 2/4 - Carrossel de Fotos Grande -->
+                <div class="carousel-container">
+                    <button class="carousel-btn carousel-prev" onclick="mudarSlide(-1)">❮</button>
+                    <div id="carouselSlides"></div>
+                    <button class="carousel-btn carousel-next" onclick="mudarSlide(1)">❯</button>
+                </div>
+
+                <!-- 1/4 + 1/4 - Grid Inferior (Vídeo e Mapa lado a lado) -->
+                <div class="modal-media-bottom" id="mediaBottom">
+                    
+                    <!-- Capa do Vídeo (Abre o Lightbox ao clicar) -->
+                    <div class="media-thumbnail" id="videoThumbnail" onclick="abrirVideoPlayer()" style="display: none;">
+                        <div class="play-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--black)" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 5V19L19 12L8 5Z" />
+                            </svg>
+                        </div>
+                        <span>Apresentação em Vídeo</span>
+                    </div>
+
+                    <!-- Mapa Automático -->
+                    <div class="media-map">
+                        <iframe id="modalMapFrame" src="" loading="lazy"></iframe>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- LADO DIREITO (Informações e Botão Fixo) -->
+            <div class="modal-right">
+                <!-- Área rolável para o texto -->
+                <div class="modal-right-scrollable">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="modalTitulo">Título do Imóvel</h2>
+                        <div class="modal-local" id="modalLocal">📍 Localização</div>
+                        <span class="modal-price" id="modalPreco">R$ 0,00</span>
+                    </div>
+                    
+                    <div class="modal-features" id="modalFeatures"></div>
+                    
+                    <div class="modal-desc" id="modalDesc">Descrição do Imóvel</div>
+                </div>
+                
+                <!-- Rodapé fixo para o botão não cobrir o texto -->
+                <div class="modal-right-footer">
+                    <a href="#" class="btn-whatsapp-modal" id="modalZap" target="_blank">
+                        FALAR COM CORRETOR
+                        <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA DE VÍDEO (LIGHTBOX) -->
+    <div class="video-lightbox" id="videoLightbox">
+        <div class="lightbox-close" onclick="fecharVideoPlayer()">×</div>
+        <div class="lightbox-content">
+            <img src="logo.png" class="video-watermark" alt="M&IC Proteção">
+            <video id="lightboxVideoPlayer" controls controlsList="nodownload">
+                <source src="" type="video/mp4">
+                Seu navegador não suporta este vídeo.
+            </video>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    let precoFormatado = 'Sob Consulta';
-    if (imovel.finalidade === 'Venda' && imovel.valor_venda) precoFormatado = `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}`;
-    else if (imovel.finalidade === 'Aluguel' && imovel.valor_aluguel) precoFormatado = `R$ ${Number(imovel.valor_aluguel).toLocaleString('pt-BR')}/mês`;
-    else if (imovel.finalidade === 'Venda e Aluguel') precoFormatado = imovel.valor_venda ? `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}` : 'Sob Consulta';
-    document.getElementById('modalPreco').innerText = precoFormatado;
-
-    let featuresHtml = '';
-    if (imovel.quartos > 0) featuresHtml += `<span>🛏 ${imovel.quartos} Quartos</span>`;
-    if (imovel.suites > 0) featuresHtml += `<span>🚿 ${imovel.suites} Suítes</span>`;
-    if (imovel.banheiros > 0) featuresHtml += `<span>🚽 ${imovel.banheiros} Banheiros</span>`;
-    if (imovel.area_util > 0) featuresHtml += `<span>📐 ${imovel.area_util}m² Útil</span>`;
-    if (imovel.area_total > 0) featuresHtml += `<span>📐 ${imovel.area_total}m² Total</span>`;
-    if (imovel.vagas > 0) featuresHtml += `<span>🚗 ${imovel.vagas} Vagas</span>`;
-    if (imovel.valor_condominio > 0) featuresHtml += `<span>🏢 Cond: R$ ${Number(imovel.valor_condominio).toLocaleString('pt-BR')}</span>`;
-    if (imovel.valor_iptu > 0) featuresHtml += `<span>📄 IPTU: R$ ${Number(imovel.valor_iptu).toLocaleString('pt-BR')}</span>`;
-    document.getElementById('modalFeatures').innerHTML = featuresHtml;
-
-    // 2. WhatsApp Dinâmico (Aqui está enviando a referência)
-    const urlAtual = window.location.origin + window.location.pathname;
-    const linkDoImovel = `${urlAtual}?id=${imovel.id}`;
-    const refImovel = imovel.referencia ? ` (Ref: ${imovel.referencia})` : '';
-    const textoWhatsApp = `Olá! Tenho interesse neste imóvel:\n\n*${imovel.titulo}*${refImovel}\n*Valor:* ${precoFormatado}\n\n*Veja o anúncio aqui:* ${linkDoImovel}`;
-    document.getElementById('modalZap').href = `https://wa.me/5521979748388?text=${encodeURIComponent(textoWhatsApp)}`;
-
-    // 3. Fotos no Carrossel
-    const carousel = document.getElementById('carouselSlides');
-    carousel.innerHTML = '';
-    if(imovel.fotos && imovel.fotos.length > 0) {
-        imovel.fotos.forEach((foto, idx) => {
-            carousel.innerHTML += `<img src="${foto}" class="carousel-slide ${idx === 0 ? 'active' : ''}" alt="Foto do imóvel">`;
-        });
-    } else {
-        carousel.innerHTML = `<div class="carousel-slide active" style="background: var(--black-lighter); width:100%; height:100%; display:flex; align-items:center; justify-content:center; color: var(--silver);">Sem fotos</div>`;
-    }
-    slideAtual = 0;
-
-    // 4. Lógica de Vídeo e Mapa na Mídia Inferior (Grid 1/4 + 1/4)
-    const mediaBottom = document.getElementById('mediaBottom');
-    const videoThumbnail = document.getElementById('videoThumbnail');
-    const lightboxPlayer = document.getElementById('lightboxVideoPlayer');
-    const mapFrame = document.getElementById('modalMapFrame');
-
-    // Monta a string do mapa
-    let enderecoCompleto = '';
-    if(imovel.endereco || imovel.bairro) {
-        enderecoCompleto = `${imovel.endereco || ''} ${imovel.numero || ''} ${imovel.bairro || ''} ${imovel.cidade || ''} RJ Brasil`;
-        mapFrame.src = `https://maps.google.com/maps?q=${encodeURIComponent(enderecoCompleto)}&t=m&z=15&output=embed&iwloc=near`;
-    } else {
-        mapFrame.src = '';
-    }
-
-    // Gerencia o Grid se tem vídeo ou não
-    if (imovel.video) {
-        videoThumbnail.style.display = 'flex';
-        mediaBottom.style.gridTemplateColumns = '1fr 1fr'; // Divide ao meio (1/4 de vídeo, 1/4 mapa)
-        lightboxPlayer.src = imovel.video;
-    } else {
-        videoThumbnail.style.display = 'none';
-        mediaBottom.style.gridTemplateColumns = '1fr'; // Se não tem vídeo, mapa ocupa tudo
-        lightboxPlayer.src = '';
-    }
-
-    // Exibe o modal
-    document.getElementById('imovelModal').classList.add('active');
-    document.body.style.overflow = 'hidden'; 
-}
-
-function fecharModal() {
-    document.getElementById('imovelModal').classList.remove('active');
-    document.body.style.overflow = 'auto'; 
+    <!-- SCRIPT DO TYPEBOT (POPUP) -->
+    <script type="module">
+        import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.2/dist/web.js'
+      
+        Typebot.initPopup({
+          typebot: 'COLOQUE-O-NOME-DO-BOT-AQUI', // <--- SUBSTITUA PELO ID REAL DO SEU TYPEBOT AQUI!
+          apiHost: 'https://chatbot.miccorretores.com.br', // Seu servidor próprio!
+          autoShowDelay: -1, // Não abre sozinho, só quando clicar no botão
+        })
+    </script>
     
-    // Limpa URL
-    const urlLimpa = window.location.origin + window.location.pathname;
-    window.history.replaceState({}, document.title, urlLimpa);
-
-    // Limpa Iframe do Mapa e garante que o vídeo parou
-    document.getElementById('modalMapFrame').src = '';
-    fecharVideoPlayer();
-}
-
-function mudarSlide(direcao) {
-    const slides = document.querySelectorAll('.carousel-slide');
-    if(slides.length === 0) return;
-    
-    slides[slideAtual].classList.remove('active');
-    slideAtual += direcao;
-    
-    if(slideAtual >= slides.length) slideAtual = 0;
-    if(slideAtual < 0) slideAtual = slides.length - 1;
-    
-    slides[slideAtual].classList.add('active');
-}
-
-// --- FUNÇÕES DO LIGHTBOX DE VÍDEO ---
-function abrirVideoPlayer() {
-    const lightbox = document.getElementById('videoLightbox');
-    const player = document.getElementById('lightboxVideoPlayer');
-    
-    lightbox.classList.add('active');
-    // Tenta dar play automático
-    player.play().catch(error => {
-        console.log("Autoplay bloqueado pelo navegador, aguardando clique do usuário.");
-    });
-}
-
-function fecharVideoPlayer() {
-    const lightbox = document.getElementById('videoLightbox');
-    const player = document.getElementById('lightboxVideoPlayer');
-    
-    lightbox.classList.remove('active');
-    player.pause();
-}
-
-// Smooth reveal on scroll
-const revealElements = document.querySelectorAll('.imovel-card, .servico-card, .feature');
-const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, { threshold: 0.1 });
-
-revealElements.forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(30px)';
-    el.style.transition = 'all 0.6s ease';
-    revealObserver.observe(el);
-});
+    <script src="script.js"></script>
+</body>
+</html>
