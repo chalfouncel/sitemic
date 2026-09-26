@@ -66,6 +66,56 @@ document.querySelectorAll('.nav-links a').forEach(link => {
     });
 });
 
+
+// --- LÓGICA INTELIGENTE DO BOTÃO "FALE CONOSCO" (Typebot vs WhatsApp) ---
+const btnFaleConosco = document.getElementById('btnFaleConoscoBot');
+
+if (btnFaleConosco) {
+    btnFaleConosco.addEventListener('click', async (e) => {
+        e.preventDefault(); 
+        
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+        
+        if (isMobile) {
+            // Celular: WhatsApp direto
+            const numeroWhatsApp = "5521979748388"; 
+            const mensagem = encodeURIComponent("Olá! Vim pelo site e gostaria de conversar com um corretor.");
+            window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`, '_blank');
+        } else {
+            // Computador: Typebot
+            
+            // Muda o texto do botão para mostrar feedback ao usuário
+            const textoOriginal = btnFaleConosco.innerText;
+            btnFaleConosco.innerText = "Carregando...";
+            
+            try {
+                // Importa a biblioteca DINAMICAMENTE (só baixa quando clica)
+                const TypebotModule = await import('https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js');
+                const Typebot = TypebotModule.default;
+                
+                // Inicializa o popup
+                Typebot.initPopup({
+                    typebot: 'my-typebot-6i7md8s',
+                    apiHost: 'https://bot.miccorretores.com.br',
+                });
+                
+                // Abre o popup e restaura o botão após pequeno delay
+                setTimeout(() => {
+                    Typebot.open();
+                    btnFaleConosco.innerText = textoOriginal;
+                }, 300); 
+                
+            } catch (error) {
+                console.error("Erro ao carregar o Typebot:", error);
+                // Fallback de segurança: vai pro formulário de contato se der erro
+                btnFaleConosco.innerText = textoOriginal;
+                document.getElementById('contato').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    });
+}
+
+
 // --- FORMULÁRIO DE CONTATO (Envio por E-mail + WhatsApp) ---
 const form = document.getElementById('contatoForm');
 const formFeedback = document.getElementById('formFeedback');
