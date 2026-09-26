@@ -66,6 +66,34 @@ document.querySelectorAll('.nav-links a').forEach(link => {
     });
 });
 
+// --- LÓGICA INTELIGENTE DO BOTÃO "FALE CONOSCO" (Typebot vs WhatsApp) ---
+const btnFaleConosco = document.getElementById('btnFaleConoscoBot');
+
+if (btnFaleConosco) {
+    btnFaleConosco.addEventListener('click', (e) => {
+        e.preventDefault(); // Evita que a página pule para o topo
+        
+        // Verifica se é um dispositivo móvel (celular/tablet) ou computador
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+        
+        if (isMobile) {
+            // Se for celular: Abre direto o WhatsApp do corretor
+            const numeroWhatsApp = "5521979748388"; 
+            const mensagem = encodeURIComponent("Olá! Vim pelo site e gostaria de conversar com um corretor.");
+            window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`, '_blank');
+        } else {
+            // Se for Computador: Aciona o Typebot e abre o Popup no meio da tela
+            if (typeof Typebot !== 'undefined') {
+                Typebot.open();
+            } else {
+                // Fallback (plano B): Se der algum erro e o Typebot não carregar,
+                // rola a página para baixo até o formulário de contato original
+                document.getElementById('contato').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    });
+}
+
 // --- FORMULÁRIO DE CONTATO (Envio por E-mail + WhatsApp) ---
 const form = document.getElementById('contatoForm');
 const formFeedback = document.getElementById('formFeedback');
