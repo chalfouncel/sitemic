@@ -66,42 +66,6 @@ document.querySelectorAll('.nav-links a').forEach(link => {
     });
 });
 
-// --- LÓGICA INTELIGENTE DO BOTÃO "FALE CONOSCO" (Typebot vs WhatsApp) ---
-const btnFaleConosco = document.getElementById('btnFaleConoscoBot');
-
-if (btnFaleConosco) {
-    btnFaleConosco.addEventListener('click', (e) => {
-        e.preventDefault(); 
-        
-        // Verifica se é um dispositivo móvel
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-        
-        if (isMobile) {
-            // Celular: WhatsApp direto
-            const numeroWhatsApp = "5521979748388"; 
-            const mensagem = encodeURIComponent("Olá! Vim pelo site e gostaria de conversar com um corretor.");
-            window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`, '_blank');
-        } else {
-            // Computador: Inicializa e abre o Typebot (usando o objeto global)
-            if (window.Typebot) {
-                window.Typebot.initPopup({
-                    typebot: 'my-typebot-6i7md8s',
-                    apiHost: 'https://bot.miccorretores.com.br',
-                });
-                
-                // Dá um tempinho mínimo (100ms) para inicializar antes de mandar abrir
-                setTimeout(() => {
-                    window.Typebot.open();
-                }, 100);
-                
-            } else {
-                // Se por acaso a biblioteca não carregou, desce pro formulário
-                document.getElementById('contato').scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-    });
-}
-
 // --- FORMULÁRIO DE CONTATO (Envio por E-mail + WhatsApp) ---
 const form = document.getElementById('contatoForm');
 const formFeedback = document.getElementById('formFeedback');
@@ -169,7 +133,7 @@ async function carregarImoveisSite(filtros = null) {
 
     grid.innerHTML = '<p style="color: var(--gold); text-align: center; width: 100%;">A buscar oportunidades exclusivas...</p>';
 
-    // AQUI ESTÁ A MUDANÇA: Exigindo que o status seja ativo 
+    // Exigindo que o status seja ativo 
     let query = supabase
         .from('imoveis')
         .select('*')
@@ -296,7 +260,7 @@ function abrirModal(id) {
     if (imovel.valor_iptu > 0) featuresHtml += `<span>📄 IPTU: R$ ${Number(imovel.valor_iptu).toLocaleString('pt-BR')}</span>`;
     document.getElementById('modalFeatures').innerHTML = featuresHtml;
 
-    // 2. WhatsApp Dinâmico (Aqui está enviando a referência)
+    // 2. WhatsApp Dinâmico
     const urlAtual = window.location.origin + window.location.pathname;
     const linkDoImovel = `${urlAtual}?id=${imovel.id}`;
     const refImovel = imovel.referencia ? ` (Ref: ${imovel.referencia})` : '';
@@ -315,13 +279,12 @@ function abrirModal(id) {
     }
     slideAtual = 0;
 
-    // 4. Lógica de Vídeo e Mapa na Mídia Inferior (Grid 1/4 + 1/4)
+    // 4. Lógica de Vídeo e Mapa na Mídia Inferior
     const mediaBottom = document.getElementById('mediaBottom');
     const videoThumbnail = document.getElementById('videoThumbnail');
     const lightboxPlayer = document.getElementById('lightboxVideoPlayer');
     const mapFrame = document.getElementById('modalMapFrame');
 
-    // Monta a string do mapa
     let enderecoCompleto = '';
     if(imovel.endereco || imovel.bairro) {
         enderecoCompleto = `${imovel.endereco || ''} ${imovel.numero || ''} ${imovel.bairro || ''} ${imovel.cidade || ''} RJ Brasil`;
@@ -330,18 +293,16 @@ function abrirModal(id) {
         mapFrame.src = '';
     }
 
-    // Gerencia o Grid se tem vídeo ou não
     if (imovel.video) {
         videoThumbnail.style.display = 'flex';
-        mediaBottom.style.gridTemplateColumns = '1fr 1fr'; // Divide ao meio (1/4 de vídeo, 1/4 mapa)
+        mediaBottom.style.gridTemplateColumns = '1fr 1fr'; 
         lightboxPlayer.src = imovel.video;
     } else {
         videoThumbnail.style.display = 'none';
-        mediaBottom.style.gridTemplateColumns = '1fr'; // Se não tem vídeo, mapa ocupa tudo
+        mediaBottom.style.gridTemplateColumns = '1fr'; 
         lightboxPlayer.src = '';
     }
 
-    // Exibe o modal
     document.getElementById('imovelModal').classList.add('active');
     document.body.style.overflow = 'hidden'; 
 }
@@ -350,11 +311,9 @@ function fecharModal() {
     document.getElementById('imovelModal').classList.remove('active');
     document.body.style.overflow = 'auto'; 
     
-    // Limpa URL
     const urlLimpa = window.location.origin + window.location.pathname;
     window.history.replaceState({}, document.title, urlLimpa);
 
-    // Limpa Iframe do Mapa e garante que o vídeo parou
     document.getElementById('modalMapFrame').src = '';
     fecharVideoPlayer();
 }
@@ -378,7 +337,6 @@ function abrirVideoPlayer() {
     const player = document.getElementById('lightboxVideoPlayer');
     
     lightbox.classList.add('active');
-    // Tenta dar play automático
     player.play().catch(error => {
         console.log("Autoplay bloqueado pelo navegador, aguardando clique do usuário.");
     });
