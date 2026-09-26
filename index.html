@@ -361,27 +361,20 @@
     </a>
 
     <!-- ============================================== -->
-    <!-- MODAL DO IMÓVEL (LAYOUT SPLIT ATUALIZADO 1/4)  -->
+    <!-- MODAL DO IMÓVEL -->
     <!-- ============================================== -->
     <div class="modal-overlay" id="imovelModal">
         <div class="modal-close" onclick="fecharModal()">×</div>
         
         <div class="modal-content">
-            
-            <!-- LADO ESQUERDO (Mídia Rolável) -->
             <div class="modal-left">
-                
-                <!-- 2/4 - Carrossel de Fotos Grande -->
                 <div class="carousel-container">
                     <button class="carousel-btn carousel-prev" onclick="mudarSlide(-1)">❮</button>
                     <div id="carouselSlides"></div>
                     <button class="carousel-btn carousel-next" onclick="mudarSlide(1)">❯</button>
                 </div>
 
-                <!-- 1/4 + 1/4 - Grid Inferior (Vídeo e Mapa lado a lado) -->
                 <div class="modal-media-bottom" id="mediaBottom">
-                    
-                    <!-- Capa do Vídeo (Abre o Lightbox ao clicar) -->
                     <div class="media-thumbnail" id="videoThumbnail" onclick="abrirVideoPlayer()" style="display: none;">
                         <div class="play-icon">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--black)" xmlns="http://www.w3.org/2000/svg">
@@ -391,17 +384,13 @@
                         <span>Apresentação em Vídeo</span>
                     </div>
 
-                    <!-- Mapa Automático -->
                     <div class="media-map">
                         <iframe id="modalMapFrame" src="" loading="lazy"></iframe>
                     </div>
-
                 </div>
             </div>
 
-            <!-- LADO DIREITO (Informações e Botão Fixo) -->
             <div class="modal-right">
-                <!-- Área rolável para o texto -->
                 <div class="modal-right-scrollable">
                     <div class="modal-header">
                         <h2 class="modal-title" id="modalTitulo">Título do Imóvel</h2>
@@ -414,7 +403,6 @@
                     <div class="modal-desc" id="modalDesc">Descrição do Imóvel</div>
                 </div>
                 
-                <!-- Rodapé fixo para o botão não cobrir o texto -->
                 <div class="modal-right-footer">
                     <a href="#" class="btn-whatsapp-modal" id="modalZap" target="_blank">
                         FALAR COM CORRETOR
@@ -440,6 +428,14 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- SCRIPT DO TYPEBOT (BIBLIOTECA) -->
+    <script type="module">
+        import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js';
+        // Apenas expõe o Typebot globalmente para o script.js usar
+        window.Typebot = Typebot;
+    </script>
+
     <script src="script.js"></script>
 </body>
 </html>
