@@ -82,14 +82,31 @@ if (btnFaleConosco) {
             const mensagem = encodeURIComponent("Olá! Vim pelo site e gostaria de conversar com um corretor.");
             window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`, '_blank');
         } else {
-            // Se for Computador: Aciona o Typebot e abre o Popup no meio da tela
-            if (typeof Typebot !== 'undefined') {
-                Typebot.open();
-            } else {
-                // Fallback (plano B): Se der algum erro e o Typebot não carregar,
-                // rola a página para baixo até o formulário de contato original
-                document.getElementById('contato').scrollIntoView({ behavior: 'smooth' });
+            // Se for Computador: Injeta e abre o Typebot dinamicamente
+            
+            // Verifica se o Typebot já foi injetado antes para não abrir dois
+            if (document.getElementById('typebot-script')) {
+                if (typeof Typebot !== 'undefined') Typebot.open();
+                return;
             }
+
+            // Cria o script e injeta na página na hora do clique
+            const typebotScript = document.createElement('script');
+            typebotScript.type = 'module';
+            typebotScript.id = 'typebot-script';
+            typebotScript.innerHTML = `
+                import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js';
+                
+                Typebot.initPopup({
+                    typebot: 'my-typebot-6i7md8s',
+                    apiHost: 'https://bot.miccorretores.com.br',
+                });
+                
+                // Abre o popup imediatamente após inicializar
+                Typebot.open();
+            `;
+            
+            document.body.appendChild(typebotScript);
         }
     });
 }
