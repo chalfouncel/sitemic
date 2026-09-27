@@ -71,7 +71,7 @@ document.querySelectorAll('.nav-links a').forEach(link => {
 const btnFaleConosco = document.getElementById('btnFaleConoscoBot');
 
 if (btnFaleConosco) {
-    btnFaleConosco.addEventListener('click', async (e) => {
+    btnFaleConosco.addEventListener('click', (e) => {
         e.preventDefault(); 
         
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
@@ -82,37 +82,17 @@ if (btnFaleConosco) {
             const mensagem = encodeURIComponent("Olá! Vim pelo site e gostaria de conversar com um corretor.");
             window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`, '_blank');
         } else {
-            // Computador: Typebot
-            
-            // Muda o texto do botão para mostrar feedback ao usuário
-            const textoOriginal = btnFaleConosco.innerText;
-            btnFaleConosco.innerText = "Carregando...";
-            
-            try {
-                // Importa a biblioteca DINAMICAMENTE (só baixa quando clica)
-                const TypebotModule = await import('https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js');
-                const Typebot = TypebotModule.default;
-                
-                // Inicializa o popup
-                Typebot.initPopup({
-                    typebot: 'my-typebot-6i7md8s',
-                    apiHost: 'https://bot.miccorretores.com.br',
-                });
-                
-                // Abre o popup e restaura o botão após pequeno delay
-                setTimeout(() => {
-                    Typebot.open();
-                    btnFaleConosco.innerText = textoOriginal;
-                }, 300); 
-                
-            } catch (error) {
-                console.error("Erro ao carregar o Typebot:", error);
-                // Fallback de segurança: vai pro formulário de contato se der erro
-                btnFaleConosco.innerText = textoOriginal;
-                document.getElementById('contato').scrollIntoView({ behavior: 'smooth' });
-            }
+            // Computador: Abre o Modal nativo do site com o Typebot já embarcado nele
+            document.getElementById('typebotModal').classList.add('active');
+            document.body.style.overflow = 'hidden'; 
         }
     });
+}
+
+// Função nativa simples para fechar o Modal do Typebot
+function fecharTypebot() {
+    document.getElementById('typebotModal').classList.remove('active');
+    document.body.style.overflow = 'auto'; 
 }
 
 
@@ -183,7 +163,6 @@ async function carregarImoveisSite(filtros = null) {
 
     grid.innerHTML = '<p style="color: var(--gold); text-align: center; width: 100%;">A buscar oportunidades exclusivas...</p>';
 
-    // Exigindo que o status seja ativo 
     let query = supabase
         .from('imoveis')
         .select('*')
