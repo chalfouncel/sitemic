@@ -319,12 +319,13 @@
                         <a href="https://wa.me/5521979748388" target="_blank" aria-label="WhatsApp">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
-                        </svg>
-                    </a>
+                            </svg>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </footer>
 
     <!-- TELA DE VÍDEO (LIGHTBOX) -->
     <div class="video-lightbox" id="videoLightbox">
@@ -338,40 +339,25 @@
         </div>
     </div>
 
-    <!-- ============================================== -->
-    <!-- MODAL DO TYPEBOT (TEMA WHATSAPP + CLIQUE NO X) -->
-    <!-- ============================================== -->
-    <!-- O onclick na div principal permite fechar ao clicar na área escura ao redor -->
-    <div class="modal-overlay" id="typebotModal" onclick="if(event.target === this) window.fecharTypebot()">
-        
-        <!-- O z-index altíssimo e o onclick embutido deixam o X imune a qualquer bloqueio -->
-        <div class="modal-close" onclick="window.fecharTypebot()" style="z-index: 999999 !important;">×</div>
-        
-        <!-- Fundo bege do WhatsApp (#EFEAE2) inserido na caixa para combinar -->
-        <div class="modal-content" style="max-width: 450px; height: 80vh; padding: 0; overflow: hidden; border-radius: 12px; background: #EFEAE2; border: 1px solid var(--gold); display: flex; flex-direction: column;">
-            <div style="flex: 1; width: 100%;">
-                <typebot-standard style="width: 100%; height: 100%; border: none;"></typebot-standard>
-            </div>
-        </div>
-    </div>
-    <!-- ============================================== -->
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 
-    <!-- SCRIPT DO TYPEBOT (COM TEMA) -->
+    <!-- ============================================== -->
+    <!-- SCRIPT DO TYPEBOT (MODO BOLHA - TEMA WHATSAPP) -->
+    <!-- ============================================== -->
     <script type="module">
-        import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@0.3/dist/web.js';
+        import Typebot from 'https://cdn.jsdelivr.net/npm/@typebot.io/js@latest/dist/web.js';
         
-        Typebot.initStandard({
+        Typebot.initBubble({
             typebot: 'my-typebot-6i7md8s',
             apiHost: 'https://bot.miccorretores.com.br',
             theme: {
+                button: {
+                    backgroundColor: '#25D366', // Verde do WhatsApp
+                    customIconSrc: 'https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg', // Ícone do WhatsApp
+                },
                 chatWindow: {
                     backgroundColor: '#EFEAE2', // Fundo clássico do WhatsApp
-                },
-                button: {
-                    backgroundColor: '#00A884', // Verde do botão do WhatsApp
                 },
                 chat: {
                     hostBubbles: {
@@ -381,12 +367,19 @@
                     guestBubbles: {
                         backgroundColor: '#D9FDD3', // Balão do usuário (verde claro)
                         color: '#111B21'
-                    },
-                    inputs: {
-                        backgroundColor: '#FFFFFF',
-                        color: '#111B21'
                     }
                 }
+            }
+        });
+
+        // Este código faz o botão "Fale Conosco" lá de cima abrir a bolha do Typebot automaticamente!
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnFaleConosco = document.getElementById('btnFaleConoscoBot');
+            if (btnFaleConosco) {
+                btnFaleConosco.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    Typebot.open(); // Abre a bolha flutuante
+                });
             }
         });
     </script>
