@@ -85,8 +85,10 @@ if (btnFaleConosco) {
             window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`, '_blank');
         } else {
             // Computador: Abre o Modal nativo
-            typebotModal.classList.add('active');
-            document.body.style.overflow = 'hidden'; 
+            if(typebotModal) {
+                typebotModal.classList.add('active');
+                document.body.style.overflow = 'hidden'; 
+            }
         }
     });
 }
@@ -96,7 +98,11 @@ window.fecharTypebot = function() {
     const modalTypebot = document.getElementById('typebotModal');
     if (modalTypebot) {
         modalTypebot.classList.remove('active');
-        document.body.style.overflow = 'auto'; 
+        // Só devolve o scroll se não houver outro modal aberto
+        const imovelModalAberto = document.querySelector('#imovelModal.active');
+        if(!imovelModalAberto) {
+            document.body.style.overflow = 'auto'; 
+        }
     }
 };
 
@@ -238,7 +244,7 @@ async function carregarImoveisSite(filtros = null) {
 
         const card = `
             <div class="imovel-card">
-                <div class="imovel-img" style="${imgCapa}" onclick="abrirModal('${imovel.id}')">
+                <div class="imovel-img" style="${imgCapa}" onclick="window.abrirModal('${imovel.id}')">
                     <div style="position:absolute; top:16px; left:16px;">
                         <span class="imovel-tag">${imovel.finalidade || 'Venda'}</span>
                         ${destaqueHtml}
@@ -252,7 +258,7 @@ async function carregarImoveisSite(filtros = null) {
                     </div>
                     <div class="imovel-footer">
                         <span class="imovel-price">${precoFormatado}</span>
-                        <button onclick="abrirModal('${imovel.id}')" class="btn-card">Detalhes →</button>
+                        <button onclick="window.abrirModal('${imovel.id}')" class="btn-card">Detalhes →</button>
                     </div>
                 </div>
             </div>
@@ -263,25 +269,41 @@ async function carregarImoveisSite(filtros = null) {
     const urlParams = new URLSearchParams(window.location.search);
     const idNaUrl = urlParams.get('id');
     if (idNaUrl) {
-        setTimeout(() => abrirModal(idNaUrl), 100); 
+        setTimeout(() => window.abrirModal(idNaUrl), 100); 
     }
 }
 
-// Lógica de abertura do Modal
-function abrirModal(id) {
+// Lógica de abertura do Modal exportada para o window global
+window.abrirModal = function(id) {
     const imovel = imoveisCarregados.find(i => i.id === id);
-    if(!imovel) return;
+    if(!imovel) {
+        console.error("Imóvel não encontrado:", id);
+        return;
+    }
+
+    const modal = document.getElementById('imovelModal');
+    if(!modal) {
+        console.error("Elemento imovelModal não encontrado no HTML!");
+        return;
+    }
 
     // 1. Textos da direita
-    document.getElementById('modalTitulo').innerText = imovel.titulo;
-    document.getElementById('modalLocal').innerText = `📍 ${imovel.endereco || ''} ${imovel.numero || ''} - ${imovel.bairro || ''}, ${imovel.cidade || ''} - ${imovel.estado || ''}`;
-    document.getElementById('modalDesc').innerText = imovel.descricao || 'Sem descrição detalhada.';
+    const modalTitulo = document.getElementById('modalTitulo');
+    if(modalTitulo) modalTitulo.innerText = imovel.titulo;
+    
+    const modalLocal = document.getElementById('modalLocal');
+    if(modalLocal) modalLocal.innerText = `📍 ${imovel.endereco || ''} ${imovel.numero || ''} - ${imovel.bairro || ''}, ${imovel.cidade || ''} - ${imovel.estado || ''}`;
+    
+    const modalDesc = document.getElementById('modalDesc');
+    if(modalDesc) modalDesc.innerText = imovel.descricao || 'Sem descrição detalhada.';
     
     let precoFormatado = 'Sob Consulta';
     if (imovel.finalidade === 'Venda' && imovel.valor_venda) precoFormatado = `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}`;
     else if (imovel.finalidade === 'Aluguel' && imovel.valor_aluguel) precoFormatado = `R$ ${Number(imovel.valor_aluguel).toLocaleString('pt-BR')}/mês`;
     else if (imovel.finalidade === 'Venda e Aluguel') precoFormatado = imovel.valor_venda ? `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}` : 'Sob Consulta';
-    document.getElementById('modalPreco').innerText = precoFormatado;
+    
+    const modalPreco = document.getElementById('modalPreco');
+    if(modalPreco) modalPreco.innerText = precoFormatado;
 
     let featuresHtml = '';
     if (imovel.quartos > 0) featuresHtml += `<span>🛏 ${imovel.quartos} Quartos</span>`;
@@ -292,26 +314,33 @@ function abrirModal(id) {
     if (imovel.vagas > 0) featuresHtml += `<span>🚗 ${imovel.vagas} Vagas</span>`;
     if (imovel.valor_condominio > 0) featuresHtml += `<span>🏢 Cond: R$ ${Number(imovel.valor_condominio).toLocaleString('pt-BR')}</span>`;
     if (imovel.valor_iptu > 0) featuresHtml += `<span>📄 IPTU: R$ ${Number(imovel.valor_iptu).toLocaleString('pt-BR')}</span>`;
-    document.getElementById('modalFeatures').innerHTML = featuresHtml;
+    
+    const modalFeatures = document.getElementById('modalFeatures');
+    if(modalFeatures) modalFeatures.innerHTML = featuresHtml;
 
     // 2. WhatsApp Dinâmico
-    const urlAtual = window.location.origin + window.location.pathname;
-    const linkDoImovel = `${urlAtual}?id=${imovel.id}`;
-    const refImovel = imovel.referencia ? ` (Ref: ${imovel.referencia})` : '';
-    const textoWhatsApp = `Olá! Tenho interesse neste imóvel:\n\n*${imovel.titulo}*${refImovel}\n*Valor:* ${precoFormatado}\n\n*Veja o anúncio aqui:* ${linkDoImovel}`;
-    document.getElementById('modalZap').href = `https://wa.me/5521979748388?text=${encodeURIComponent(textoWhatsApp)}`;
+    const modalZap = document.getElementById('modalZap');
+    if(modalZap) {
+        const urlAtual = window.location.origin + window.location.pathname;
+        const linkDoImovel = `${urlAtual}?id=${imovel.id}`;
+        const refImovel = imovel.referencia ? ` (Ref: ${imovel.referencia})` : '';
+        const textoWhatsApp = `Olá! Tenho interesse neste imóvel:\n\n*${imovel.titulo}*${refImovel}\n*Valor:* ${precoFormatado}\n\n*Veja o anúncio aqui:* ${linkDoImovel}`;
+        modalZap.href = `https://wa.me/5521979748388?text=${encodeURIComponent(textoWhatsApp)}`;
+    }
 
     // 3. Fotos no Carrossel
     const carousel = document.getElementById('carouselSlides');
-    carousel.innerHTML = '';
-    if(imovel.fotos && imovel.fotos.length > 0) {
-        imovel.fotos.forEach((foto, idx) => {
-            carousel.innerHTML += `<img src="${foto}" class="carousel-slide ${idx === 0 ? 'active' : ''}" alt="Foto do imóvel">`;
-        });
-    } else {
-        carousel.innerHTML = `<div class="carousel-slide active" style="background: var(--black-lighter); width:100%; height:100%; display:flex; align-items:center; justify-content:center; color: var(--silver);">Sem fotos</div>`;
+    if(carousel) {
+        carousel.innerHTML = '';
+        if(imovel.fotos && imovel.fotos.length > 0) {
+            imovel.fotos.forEach((foto, idx) => {
+                carousel.innerHTML += `<img src="${foto}" class="carousel-slide ${idx === 0 ? 'active' : ''}" alt="Foto do imóvel">`;
+            });
+        } else {
+            carousel.innerHTML = `<div class="carousel-slide active" style="background: var(--black-lighter); width:100%; height:100%; display:flex; align-items:center; justify-content:center; color: var(--silver);">Sem fotos</div>`;
+        }
+        slideAtual = 0;
     }
-    slideAtual = 0;
 
     // 4. Lógica de Vídeo e Mapa na Mídia Inferior
     const mediaBottom = document.getElementById('mediaBottom');
@@ -319,40 +348,51 @@ function abrirModal(id) {
     const lightboxPlayer = document.getElementById('lightboxVideoPlayer');
     const mapFrame = document.getElementById('modalMapFrame');
 
-    let enderecoCompleto = '';
-    if(imovel.endereco || imovel.bairro) {
-        enderecoCompleto = `${imovel.endereco || ''} ${imovel.numero || ''} ${imovel.bairro || ''} ${imovel.cidade || ''} RJ Brasil`;
-        mapFrame.src = `https://maps.google.com/maps?q=${encodeURIComponent(enderecoCompleto)}&t=m&z=15&output=embed&iwloc=near`;
-    } else {
-        mapFrame.src = '';
+    if(mapFrame) {
+        let enderecoCompleto = '';
+        if(imovel.endereco || imovel.bairro) {
+            enderecoCompleto = `${imovel.endereco || ''} ${imovel.numero || ''} ${imovel.bairro || ''} ${imovel.cidade || ''} RJ Brasil`;
+            mapFrame.src = `https://maps.google.com/maps?q=${encodeURIComponent(enderecoCompleto)}&t=m&z=15&output=embed&iwloc=near`;
+        } else {
+            mapFrame.src = '';
+        }
     }
 
-    if (imovel.video) {
-        videoThumbnail.style.display = 'flex';
-        mediaBottom.style.gridTemplateColumns = '1fr 1fr'; 
-        lightboxPlayer.src = imovel.video;
-    } else {
-        videoThumbnail.style.display = 'none';
-        mediaBottom.style.gridTemplateColumns = '1fr'; 
-        lightboxPlayer.src = '';
+    if(videoThumbnail && mediaBottom && lightboxPlayer) {
+        if (imovel.video) {
+            videoThumbnail.style.display = 'flex';
+            mediaBottom.style.gridTemplateColumns = '1fr 1fr'; 
+            lightboxPlayer.src = imovel.video;
+        } else {
+            videoThumbnail.style.display = 'none';
+            mediaBottom.style.gridTemplateColumns = '1fr'; 
+            lightboxPlayer.src = '';
+        }
     }
 
-    document.getElementById('imovelModal').classList.add('active');
+    modal.classList.add('active');
     document.body.style.overflow = 'hidden'; 
-}
+};
 
-function fecharModal() {
-    document.getElementById('imovelModal').classList.remove('active');
-    document.body.style.overflow = 'auto'; 
+window.fecharModal = function() {
+    const modal = document.getElementById('imovelModal');
+    if(modal) modal.classList.remove('active');
+    
+    // Verifica se o bot não está aberto para devolver o scroll
+    const modalTypebot = document.getElementById('typebotModal');
+    if(!modalTypebot || !modalTypebot.classList.contains('active')) {
+        document.body.style.overflow = 'auto'; 
+    }
     
     const urlLimpa = window.location.origin + window.location.pathname;
     window.history.replaceState({}, document.title, urlLimpa);
 
-    document.getElementById('modalMapFrame').src = '';
-    fecharVideoPlayer();
-}
+    const mapFrame = document.getElementById('modalMapFrame');
+    if(mapFrame) mapFrame.src = '';
+    window.fecharVideoPlayer();
+};
 
-function mudarSlide(direcao) {
+window.mudarSlide = function(direcao) {
     const slides = document.querySelectorAll('.carousel-slide');
     if(slides.length === 0) return;
     
@@ -363,26 +403,30 @@ function mudarSlide(direcao) {
     if(slideAtual < 0) slideAtual = slides.length - 1;
     
     slides[slideAtual].classList.add('active');
-}
+};
 
 // --- FUNÇÕES DO LIGHTBOX DE VÍDEO ---
-function abrirVideoPlayer() {
+window.abrirVideoPlayer = function() {
     const lightbox = document.getElementById('videoLightbox');
     const player = document.getElementById('lightboxVideoPlayer');
     
-    lightbox.classList.add('active');
-    player.play().catch(error => {
-        console.log("Autoplay bloqueado pelo navegador, aguardando clique do usuário.");
-    });
-}
+    if(lightbox && player) {
+        lightbox.classList.add('active');
+        player.play().catch(error => {
+            console.log("Autoplay bloqueado pelo navegador, aguardando clique do usuário.");
+        });
+    }
+};
 
-function fecharVideoPlayer() {
+window.fecharVideoPlayer = function() {
     const lightbox = document.getElementById('videoLightbox');
     const player = document.getElementById('lightboxVideoPlayer');
     
-    lightbox.classList.remove('active');
-    player.pause();
-}
+    if(lightbox && player) {
+        lightbox.classList.remove('active');
+        player.pause();
+    }
+};
 
 // Smooth reveal on scroll
 const revealElements = document.querySelectorAll('.imovel-card, .servico-card, .feature');
