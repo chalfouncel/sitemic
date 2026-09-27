@@ -70,7 +70,6 @@ document.querySelectorAll('.nav-links a').forEach(link => {
 // --- LÓGICA DO TYPEBOT (ABRIR E FECHAR) ---
 const btnFaleConosco = document.getElementById('btnFaleConoscoBot');
 const typebotModal = document.getElementById('typebotModal');
-const fecharBtnTypebot = document.getElementById('fecharBtnTypebot');
 
 // Abre o bot
 if (btnFaleConosco) {
@@ -92,24 +91,14 @@ if (btnFaleConosco) {
     });
 }
 
-// Fecha o bot clicando no X
-if (fecharBtnTypebot) {
-    fecharBtnTypebot.addEventListener('click', () => {
-        typebotModal.classList.remove('active');
+// Fechamento blindado via função global na janela
+window.fecharTypebot = function() {
+    const modalTypebot = document.getElementById('typebotModal');
+    if (modalTypebot) {
+        modalTypebot.classList.remove('active');
         document.body.style.overflow = 'auto'; 
-    });
-}
-
-// Fecha o bot clicando na área escura (overlay)
-if (typebotModal) {
-    typebotModal.addEventListener('click', (e) => {
-        // Verifica se clicou exatamente no fundo (e não dentro da caixa branca do chat)
-        if (e.target === typebotModal) {
-            typebotModal.classList.remove('active');
-            document.body.style.overflow = 'auto'; 
-        }
-    });
-}
+    }
+};
 
 
 // --- FORMULÁRIO DE CONTATO (Envio por E-mail + WhatsApp) ---
