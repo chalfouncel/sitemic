@@ -67,9 +67,12 @@ document.querySelectorAll('.nav-links a').forEach(link => {
 });
 
 
-// --- LÓGICA INTELIGENTE DO BOTÃO "FALE CONOSCO" (Typebot vs WhatsApp) ---
+// --- LÓGICA DO TYPEBOT (ABRIR E FECHAR) ---
 const btnFaleConosco = document.getElementById('btnFaleConoscoBot');
+const typebotModal = document.getElementById('typebotModal');
+const fecharBtnTypebot = document.getElementById('fecharBtnTypebot');
 
+// Abre o bot
 if (btnFaleConosco) {
     btnFaleConosco.addEventListener('click', (e) => {
         e.preventDefault(); 
@@ -82,17 +85,30 @@ if (btnFaleConosco) {
             const mensagem = encodeURIComponent("Olá! Vim pelo site e gostaria de conversar com um corretor.");
             window.open(`https://wa.me/${numeroWhatsApp}?text=${mensagem}`, '_blank');
         } else {
-            // Computador: Abre o Modal nativo do site com o Typebot já embarcado nele
-            document.getElementById('typebotModal').classList.add('active');
+            // Computador: Abre o Modal nativo
+            typebotModal.classList.add('active');
             document.body.style.overflow = 'hidden'; 
         }
     });
 }
 
-// Função nativa simples para fechar o Modal do Typebot
-function fecharTypebot() {
-    document.getElementById('typebotModal').classList.remove('active');
-    document.body.style.overflow = 'auto'; 
+// Fecha o bot clicando no X
+if (fecharBtnTypebot) {
+    fecharBtnTypebot.addEventListener('click', () => {
+        typebotModal.classList.remove('active');
+        document.body.style.overflow = 'auto'; 
+    });
+}
+
+// Fecha o bot clicando na área escura (overlay)
+if (typebotModal) {
+    typebotModal.addEventListener('click', (e) => {
+        // Verifica se clicou exatamente no fundo (e não dentro da caixa branca do chat)
+        if (e.target === typebotModal) {
+            typebotModal.classList.remove('active');
+            document.body.style.overflow = 'auto'; 
+        }
+    });
 }
 
 
