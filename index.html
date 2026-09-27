@@ -339,16 +339,18 @@
     </div>
 
     <!-- ============================================== -->
-    <!-- MODAL DO TYPEBOT (TEMA WHATSAPP)               -->
+    <!-- MODAL DO TYPEBOT (TEMA WHATSAPP + CLIQUE NO X) -->
     <!-- ============================================== -->
-    <div class="modal-overlay" id="typebotModal">
-        <!-- Botão com ID para o JavaScript controlar -->
-        <div class="modal-close" id="fecharBtnTypebot">×</div>
+    <!-- O onclick na div principal permite fechar ao clicar na área escura ao redor -->
+    <div class="modal-overlay" id="typebotModal" onclick="if(event.target === this) window.fecharTypebot()">
+        
+        <!-- O z-index altíssimo e o onclick embutido deixam o X imune a qualquer bloqueio -->
+        <div class="modal-close" onclick="window.fecharTypebot()" style="z-index: 999999 !important;">×</div>
         
         <!-- Fundo bege do WhatsApp (#EFEAE2) inserido na caixa para combinar -->
         <div class="modal-content" style="max-width: 450px; height: 80vh; padding: 0; overflow: hidden; border-radius: 12px; background: #EFEAE2; border: 1px solid var(--gold); display: flex; flex-direction: column;">
             <div style="flex: 1; width: 100%;">
-                <typebot-standard style="width: 100%; height: 100%;"></typebot-standard>
+                <typebot-standard style="width: 100%; height: 100%; border: none;"></typebot-standard>
             </div>
         </div>
     </div>
