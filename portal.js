@@ -558,7 +558,7 @@ function abrirEdicao(id) {
     resetarFormularioImovel(); // Limpa a div #previewFotos e prepara o form
     idImovelEditando = imovel.id;
     
-    // TRANSFORMAR A TELA
+    // TRANSFORMAR A TELA E O TÍTULO - PROVA DE QUE O JS ATUALIZOU
     document.getElementById('tituloAbaImovel').innerText = `📝 MODO DE EDIÇÃO (Banco de Dados) - Ref: ${imovel.referencia || imovel.id}`;
     
     // Esconder Botão da IA
@@ -688,10 +688,14 @@ function abrirEdicao(id) {
     document.getElementById('imoEstado').value = imovel.estado || '';
     document.getElementById('imoDescricao').value = imovel.descricao || '';
 
-    // Switch View
+    // Switch View - ISOLAMENTO VISUAL TOTAL!
+    // Tirar a marcação de TODAS as abas para não parecer que está em Cadastrar Imóvel
+    document.getElementById('btnAbaImovel').classList.remove('active'); 
     document.getElementById('btnAbaGestao').classList.remove('active');
+    document.getElementById('btnAbaLeads').classList.remove('active');
+
+    // Mostra o formulário no modo edição
     document.getElementById('abaGestao').style.display = 'none';
-    document.getElementById('btnAbaImovel').classList.add('active');
     document.getElementById('abaImovel').style.display = 'block';
 
     document.getElementById('btnSubmit').innerText = '💾 Atualizar Imóvel (Banco de Dados)';
