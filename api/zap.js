@@ -116,7 +116,10 @@ export default async function handler(req, res) {
             if (imovel.bairro) xml += `        <Neighborhood>${imovel.bairro}</Neighborhood>\n`;
             if (imovel.endereco) xml += `        <Address>${imovel.endereco}</Address>\n`;
             if (imovel.numero) xml += `        <StreetNumber>${imovel.numero}</StreetNumber>\n`;
-            if (imovel.cep) xml += `        <ZipCode>${imovel.cep}</ZipCode>\n`;
+            
+            // CORREÇÃO AQUI: Tag alterada para PostalCode (Formato VRSYNC)
+            xml += `        <PostalCode>${imovel.cep || ''}</PostalCode>\n`;
+            
             xml += `      </Location>\n`;
 
             xml += `    </Listing>\n`;
