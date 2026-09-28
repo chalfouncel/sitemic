@@ -12,6 +12,7 @@ let idImovelEditando = null;
 let fotosAntigasEdicao = [];
 let fotosParaExcluirDoStorage = []; // Guarda as fotos deletadas para apagar do servidor ao salvar
 let videoAntigoEdicao = null;
+let videoParaExcluirDoStorage = null; // Proteção para não deixar vídeo órfão ao excluir
 let listaImoveisGestao = [];
 let fotosProcessadas = [];
 let urlsDasFotosEnviadas = []; 
@@ -87,8 +88,9 @@ function mudarAba(aba) {
 function resetarFormularioImovel() {
     idImovelEditando = null;
     fotosAntigasEdicao = [];
-    fotosParaExcluirDoStorage = []; // Limpa a lixeira
+    fotosParaExcluirDoStorage = []; // Limpa a lixeira de fotos
     videoAntigoEdicao = null;
+    videoParaExcluirDoStorage = null; // Limpa a lixeira do vídeo
     fotosProcessadas = [];
     urlsDasFotosEnviadas = [];
     tentativasIA = 0;
@@ -208,6 +210,9 @@ if(videoInput) {
 }
 
 function removerVideoAntigo() {
+    if (videoAntigoEdicao) {
+        videoParaExcluirDoStorage = videoAntigoEdicao; // Guarda a URL para exclusão real no storage ao salvar
+    }
     videoAntigoEdicao = null;
     document.getElementById('previewVideoBox').style.display = 'none';
     const vHelp = document.getElementById('videoHelpText');
@@ -449,21 +454,30 @@ if (formImovel) {
         if (idImovelEditando) {
             const { error } = await supabase.from('imoveis').update(payload).eq('id', idImovelEditando);
             if (!error) {
-                // Se mandou fotos novas, apaga TODAS as antigas do storage
+                
+                // 1. Limpeza de fotos se enviou NOVAS: apaga todas as ANTIGAS restantes no array
                 if (urlsDasFotosEnviadas.length > 0 && fotosAntigasEdicao.length > 0) {
                     let paths = fotosAntigasEdicao.map(u => extrairPathDoStorage(u)).filter(p => p);
                     if(paths.length > 0) supabase.storage.from('imoveis_fotos').remove(paths);
                 } 
-                // NOVO: Se NÃO mandou fotos novas, mas deletou algumas manualmente, apaga as deletadas
-                else if (fotosParaExcluirDoStorage.length > 0) {
+                
+                // 2. Limpeza de fotos excluídas: apaga SEMPRE o que estiver na lixeira, independente de ter novas ou não
+                if (fotosParaExcluirDoStorage.length > 0) {
                     let pathsExcluir = fotosParaExcluirDoStorage.map(u => extrairPathDoStorage(u)).filter(p => p);
                     if (pathsExcluir.length > 0) supabase.storage.from('imoveis_fotos').remove(pathsExcluir);
                 }
 
-                if (videoUrl !== videoAntigoEdicao && videoAntigoEdicao) {
+                // 3. Limpeza do vídeo antigo
+                if (videoParaExcluirDoStorage) {
+                    // Se foi excluído no botão de apagar
+                    let pathV = extrairPathDoStorage(videoParaExcluirDoStorage);
+                    if(pathV) supabase.storage.from('imoveis_fotos').remove([pathV]);
+                } else if (videoUrl !== videoAntigoEdicao && videoAntigoEdicao) {
+                    // Se não foi excluído no botão, mas um novo foi enviado no lugar
                     let pathV = extrairPathDoStorage(videoAntigoEdicao);
                     if(pathV) supabase.storage.from('imoveis_fotos').remove([pathV]);
                 }
+
                 msg.style.color = '#25D366'; 
                 msg.innerText = 'Imóvel atualizado com sucesso!';
                 setTimeout(() => { mudarAba('gestao'); }, 2000);
