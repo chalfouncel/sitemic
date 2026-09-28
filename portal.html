@@ -50,7 +50,7 @@
         #previewFotos { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
         #previewFotos img { height: 100px; border-radius: 4px; border: 1px solid var(--gold); }
 
-        /* Tabela de Leads */
+        /* Tabelas */
         .leads-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
         .leads-table th, .leads-table td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .leads-table th { color: var(--gold); font-weight: 600; text-transform: uppercase; font-size: 12px; }
@@ -59,6 +59,10 @@
         .badge.novo { background: rgba(37, 211, 102, 0.2); color: #25D366; }
         .badge.atendimento { background: rgba(201, 168, 76, 0.2); color: var(--gold); }
         .badge.concluido { background: rgba(154, 154, 154, 0.2); color: var(--gray); }
+
+        /* Ações Tabela Gestão */
+        .acoes-container { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn-acao { width: auto; padding: 6px 10px; font-size: 12px; text-transform: uppercase; margin: 0; }
 
         /* ===== RESPONSIVIDADE PARA CELULAR ===== */
         @media (max-width: 768px) { 
@@ -91,9 +95,6 @@
             .leads-table th, .leads-table td { padding: 12px 10px; font-size: 13px; }
             
             #previewFotos { justify-content: center; }
-            
-            .box-busca { flex-direction: column; }
-            .box-busca button { width: 100% !important; }
         }
     </style>
 </head>
@@ -128,16 +129,16 @@
                 <button class="btn-danger" onclick="fazerLogout()">Sair do Sistema</button>
             </div>
 
-            <!-- ABA CADASTRO DE IMÓVEL -->
+            <!-- ABA CADASTRO DE IMÓVEL (E EDIÇÃO) -->
             <div id="abaImovel" class="card">
-                <h2>Novo Imóvel (Padrão Integração)</h2>
+                <h2 id="tituloAbaImovel">Novo Imóvel (Padrão Integração)</h2>
                 <form id="formImovel">
                     <div class="grid-form">
                         
                         <!-- TÍTULO -->
                         <div class="form-group full-width">
                             <label>Título do Anúncio (Gerado por IA ou Manual)</label>
-                            <input type="text" id="imoTitulo" maxlength="100" placeholder="A Inteligência Artificial criará o título após a análise, mas você pode editar livremente...">
+                            <input type="text" id="imoTitulo" maxlength="100" placeholder="A Inteligência Artificial criará o título, mas você pode editar livremente...">
                         </div>
                         
                         <div class="form-group">
@@ -278,12 +279,12 @@
                         <!-- DESCRIÇÃO -->
                         <div class="form-group full-width">
                             <label>Descrição Detalhada (Gerada por IA ou Manual)</label>
-                            <textarea id="imoDescricao" rows="6" maxlength="3000" placeholder="A Inteligência Artificial fará a leitura das fotos, da mobília e das características acima para redigir o melhor anúncio, mas você pode editar livremente..."></textarea>
+                            <textarea id="imoDescricao" rows="6" maxlength="3000" placeholder="A Inteligência Artificial fará a leitura das fotos, da mobília e das características acima para redigir o melhor anúncio..."></textarea>
                         </div>
 
                         <!-- FOTOS -->
                         <div class="form-group full-width">
-                            <label>Fotos do Imóvel (A marca d'água será aplicada automaticamente no centro)</label>
+                            <label>Fotos do Imóvel (A marca d'água será aplicada automaticamente)</label>
                             <input type="file" id="imoFotos" multiple accept="image/*">
                             <div id="previewFotos"></div>
                         </div>
@@ -292,7 +293,7 @@
                         <div class="form-group full-width">
                             <label>Vídeo de Apresentação (Opcional - MP4)</label>
                             <input type="file" id="imoVideo" accept="video/mp4,video/x-m4v,video/*">
-                            <small id="videoHelpText" style="color: var(--gold); font-size: 12px; margin-top: 5px; display: block;">Selecione um arquivo de vídeo para exibir dentro do imóvel. <b>Tamanho máximo permitido: 50MB.</b></small>
+                            <small id="videoHelpText" style="color: var(--gold); font-size: 12px; margin-top: 5px; display: block;">Selecione um arquivo de vídeo. <b>Tamanho máximo: 50MB.</b></small>
                         </div>
                     </div>
                     
@@ -304,17 +305,39 @@
                 </form>
             </div>
 
-            <!-- ABA GERENCIAR IMÓVEIS (NOVA) -->
+            <!-- ABA GERENCIAR IMÓVEIS (LISTA ATUALIZADA) -->
             <div id="abaGestao" class="card" style="display:none;">
-                <h2>Buscar e Gerenciar Anúncio</h2>
-                <div class="form-group box-busca" style="display: flex; gap: 10px;">
-                    <input type="text" id="buscaRef" placeholder="Digite a referência (Ex: MIC_0001)" style="text-transform: uppercase;">
-                    <button onclick="buscarAnuncio()" style="width: auto; padding: 0 30px;">Buscar</button>
+                <h2>Gerenciar Anúncios</h2>
+                <div class="form-group">
+                    <input type="text" id="buscaRef" placeholder="Filtrar por código, rua ou bairro..." oninput="filtrarListaGestao()" style="text-transform: uppercase;">
                 </div>
-                <p id="msgBusca" style="font-size: 14px; margin-top: 0;"></p>
                 
-                <div id="resultadoBusca" style="display:none; background: var(--black); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-top: 20px;">
-                    <!-- Preenchido via JS -->
+                <div id="loadingGestao" style="color: var(--gold); margin-bottom: 15px;">Carregando imóveis...</div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="leads-table" id="tabelaGestao" style="display:none; margin-top: 0;">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Endereço</th>
+                                <th>Valores</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpoTabelaGestao">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- PAINEL DE DUPLA CONFIRMAÇÃO -->
+                <div id="areaConfirmacao" style="display:none; margin-top: 25px; padding: 20px; background: rgba(255,68,68,0.1); border: 1px solid #ff4444; border-radius: 4px;">
+                    <p id="textoConfirmacao" style="margin-top: 0; margin-bottom: 20px; font-weight: 500; font-size: 15px;"></p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="btnConfirmaSim" style="background: #ff4444; color: white; flex: 1; border-radius:4px;">SIM, TENHO CERTEZA</button>
+                        <button onclick="cancelarAcao()" style="background: transparent; border: 1px solid var(--gray); color: var(--gray); flex: 1; border-radius:4px;">Cancelar</button>
+                    </div>
                 </div>
             </div>
 
@@ -333,7 +356,6 @@
                         </tr>
                     </thead>
                     <tbody id="corpoTabelaLeads">
-                        <!-- Leads serão inseridos aqui via JS -->
                     </tbody>
                 </table>
             </div>
@@ -345,4 +367,3 @@
     <script src="portal.js"></script>
 </body>
 </html>
-
