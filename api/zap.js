@@ -4,7 +4,7 @@ export default async function handler(req, res) {
     const SUPABASE_ANON_KEY = 'sb_publishable_nmolEh_G5_hKcfdgy2Xpeg_s4T6ePAz';
 
     try {
-        // Busca os imóveis que estão ativos (cobre "Ativo" e "ativo" para evitar erros)
+        // Busca os imóveis que estão ativos
         const response = await fetch(`${SUPABASE_URL}/rest/v1/imoveis?status=in.(Ativo,ativo)&select=*`, {
             headers: {
                 'apikey': SUPABASE_ANON_KEY,
@@ -13,95 +13,118 @@ export default async function handler(req, res) {
         });
         const imoveis = await response.json();
 
-        // Cabeçalho obrigatório do padrão Zap
-        let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<Carga xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">\n<Imoveis>\n`;
+        // Cabeçalho OBRIGATÓRIO do padrão NOVO (VRSYNC)
+        let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+        xml += `<ListingDataFeed xmlns="http://www.vivareal.com/schemas/1.0/VRSync" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.vivareal.com/schemas/1.0/VRSync  http://xml.vivareal.com/vrsync.xsd">\n`;
+        xml += `  <Header>\n`;
+        xml += `    <Provider>M&amp;IC Corretores</Provider>\n`;
+        xml += `    <Email>contato@miccorretores.com.br</Email>\n`;
+        xml += `  </Header>\n`;
+        xml += `  <Listings>\n`;
 
-        // Transforma cada imóvel no formato XML exigido pelo portal
+        // Transforma cada imóvel no formato VRSYNC exigido
         imoveis.forEach(imovel => {
-            xml += `  <Imovel>\n`;
+            xml += `    <Listing>\n`;
             
-            // UTILIZANDO A REFERÊNCIA CURTA COMO CÓDIGO (Ex: MIC_0001)
-            xml += `    <CodigoImovel>${imovel.referencia || imovel.id}</CodigoImovel>\n`;
-            
-            // TÍTULO GERADO PELA IA
+            // CÓDIGO DO IMÓVEL E TÍTULO
+            xml += `      <ListingID>${imovel.referencia || imovel.id}</ListingID>\n`;
             if (imovel.titulo) {
-                xml += `    <TituloImovel><![CDATA[${imovel.titulo}]]></TituloImovel>\n`;
+                xml += `      <Title><![CDATA[${imovel.titulo}]]></Title>\n`;
             }
 
-            xml += `    <TipoImovel>${imovel.tipo}</TipoImovel>\n`;
-            xml += `    <SubTipoImovel>${imovel.tipo}</SubTipoImovel>\n`;
-            xml += `    <CategoriaImovel>Padrão</CategoriaImovel>\n`;
+            // FINALIDADE (Venda ou Aluguel)
+            let transactionType = 'For Sale'; // Padrão
+            const finalidade = imovel.finalidade || '';
+            if (finalidade.includes('Venda') && finalidade.includes('Aluguel')) {
+                transactionType = 'Sale/Rent';
+            } else if (finalidade.includes('Aluguel')) {
+                transactionType = 'For Rent';
+            }
+            xml += `      <TransactionType>${transactionType}</TransactionType>\n`;
+
+            // MÍDIAS (Fotos e Vídeos)
+            xml += `      <Media>\n`;
+            if (imovel.fotos && imovel.fotos.length > 0) {
+                imovel.fotos.forEach((fotoUrl, idx) => {
+                    const isPrimary = idx === 0 ? ' primary="true"' : '';
+                    xml += `        <Item medium="image"${isPrimary}>${fotoUrl}</Item>\n`;
+                });
+            }
+            if (imovel.video) {
+                xml += `        <Item medium="video">${imovel.video}</Item>\n`;
+            }
+            xml += `      </Media>\n`;
+
+            // DETALHES DO IMÓVEL
+            xml += `      <Details>\n`;
+            xml += `        <UsageType>Residential</UsageType>\n`;
             
-            if (imovel.finalidade.includes('Venda') && imovel.valor_venda) {
-                xml += `    <PrecoVenda>${imovel.valor_venda}</PrecoVenda>\n`;
+            // Traduzindo o tipo do imóvel para o padrão ZAP
+            let propertyType = 'Residential / Home'; // Casa como padrão
+            const tipoLower = (imovel.tipo || '').toLowerCase();
+            if (tipoLower.includes('apartamento') || tipoLower.includes('flat') || tipoLower.includes('cobertura') || tipoLower.includes('kitnet')) propertyType = 'Residential / Apartment';
+            else if (tipoLower.includes('lote') || tipoLower.includes('terreno')) propertyType = 'Residential / Land Lot';
+            else if (tipoLower.includes('comercial') || tipoLower.includes('loja')) propertyType = 'Commercial / Retail';
+            else if (tipoLower.includes('sala')) propertyType = 'Commercial / Office';
+            else if (tipoLower.includes('galpão')) propertyType = 'Commercial / Industrial';
+            else if (tipoLower.includes('fazenda') || tipoLower.includes('sítio') || tipoLower.includes('chácara')) propertyType = 'Residential / Farm';
+            
+            xml += `        <PropertyType>${propertyType}</PropertyType>\n`;
+            
+            if (imovel.descricao) {
+                xml += `        <Description><![CDATA[${imovel.descricao}]]></Description>\n`;
             }
-            if (imovel.finalidade.includes('Aluguel') && imovel.valor_aluguel) {
-                xml += `    <PrecoLocacao>${imovel.valor_aluguel}</PrecoLocacao>\n`;
+            
+            // Valores
+            if (transactionType === 'For Sale' || transactionType === 'Sale/Rent') {
+                if (imovel.valor_venda) xml += `        <ListPrice>${imovel.valor_venda}</ListPrice>\n`;
             }
-            if (imovel.valor_condominio) xml += `    <ValorCondominio>${imovel.valor_condominio}</ValorCondominio>\n`;
-            if (imovel.valor_iptu) xml += `    <ValorIPTU>${imovel.valor_iptu}</ValorIPTU>\n`;
+            if (transactionType === 'For Rent' || transactionType === 'Sale/Rent') {
+                if (imovel.valor_aluguel) xml += `        <RentalPrice>${imovel.valor_aluguel}</RentalPrice>\n`;
+            }
+            if (imovel.valor_condominio) xml += `        <PropertyAdministrationFee>${imovel.valor_condominio}</PropertyAdministrationFee>\n`;
+            if (imovel.valor_iptu) xml += `        <YearlyTax>${imovel.valor_iptu}</YearlyTax>\n`;
+            
+            // Áreas e Cômodos
+            if (imovel.area_util) xml += `        <LivingArea unit="square metres">${imovel.area_util}</LivingArea>\n`;
+            if (imovel.area_total) xml += `        <LotArea unit="square metres">${imovel.area_total}</LotArea>\n`;
+            if (imovel.quartos) xml += `        <Bedrooms>${imovel.quartos}</Bedrooms>\n`;
+            if (imovel.banheiros) xml += `        <Bathrooms>${imovel.banheiros}</Bathrooms>\n`;
+            if (imovel.suites) xml += `        <Suites>${imovel.suites}</Suites>\n`;
+            if (imovel.vagas) xml += `        <Garage type="Parking Space">${imovel.vagas}</Garage>\n`;
 
-            xml += `    <QtdQuartos>${imovel.quartos || 0}</QtdQuartos>\n`;
-            xml += `    <QtdSuites>${imovel.suites || 0}</QtdSuites>\n`;
-            xml += `    <QtdBanheiros>${imovel.banheiros || 0}</QtdBanheiros>\n`;
-            xml += `    <QtdVagas>${imovel.vagas || 0}</QtdVagas>\n`;
-            if (imovel.area_util) xml += `    <AreaUtil>${imovel.area_util}</AreaUtil>\n`;
-            if (imovel.area_total) xml += `    <AreaTotal>${imovel.area_total}</AreaTotal>\n`;
-
-            // CARACTERÍSTICAS (Itens de lazer e mobília que afetam os filtros do Zap)
+            // Características e Lazer
             if ((imovel.itens_lazer && imovel.itens_lazer.length > 0) || imovel.mobiliado) {
-                xml += `    <Caracteristicas>\n`;
+                xml += `        <Features>\n`;
                 if (imovel.itens_lazer) {
                     imovel.itens_lazer.forEach(item => {
-                        xml += `      <Caracteristica>${item}</Caracteristica>\n`;
+                        xml += `          <Feature>${item}</Feature>\n`;
                     });
                 }
                 if (imovel.mobiliado) {
-                    xml += `      <Caracteristica>Mobiliado</Caracteristica>\n`;
+                    xml += `          <Feature>Mobiliado</Feature>\n`;
                 }
-                xml += `    </Caracteristicas>\n`;
+                xml += `        </Features>\n`;
             }
+            xml += `      </Details>\n`;
 
             // LOCALIZAÇÃO
-            xml += `    <Localizacao>\n`;
-            xml += `      <CEP>${imovel.cep || ''}</CEP>\n`;
-            xml += `      <Estado>${imovel.estado || ''}</Estado>\n`;
-            xml += `      <Cidade>${imovel.cidade || ''}</Cidade>\n`;
-            xml += `      <Bairro>${imovel.bairro || ''}</Bairro>\n`;
-            xml += `      <Logradouro>${imovel.endereco || ''}</Logradouro>\n`;
-            xml += `      <Numero>${imovel.numero || ''}</Numero>\n`;
-            // xml += `      <Complemento>${imovel.complemento || ''}</Complemento>\n`;
-            xml += `    </Localizacao>\n`;
+            xml += `      <Location displayAddress="All">\n`;
+            xml += `        <Country abbreviation="BR">Brasil</Country>\n`;
+            if (imovel.estado) xml += `        <State abbreviation="${imovel.estado}">${imovel.estado}</State>\n`;
+            if (imovel.cidade) xml += `        <City>${imovel.cidade}</City>\n`;
+            if (imovel.bairro) xml += `        <Neighborhood>${imovel.bairro}</Neighborhood>\n`;
+            if (imovel.endereco) xml += `        <Address>${imovel.endereco}</Address>\n`;
+            if (imovel.numero) xml += `        <StreetNumber>${imovel.numero}</StreetNumber>\n`;
+            if (imovel.cep) xml += `        <ZipCode>${imovel.cep}</ZipCode>\n`;
+            xml += `      </Location>\n`;
 
-            // DESCRIÇÃO
-            xml += `    <Observacao><![CDATA[${imovel.descricao || ''}]]></Observacao>\n`;
-
-            // FOTOS
-            if (imovel.fotos && imovel.fotos.length > 0) {
-                xml += `    <Fotos>\n`;
-                imovel.fotos.forEach((fotoUrl, idx) => {
-                    xml += `      <Foto>\n`;
-                    xml += `        <URLArquivo>${fotoUrl}</URLArquivo>\n`;
-                    xml += `        <NomeArquivo>Foto_${idx + 1}</NomeArquivo>\n`;
-                    xml += `        <Principal>${idx === 0 ? '1' : '0'}</Principal>\n`;
-                    xml += `      </Foto>\n`;
-                });
-                xml += `    </Fotos>\n`;
-            }
-
-            // VÍDEO NOVO ADICIONADO
-            if (imovel.video) {
-                xml += `    <Videos>\n`;
-                xml += `      <Video>\n`;
-                xml += `        <URLArquivo>${imovel.video}</URLArquivo>\n`;
-                xml += `      </Video>\n`;
-                xml += `    </Videos>\n`;
-            }
-
-            xml += `  </Imovel>\n`;
+            xml += `    </Listing>\n`;
         });
 
-        xml += `</Imoveis>\n</Carga>`;
+        // FECHAMENTO DO ARQUIVO XML
+        xml += `  </Listings>\n`;
+        xml += `</ListingDataFeed>`;
 
         // Informa ao navegador e ao Zap que isto é um documento XML válido
         res.setHeader('Content-Type', 'application/xml; charset=utf-8');
