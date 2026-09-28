@@ -10,6 +10,7 @@ const dashboardSection = document.getElementById('dashboardSection');
 let tentativasIA = 0;
 let idImovelEditando = null;
 let fotosAntigasEdicao = [];
+let fotosParaExcluirDoStorage = []; // Guarda as fotos deletadas para apagar do servidor ao salvar
 let videoAntigoEdicao = null;
 let listaImoveisGestao = [];
 let fotosProcessadas = [];
@@ -86,6 +87,7 @@ function mudarAba(aba) {
 function resetarFormularioImovel() {
     idImovelEditando = null;
     fotosAntigasEdicao = [];
+    fotosParaExcluirDoStorage = []; // Limpa a lixeira
     videoAntigoEdicao = null;
     fotosProcessadas = [];
     urlsDasFotosEnviadas = [];
@@ -95,7 +97,6 @@ function resetarFormularioImovel() {
     document.getElementById('div-detalhes-mobilia').style.display = 'none';
     document.getElementById('previewFotos').innerHTML = '';
     
-    // Esconder e limpar a caixa de fotos salvas do banco
     const previewSalvas = document.getElementById('previewFotosSalvas');
     if(previewSalvas) {
         previewSalvas.style.display = 'none';
@@ -105,7 +106,6 @@ function resetarFormularioImovel() {
     const previewVideoBox = document.getElementById('previewVideoBox');
     if (previewVideoBox) previewVideoBox.style.display = 'none';
 
-    // Voltar label de fotos original
     const lblFotos = document.getElementById('labelFotos');
     if(lblFotos) lblFotos.innerText = "Fotos do Imóvel (A marca d'água será aplicada automaticamente)";
 
@@ -119,7 +119,6 @@ function resetarFormularioImovel() {
     document.getElementById('btnSubmit').innerText = 'Publicar Imóvel';
     document.getElementById('btnSubmit').disabled = true;
     
-    // Restaurar botão de IA
     const btnIA = document.getElementById('btnGerarIA');
     if(btnIA) {
         btnIA.style.display = 'block';
@@ -238,14 +237,13 @@ if(fileInput) {
         await new Promise(r => { marcaDagua.onload = r; marcaDagua.onerror = r; });
         previewContainer.innerHTML = '';
 
-        // Aviso se estiver no modo edição
         if (idImovelEditando && fotosAntigasEdicao.length > 0) {
             const aviso = document.createElement('div');
             aviso.style.width = '100%';
             aviso.style.fontSize = '12px';
             aviso.style.color = '#ff4444';
             aviso.style.marginBottom = '10px';
-            aviso.innerHTML = '<b>Atenção: As novas fotos selecionadas abaixo irão excluir e substituir as fotos antigas do banco ao salvar.</b>';
+            aviso.innerHTML = '<b>Atenção: As novas fotos selecionadas abaixo irão substituir as fotos antigas do banco ao salvar.</b>';
             previewContainer.appendChild(aviso);
         }
 
@@ -413,6 +411,7 @@ if (formImovel) {
             }
         }
 
+        // Se mandou fotos novas, usa as novas. Se não, usa as antigas com a ORDEM atualizada.
         let fotosFinais = urlsDasFotosEnviadas.length > 0 ? urlsDasFotosEnviadas : fotosAntigasEdicao;
 
         const itensLazer = [];
@@ -450,10 +449,17 @@ if (formImovel) {
         if (idImovelEditando) {
             const { error } = await supabase.from('imoveis').update(payload).eq('id', idImovelEditando);
             if (!error) {
+                // Se mandou fotos novas, apaga TODAS as antigas do storage
                 if (urlsDasFotosEnviadas.length > 0 && fotosAntigasEdicao.length > 0) {
                     let paths = fotosAntigasEdicao.map(u => extrairPathDoStorage(u)).filter(p => p);
                     if(paths.length > 0) supabase.storage.from('imoveis_fotos').remove(paths);
+                } 
+                // NOVO: Se NÃO mandou fotos novas, mas deletou algumas manualmente, apaga as deletadas
+                else if (fotosParaExcluirDoStorage.length > 0) {
+                    let pathsExcluir = fotosParaExcluirDoStorage.map(u => extrairPathDoStorage(u)).filter(p => p);
+                    if (pathsExcluir.length > 0) supabase.storage.from('imoveis_fotos').remove(pathsExcluir);
                 }
+
                 if (videoUrl !== videoAntigoEdicao && videoAntigoEdicao) {
                     let pathV = extrairPathDoStorage(videoAntigoEdicao);
                     if(pathV) supabase.storage.from('imoveis_fotos').remove([pathV]);
@@ -479,6 +485,124 @@ if (formImovel) {
         }
     });
 }
+
+// ==========================================
+// FUNÇÕES PARA GERENCIAR FOTOS ANTIGAS
+// ==========================================
+function renderizarFotosAntigas() {
+    const previewSalvas = document.getElementById('previewFotosSalvas');
+    if (!previewSalvas) return;
+
+    if (fotosAntigasEdicao.length === 0) {
+        previewSalvas.innerHTML = '<span style="color:#ff4444;">Nenhuma foto salva no banco de dados para este imóvel.</span>';
+        return;
+    }
+
+    previewSalvas.innerHTML = '<strong style="display:block; margin-bottom:10px; color:var(--gold);">📸 Administrar fotos salvas (Organize a ordem ou exclua antes de salvar):</strong>';
+    
+    const containerImgs = document.createElement('div');
+    containerImgs.style.display = 'flex';
+    containerImgs.style.gap = '10px';
+    containerImgs.style.flexWrap = 'wrap';
+    
+    fotosAntigasEdicao.forEach((url, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.gap = '6px';
+        wrapper.style.width = '120px';
+        wrapper.style.background = '#2a2a2a';
+        wrapper.style.padding = '8px';
+        wrapper.style.borderRadius = '6px';
+        wrapper.style.border = index === 0 ? '2px solid #25D366' : '1px solid rgba(201,168,76,0.2)'; // Borda verde pra capa
+
+        // Indicador de Posição
+        const labelPos = document.createElement('span');
+        labelPos.innerText = (index === 0) ? '🌟 Capa (1º)' : `Posição: ${index + 1}`;
+        labelPos.style.fontSize = '11px';
+        labelPos.style.color = (index === 0) ? '#25D366' : '#9a9a9a';
+        labelPos.style.textAlign = 'center';
+        labelPos.style.fontWeight = 'bold';
+
+        // A Imagem
+        const img = document.createElement('img');
+        img.src = url;
+        img.style.width = '100%';
+        img.style.height = '80px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '4px';
+        img.onerror = function() {
+            this.style.border = '2px solid red';
+            this.title = 'Link quebrado';
+        };
+
+        // Container dos Botoes
+        const btnContainer = document.createElement('div');
+        btnContainer.style.display = 'flex';
+        btnContainer.style.gap = '5px';
+
+        // Botão Topo (Verde)
+        const btnTopo = document.createElement('button');
+        btnTopo.type = 'button'; // Essencial para não enviar form
+        btnTopo.innerHTML = '⬆️ Topo';
+        btnTopo.style.background = '#25D366';
+        btnTopo.style.color = 'white';
+        btnTopo.style.fontSize = '11px';
+        btnTopo.style.padding = '5px';
+        btnTopo.style.margin = '0';
+        btnTopo.style.flex = '1';
+        btnTopo.style.borderRadius = '3px';
+        if (index === 0) {
+            btnTopo.disabled = true;
+            btnTopo.style.opacity = '0.3';
+        } else {
+            btnTopo.onclick = () => moverFotoParaTopo(index);
+        }
+
+        // Botão Excluir (Vermelho)
+        const btnExcluir = document.createElement('button');
+        btnExcluir.type = 'button'; // Essencial para não enviar form
+        btnExcluir.innerHTML = '🗑️';
+        btnExcluir.style.background = '#ff4444';
+        btnExcluir.style.color = 'white';
+        btnExcluir.style.fontSize = '11px';
+        btnExcluir.style.padding = '5px';
+        btnExcluir.style.margin = '0';
+        btnExcluir.style.width = '35px';
+        btnExcluir.style.borderRadius = '3px';
+        btnExcluir.onclick = () => removerFotoAntiga(index);
+
+        btnContainer.appendChild(btnTopo);
+        btnContainer.appendChild(btnExcluir);
+
+        wrapper.appendChild(labelPos);
+        wrapper.appendChild(img);
+        wrapper.appendChild(btnContainer);
+        containerImgs.appendChild(wrapper);
+    });
+    
+    previewSalvas.appendChild(containerImgs);
+}
+
+function moverFotoParaTopo(index) {
+    if (index === 0) return;
+    // Remove a foto do array e guarda na variavel 'foto'
+    const foto = fotosAntigasEdicao.splice(index, 1)[0];
+    // Coloca a foto na posição 0 do array
+    fotosAntigasEdicao.unshift(foto);
+    // Renderiza a tela de novo
+    renderizarFotosAntigas();
+}
+
+function removerFotoAntiga(index) {
+    // Remove do array visual e manda pra lixeira
+    const urlRemovida = fotosAntigasEdicao.splice(index, 1)[0];
+    fotosParaExcluirDoStorage.push(urlRemovida);
+    // Renderiza a tela de novo
+    renderizarFotosAntigas();
+}
+// ==========================================
+
 
 // ABA GERENCIAR ANÚNCIOS
 async function carregarImoveisGestao() {
@@ -555,21 +679,17 @@ function abrirEdicao(id) {
     const imovel = listaImoveisGestao.find(i => i.id === id);
     if(!imovel) return;
 
-    resetarFormularioImovel(); // Limpa a div #previewFotos e prepara o form
+    resetarFormularioImovel(); 
     idImovelEditando = imovel.id;
     
-    // TRANSFORMAR A TELA E O TÍTULO - PROVA DE QUE O JS ATUALIZOU
     document.getElementById('tituloAbaImovel').innerText = `📝 MODO DE EDIÇÃO (Banco de Dados) - Ref: ${imovel.referencia || imovel.id}`;
     
-    // Esconder Botão da IA
     const btnIA = document.getElementById('btnGerarIA');
     if(btnIA) btnIA.style.display = 'none';
     
-    // Alterar label da foto
     const lblFotos = document.getElementById('labelFotos');
-    if(lblFotos) lblFotos.innerText = 'SUBSTITUIR FOTOS (Atenção: Ao enviar novos arquivos, as fotos atuais serão excluídas)';
+    if(lblFotos) lblFotos.innerText = 'ENVIAR ARQUIVOS NOVOS (Atenção: Ao selecionar fotos aqui, elas substituirão TODAS as de cima)';
 
-    // EXTRAÇÃO ROBUSTA DAS FOTOS
     fotosAntigasEdicao = [];
     if (imovel.fotos) {
         let raw = imovel.fotos;
@@ -577,65 +697,31 @@ function abrirEdicao(id) {
             fotosAntigasEdicao = [...raw];
         } else if (typeof raw === 'string') {
             let clean = raw.trim();
-            // Verifica se é Array estilo Postgres {}
             if (clean.startsWith('{') && clean.endsWith('}')) {
                 clean = clean.slice(1, -1);
                 if (clean) fotosAntigasEdicao = clean.split(',').map(s => s.replace(/^"|"$/g, '').trim());
-            } 
-            // Verifica se é Array estilo JSON []
-            else if (clean.startsWith('[') && clean.endsWith(']')) {
+            } else if (clean.startsWith('[') && clean.endsWith(']')) {
                 try {
                     fotosAntigasEdicao = JSON.parse(clean);
                 } catch(e) {
                     clean = clean.slice(1, -1);
                     if (clean) fotosAntigasEdicao = clean.split(',').map(s => s.replace(/^"|"$/g, '').trim());
                 }
-            } 
-            // Se for apenas string separada por vírgula
-            else {
+            } else {
                 if (clean) fotosAntigasEdicao = clean.split(',').map(s => s.trim());
             }
         }
     }
 
-    // Filtra pra ter certeza que são URLs de verdade (não nulos/vazios)
     fotosAntigasEdicao = fotosAntigasEdicao.filter(url => typeof url === 'string' && url.length > 5);
     videoAntigoEdicao = imovel.video || null;
 
-    // RENDERIZAR AS FOTOS NA CAIXA DO BANCO DE DADOS
     const previewSalvas = document.getElementById('previewFotosSalvas');
     if (previewSalvas) {
         previewSalvas.style.display = 'block';
-        previewSalvas.innerHTML = '<strong style="display:block; margin-bottom:10px; color:var(--gold);">📸 Fotos atuais salvas neste anúncio:</strong>';
-        
-        if (fotosAntigasEdicao.length > 0) {
-            const containerImgs = document.createElement('div');
-            containerImgs.style.display = 'flex';
-            containerImgs.style.gap = '10px';
-            containerImgs.style.flexWrap = 'wrap';
-            
-            fotosAntigasEdicao.forEach(url => {
-                const img = document.createElement('img');
-                img.src = url;
-                img.style.width = '100px';
-                img.style.height = '100px';
-                img.style.objectFit = 'cover';
-                img.style.borderRadius = '5px';
-                img.style.border = '1px solid #444';
-                // Se o link vier quebrado, vai marcar de vermelho
-                img.onerror = function() {
-                    this.style.border = '2px solid red';
-                    this.title = 'Link da foto quebrado: ' + url;
-                };
-                containerImgs.appendChild(img);
-            });
-            previewSalvas.appendChild(containerImgs);
-        } else {
-            previewSalvas.innerHTML += '<span style="color:#ff4444;">Nenhuma foto salva no banco de dados para este imóvel.</span>';
-        }
+        renderizarFotosAntigas(); // CHAMA A FUNÇÃO NOVA AQUI
     }
 
-    // RENDERIZAR CAIXA DO VÍDEO
     const previewVideoBox = document.getElementById('previewVideoBox');
     if (videoAntigoEdicao && typeof videoAntigoEdicao === 'string' && videoAntigoEdicao.trim() !== '') {
         if (previewVideoBox) previewVideoBox.style.display = 'flex';
@@ -688,13 +774,10 @@ function abrirEdicao(id) {
     document.getElementById('imoEstado').value = imovel.estado || '';
     document.getElementById('imoDescricao').value = imovel.descricao || '';
 
-    // Switch View - ISOLAMENTO VISUAL TOTAL!
-    // Tirar a marcação de TODAS as abas para não parecer que está em Cadastrar Imóvel
     document.getElementById('btnAbaImovel').classList.remove('active'); 
     document.getElementById('btnAbaGestao').classList.remove('active');
     document.getElementById('btnAbaLeads').classList.remove('active');
 
-    // Mostra o formulário no modo edição
     document.getElementById('abaGestao').style.display = 'none';
     document.getElementById('abaImovel').style.display = 'block';
 
