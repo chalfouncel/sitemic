@@ -111,6 +111,12 @@ function resetarFormularioImovel() {
     const lblFotos = document.getElementById('labelFotos');
     if(lblFotos) lblFotos.innerText = "Fotos do Imóvel (Você pode selecionar de várias pastas, elas serão acumuladas)";
 
+    const avisoFotosNovas = document.getElementById('avisoFotosNovas');
+    if (avisoFotosNovas) {
+        avisoFotosNovas.innerText = "Atenção: As novas fotos selecionadas abaixo serão SOMADAS às fotos antigas do banco ao salvar.";
+        avisoFotosNovas.style.color = 'var(--gold)';
+    }
+
     const vHelp = document.getElementById('videoHelpText');
     if(vHelp) {
         vHelp.style.color = 'var(--gold)';
@@ -773,8 +779,18 @@ function abrirEdicao(id) {
     const btnIA = document.getElementById('btnGerarIA');
     if(btnIA) btnIA.style.display = 'none';
     
+    // CORRIGIDO O TEXTO DA LABEL
     const lblFotos = document.getElementById('labelFotos');
     if(lblFotos) lblFotos.innerText = 'ENVIAR FOTOS NOVAS (Você pode selecionar várias vezes. As novas serão SOMADAS às antigas)';
+
+    // SE EXISTIR UMA TAG ESPECÍFICA PARA A MENSAGEM VERMELHA, ELA DEVE ESTAR NO SEU HTML COM UM ID. 
+    // ESTOU ASSUMINDO QUE ELA PODE SER RECUPERADA PELO ID 'avisoFotosNovas'. 
+    // SE VOCÊ NÃO TIVER ESTE ID NO SEU HTML, O CÓDIGO ABAIXO NÃO VAI MUDAR A COR, MAS NÃO CAUSARÁ ERRO.
+    const avisoFotosNovas = document.getElementById('avisoFotosNovas');
+    if (avisoFotosNovas) {
+        avisoFotosNovas.innerText = "Atenção: As novas fotos selecionadas abaixo serão SOMADAS às fotos antigas do banco ao salvar.";
+        avisoFotosNovas.style.color = 'var(--gold)';
+    }
 
     fotosAntigasEdicao = [];
     if (imovel.fotos) {
