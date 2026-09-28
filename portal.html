@@ -293,6 +293,16 @@
                         <div class="form-group full-width">
                             <label>Vídeo de Apresentação (Opcional - MP4)</label>
                             <input type="file" id="imoVideo" accept="video/mp4,video/x-m4v,video/*">
+                            
+                            <!-- CAIXA DE PREVIEW DO VÍDEO (NOVO) -->
+                            <div id="previewVideoBox" style="display: none; margin-top: 10px; padding: 12px; background: rgba(201,168,76,0.05); border: 1px dashed var(--gold); border-radius: 4px; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <span style="color: #25D366; font-size: 14px; font-weight: bold;">✓ Vídeo Atual no Banco</span><br>
+                                    <a id="linkVideoAtual" href="#" target="_blank" style="color: var(--gold); font-size: 13px; text-decoration: underline;">Visualizar vídeo existente</a>
+                                </div>
+                                <button type="button" onclick="removerVideoAntigo()" style="width: auto; padding: 6px 12px; background: #ff4444; color: white; border-radius: 4px; font-size: 12px; margin: 0;">Apagar Vídeo</button>
+                            </div>
+
                             <small id="videoHelpText" style="color: var(--gold); font-size: 12px; margin-top: 5px; display: block;">Selecione um arquivo de vídeo. <b>Tamanho máximo: 50MB.</b></small>
                         </div>
                     </div>
