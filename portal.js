@@ -12,10 +12,11 @@ let idImovelEditando = null;
 let fotosAntigasEdicao = [];
 let fotosParaExcluirDoStorage = []; // Guarda as fotos deletadas para apagar do servidor ao salvar
 let videoAntigoEdicao = null;
-let videoParaExcluirDoStorage = null; // Proteção para não deixar vídeo órfão ao excluir
+let videoParaExcluirDoStorage = null; 
 let listaImoveisGestao = [];
-let fotosProcessadas = [];
-let urlsDasFotosEnviadas = []; 
+
+// Agora fotosProcessadas é um array CUMULATIVO de objetos { file, id, localUrl, uploadedUrl }
+let fotosProcessadas = []; 
 
 // Verifica sessão
 async function checarSessao() {
@@ -88,11 +89,10 @@ function mudarAba(aba) {
 function resetarFormularioImovel() {
     idImovelEditando = null;
     fotosAntigasEdicao = [];
-    fotosParaExcluirDoStorage = []; // Limpa a lixeira de fotos
+    fotosParaExcluirDoStorage = []; 
     videoAntigoEdicao = null;
-    videoParaExcluirDoStorage = null; // Limpa a lixeira do vídeo
-    fotosProcessadas = [];
-    urlsDasFotosEnviadas = [];
+    videoParaExcluirDoStorage = null;
+    fotosProcessadas = []; // Limpa o array cumulativo
     tentativasIA = 0;
     
     document.getElementById('formImovel').reset();
@@ -109,7 +109,7 @@ function resetarFormularioImovel() {
     if (previewVideoBox) previewVideoBox.style.display = 'none';
 
     const lblFotos = document.getElementById('labelFotos');
-    if(lblFotos) lblFotos.innerText = "Fotos do Imóvel (A marca d'água será aplicada automaticamente)";
+    if(lblFotos) lblFotos.innerText = "Fotos do Imóvel (Você pode selecionar de várias pastas, elas serão acumuladas)";
 
     const vHelp = document.getElementById('videoHelpText');
     if(vHelp) {
@@ -211,7 +211,7 @@ if(videoInput) {
 
 function removerVideoAntigo() {
     if (videoAntigoEdicao) {
-        videoParaExcluirDoStorage = videoAntigoEdicao; // Guarda a URL para exclusão real no storage ao salvar
+        videoParaExcluirDoStorage = videoAntigoEdicao; 
     }
     videoAntigoEdicao = null;
     document.getElementById('previewVideoBox').style.display = 'none';
@@ -222,36 +222,30 @@ function removerVideoAntigo() {
     }
 }
 
+// ==========================================
+// LÓGICA DE FOTOS CUMULATIVAS (ADICIONAR SEM APAGAR)
+// ==========================================
 const fileInput = document.getElementById('imoFotos');
 if(fileInput) {
     fileInput.addEventListener('change', async function(e) {
-        urlsDasFotosEnviadas = [];
         tentativasIA = 0; 
-        const previewContainer = document.getElementById('previewFotos');
-        previewContainer.innerHTML = '<span style="color: var(--gold);">Processando imagens com marca d\'água...</span>';
-        fotosProcessadas = [];
-        
         const files = e.target.files;
-        if(files.length === 0) {
-            previewContainer.innerHTML = '';
-            return;
-        }
+        if(files.length === 0) return;
+
+        // Feedback visual de carregamento
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'loadingFotosNovas';
+        loadingDiv.style.color = '#25D366';
+        loadingDiv.style.marginTop = '10px';
+        loadingDiv.style.fontWeight = 'bold';
+        loadingDiv.innerText = `⏳ Processando ${files.length} nova(s) foto(s) com marca d'água...`;
+        document.getElementById('containerBlocoFotos').appendChild(loadingDiv);
 
         const marcaDagua = new Image();
         marcaDagua.src = 'marca-dagua.png'; 
         await new Promise(r => { marcaDagua.onload = r; marcaDagua.onerror = r; });
-        previewContainer.innerHTML = '';
 
-        if (idImovelEditando && fotosAntigasEdicao.length > 0) {
-            const aviso = document.createElement('div');
-            aviso.style.width = '100%';
-            aviso.style.fontSize = '12px';
-            aviso.style.color = '#ff4444';
-            aviso.style.marginBottom = '10px';
-            aviso.innerHTML = '<b>Atenção: As novas fotos selecionadas abaixo irão substituir as fotos antigas do banco ao salvar.</b>';
-            previewContainer.appendChild(aviso);
-        }
-
+        // Não apagamos mais o array fotosProcessadas aqui. Vamos somar!
         for(let file of files) {
             const img = new Image();
             const url = URL.createObjectURL(file);
@@ -276,14 +270,94 @@ if(fileInput) {
 
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
             const processedFile = new File([blob], file.name, { type: 'image/jpeg' });
-            fotosProcessadas.push(processedFile);
-
-            const previewImg = document.createElement('img');
-            previewImg.src = URL.createObjectURL(blob);
-            previewContainer.appendChild(previewImg);
+            
+            // Adiciona ao array cumulativo de fotos novas
+            fotosProcessadas.push({
+                id: Date.now() + Math.random().toString(36).substr(2, 9),
+                file: processedFile,
+                localUrl: URL.createObjectURL(blob),
+                uploadedUrl: null // Será preenchido quando enviarmos pro Supabase (na IA ou ao Salvar)
+            });
         }
+        
+        loadingDiv.remove();
+        
+        // Zera o input para permitir clicar no botão novamente e escolher mais arquivos (até os mesmos se quiser)
+        fileInput.value = '';
+        
+        // Renderiza as fotos novas adicionadas
+        renderizarFotosNovas();
     });
 }
+
+function renderizarFotosNovas() {
+    const container = document.getElementById('previewFotos');
+    container.innerHTML = ''; 
+
+    if (fotosProcessadas.length > 0) {
+        const title = document.createElement('strong');
+        title.style.display = 'block';
+        title.style.width = '100%';
+        title.style.marginBottom = '10px';
+        title.style.color = '#25D366';
+        title.innerText = `📸 Fotos novas aguardando envio (${fotosProcessadas.length}):`;
+        container.appendChild(title);
+    }
+
+    fotosProcessadas.forEach((fotoItem, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.gap = '6px';
+        wrapper.style.width = '120px';
+        wrapper.style.background = '#2a2a2a';
+        wrapper.style.padding = '8px';
+        wrapper.style.borderRadius = '6px';
+        wrapper.style.border = '1px solid rgba(37, 211, 102, 0.5)';
+
+        const labelPos = document.createElement('span');
+        labelPos.innerText = `Novo Arquivo`;
+        labelPos.style.fontSize = '11px';
+        labelPos.style.color = '#25D366';
+        labelPos.style.textAlign = 'center';
+        labelPos.style.fontWeight = 'bold';
+
+        const img = document.createElement('img');
+        img.src = fotoItem.localUrl;
+        img.style.width = '100%';
+        img.style.height = '80px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '4px';
+
+        const btnExcluir = document.createElement('button');
+        btnExcluir.type = 'button';
+        btnExcluir.innerHTML = '🗑️ Excluir';
+        btnExcluir.style.background = '#ff4444';
+        btnExcluir.style.color = 'white';
+        btnExcluir.style.fontSize = '11px';
+        btnExcluir.style.padding = '5px';
+        btnExcluir.style.margin = '0';
+        btnExcluir.style.width = '100%';
+        btnExcluir.style.borderRadius = '3px';
+        btnExcluir.onclick = () => {
+            // Remove a foto do array cumulativo
+            const removida = fotosProcessadas.splice(index, 1)[0];
+            
+            // Se a foto já tinha sido subida para o servidor (ex: rodou IA antes de salvar), manda pra lixeira
+            if (removida.uploadedUrl) {
+                fotosParaExcluirDoStorage.push(removida.uploadedUrl);
+            }
+            
+            renderizarFotosNovas();
+        };
+
+        wrapper.appendChild(labelPos);
+        wrapper.appendChild(img);
+        wrapper.appendChild(btnExcluir);
+        container.appendChild(wrapper);
+    });
+}
+
 
 async function gerarTextoIA() {
     if(fotosProcessadas.length === 0 && !idImovelEditando) {
@@ -300,13 +374,14 @@ async function gerarTextoIA() {
     msg.innerText = '';
 
     try {
-        if (urlsDasFotosEnviadas.length === 0 && fotosProcessadas.length > 0) {
-            for(let file of fotosProcessadas) {
-                const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
-                const { data: uploadData, error: uploadError } = await supabase.storage.from('imoveis_fotos').upload(fileName, file);
+        // Envia apenas as fotos novas que ainda NÃO foram enviadas
+        for(let item of fotosProcessadas) {
+            if (!item.uploadedUrl) {
+                const fileName = `${Date.now()}_${item.file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+                const { data: uploadData, error: uploadError } = await supabase.storage.from('imoveis_fotos').upload(fileName, item.file);
                 if(!uploadError) {
                     const { data: publicUrlData } = supabase.storage.from('imoveis_fotos').getPublicUrl(fileName);
-                    urlsDasFotosEnviadas.push(publicUrlData.publicUrl);
+                    item.uploadedUrl = publicUrlData.publicUrl;
                 }
             }
         }
@@ -314,7 +389,11 @@ async function gerarTextoIA() {
         const itensLazer = [];
         document.querySelectorAll('input[name="lazer"]:checked').forEach(cb => itensLazer.push(cb.value));
 
-        let urlsParaIa = urlsDasFotosEnviadas.length > 0 ? urlsDasFotosEnviadas : fotosAntigasEdicao;
+        // Pega as fotos velhas + as fotos novas já subidas
+        let urlsParaIa = [...fotosAntigasEdicao];
+        fotosProcessadas.forEach(f => {
+            if (f.uploadedUrl) urlsParaIa.push(f.uploadedUrl);
+        });
 
         const payloadParaIA = {
             tipo: document.getElementById('imoTipo').value,
@@ -394,13 +473,18 @@ if (formImovel) {
             return;
         }
 
-        if (fotosProcessadas.length > 0 && urlsDasFotosEnviadas.length === 0) {
-            for(let file of fotosProcessadas) {
-                const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
-                const { data, error } = await supabase.storage.from('imoveis_fotos').upload(fileName, file);
+        // Subir as fotos acumuladas que ainda não subiram
+        let fotosNovasUrls = [];
+        for(let item of fotosProcessadas) {
+            if (item.uploadedUrl) {
+                fotosNovasUrls.push(item.uploadedUrl);
+            } else {
+                const fileName = `${Date.now()}_${item.file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+                const { data, error } = await supabase.storage.from('imoveis_fotos').upload(fileName, item.file);
                 if(!error) {
                     const { data: pUrl } = supabase.storage.from('imoveis_fotos').getPublicUrl(fileName);
-                    urlsDasFotosEnviadas.push(pUrl.publicUrl);
+                    item.uploadedUrl = pUrl.publicUrl;
+                    fotosNovasUrls.push(item.uploadedUrl);
                 }
             }
         }
@@ -416,8 +500,8 @@ if (formImovel) {
             }
         }
 
-        // Se mandou fotos novas, usa as novas. Se não, usa as antigas com a ORDEM atualizada.
-        let fotosFinais = urlsDasFotosEnviadas.length > 0 ? urlsDasFotosEnviadas : fotosAntigasEdicao;
+        // AS FOTOS FINAIS SERÃO AS ANTIGAS SALVAS + AS NOVAS SOMADAS
+        let fotosFinais = [...fotosAntigasEdicao, ...fotosNovasUrls];
 
         const itensLazer = [];
         document.querySelectorAll('input[name="lazer"]:checked').forEach(cb => itensLazer.push(cb.value));
@@ -455,25 +539,17 @@ if (formImovel) {
             const { error } = await supabase.from('imoveis').update(payload).eq('id', idImovelEditando);
             if (!error) {
                 
-                // 1. Limpeza de fotos se enviou NOVAS: apaga todas as ANTIGAS restantes no array
-                if (urlsDasFotosEnviadas.length > 0 && fotosAntigasEdicao.length > 0) {
-                    let paths = fotosAntigasEdicao.map(u => extrairPathDoStorage(u)).filter(p => p);
-                    if(paths.length > 0) supabase.storage.from('imoveis_fotos').remove(paths);
-                } 
-                
-                // 2. Limpeza de fotos excluídas: apaga SEMPRE o que estiver na lixeira, independente de ter novas ou não
+                // Limpeza apenas do que o usuário apagou no botão da lixeirinha!
                 if (fotosParaExcluirDoStorage.length > 0) {
                     let pathsExcluir = fotosParaExcluirDoStorage.map(u => extrairPathDoStorage(u)).filter(p => p);
                     if (pathsExcluir.length > 0) supabase.storage.from('imoveis_fotos').remove(pathsExcluir);
                 }
 
-                // 3. Limpeza do vídeo antigo
+                // Limpeza do vídeo se foi apagado
                 if (videoParaExcluirDoStorage) {
-                    // Se foi excluído no botão de apagar
                     let pathV = extrairPathDoStorage(videoParaExcluirDoStorage);
                     if(pathV) supabase.storage.from('imoveis_fotos').remove([pathV]);
                 } else if (videoUrl !== videoAntigoEdicao && videoAntigoEdicao) {
-                    // Se não foi excluído no botão, mas um novo foi enviado no lugar
                     let pathV = extrairPathDoStorage(videoAntigoEdicao);
                     if(pathV) supabase.storage.from('imoveis_fotos').remove([pathV]);
                 }
@@ -489,6 +565,12 @@ if (formImovel) {
             payload.status = 'Ativo';
             const { error } = await supabase.from('imoveis').insert([payload]);
             if (!error) {
+                // Mesmo num imóvel novo, se ele adicionou uma foto, gerou IA e depois apagou a foto, limpamos
+                if (fotosParaExcluirDoStorage.length > 0) {
+                    let pathsExcluir = fotosParaExcluirDoStorage.map(u => extrairPathDoStorage(u)).filter(p => p);
+                    if (pathsExcluir.length > 0) supabase.storage.from('imoveis_fotos').remove(pathsExcluir);
+                }
+
                 msg.style.color = '#25D366'; 
                 msg.innerText = 'Imóvel publicado com sucesso!';
                 setTimeout(() => { resetarFormularioImovel(); }, 2500);
@@ -512,7 +594,7 @@ function renderizarFotosAntigas() {
         return;
     }
 
-    previewSalvas.innerHTML = '<strong style="display:block; margin-bottom:10px; color:var(--gold);">📸 Administrar fotos salvas (Organize a ordem ou exclua antes de salvar):</strong>';
+    previewSalvas.innerHTML = '<strong style="display:block; margin-bottom:10px; color:var(--gold);">📸 Administrar fotos salvas (Organize a ordem ou exclua):</strong>';
     
     const containerImgs = document.createElement('div');
     containerImgs.style.display = 'flex';
@@ -528,9 +610,8 @@ function renderizarFotosAntigas() {
         wrapper.style.background = '#2a2a2a';
         wrapper.style.padding = '8px';
         wrapper.style.borderRadius = '6px';
-        wrapper.style.border = index === 0 ? '2px solid #25D366' : '1px solid rgba(201,168,76,0.2)'; // Borda verde pra capa
+        wrapper.style.border = index === 0 ? '2px solid #25D366' : '1px solid rgba(201,168,76,0.2)'; 
 
-        // Indicador de Posição
         const labelPos = document.createElement('span');
         labelPos.innerText = (index === 0) ? '🌟 Capa (1º)' : `Posição: ${index + 1}`;
         labelPos.style.fontSize = '11px';
@@ -538,7 +619,6 @@ function renderizarFotosAntigas() {
         labelPos.style.textAlign = 'center';
         labelPos.style.fontWeight = 'bold';
 
-        // A Imagem
         const img = document.createElement('img');
         img.src = url;
         img.style.width = '100%';
@@ -550,14 +630,12 @@ function renderizarFotosAntigas() {
             this.title = 'Link quebrado';
         };
 
-        // Container dos Botoes
         const btnContainer = document.createElement('div');
         btnContainer.style.display = 'flex';
         btnContainer.style.gap = '5px';
 
-        // Botão Topo (Verde)
         const btnTopo = document.createElement('button');
-        btnTopo.type = 'button'; // Essencial para não enviar form
+        btnTopo.type = 'button'; 
         btnTopo.innerHTML = '⬆️ Topo';
         btnTopo.style.background = '#25D366';
         btnTopo.style.color = 'white';
@@ -573,9 +651,8 @@ function renderizarFotosAntigas() {
             btnTopo.onclick = () => moverFotoParaTopo(index);
         }
 
-        // Botão Excluir (Vermelho)
         const btnExcluir = document.createElement('button');
-        btnExcluir.type = 'button'; // Essencial para não enviar form
+        btnExcluir.type = 'button'; 
         btnExcluir.innerHTML = '🗑️';
         btnExcluir.style.background = '#ff4444';
         btnExcluir.style.color = 'white';
@@ -600,19 +677,14 @@ function renderizarFotosAntigas() {
 
 function moverFotoParaTopo(index) {
     if (index === 0) return;
-    // Remove a foto do array e guarda na variavel 'foto'
     const foto = fotosAntigasEdicao.splice(index, 1)[0];
-    // Coloca a foto na posição 0 do array
     fotosAntigasEdicao.unshift(foto);
-    // Renderiza a tela de novo
     renderizarFotosAntigas();
 }
 
 function removerFotoAntiga(index) {
-    // Remove do array visual e manda pra lixeira
     const urlRemovida = fotosAntigasEdicao.splice(index, 1)[0];
     fotosParaExcluirDoStorage.push(urlRemovida);
-    // Renderiza a tela de novo
     renderizarFotosAntigas();
 }
 // ==========================================
@@ -702,7 +774,7 @@ function abrirEdicao(id) {
     if(btnIA) btnIA.style.display = 'none';
     
     const lblFotos = document.getElementById('labelFotos');
-    if(lblFotos) lblFotos.innerText = 'ENVIAR ARQUIVOS NOVOS (Atenção: Ao selecionar fotos aqui, elas substituirão TODAS as de cima)';
+    if(lblFotos) lblFotos.innerText = 'ENVIAR FOTOS NOVAS (Você pode selecionar várias vezes. As novas serão SOMADAS às antigas)';
 
     fotosAntigasEdicao = [];
     if (imovel.fotos) {
@@ -733,7 +805,7 @@ function abrirEdicao(id) {
     const previewSalvas = document.getElementById('previewFotosSalvas');
     if (previewSalvas) {
         previewSalvas.style.display = 'block';
-        renderizarFotosAntigas(); // CHAMA A FUNÇÃO NOVA AQUI
+        renderizarFotosAntigas(); 
     }
 
     const previewVideoBox = document.getElementById('previewVideoBox');
