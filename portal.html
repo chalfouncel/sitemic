@@ -160,21 +160,22 @@
                             </select>
                         </div>
                         
+                        <!-- CAMPOS MONETÁRIOS COM MÁSCARA -->
                         <div class="form-group">
                             <label>Valor de Venda (R$)</label>
-                            <input type="number" id="imoVenda" placeholder="Ex: 1500000">
+                            <input type="text" inputmode="numeric" id="imoVenda" placeholder="Ex: 1.500.000" oninput="formatarMoeda(this)">
                         </div>
                         <div class="form-group">
                             <label>Valor de Aluguel (R$)</label>
-                            <input type="number" id="imoAluguel" placeholder="Ex: 5000">
+                            <input type="text" inputmode="numeric" id="imoAluguel" placeholder="Ex: 5.000" oninput="formatarMoeda(this)">
                         </div>
                         <div class="form-group">
                             <label>Valor Condomínio (R$)</label>
-                            <input type="number" id="imoCondominio" placeholder="Ex: 1200">
+                            <input type="text" inputmode="numeric" id="imoCondominio" placeholder="Ex: 1.200" oninput="formatarMoeda(this)">
                         </div>
                         <div class="form-group">
                             <label>Valor IPTU (R$)</label>
-                            <input type="number" id="imoIptu" placeholder="Ex: 3500">
+                            <input type="text" inputmode="numeric" id="imoIptu" placeholder="Ex: 3.500" oninput="formatarMoeda(this)">
                         </div>
 
                         <div class="form-group">
@@ -400,7 +401,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- VERSÃO V5 PARA FORÇAR SEU NAVEGADOR A LIMPAR O CACHE DE UMA VEZ POR TODAS -->
-    <script src="portal.js?v=producao_definitiva_v5"></script>
+    <!-- VERSÃO V6 PARA FORÇAR SEU NAVEGADOR A PUXAR AS MÁSCARAS DE MOEDA -->
+    <script src="portal.js?v=producao_definitiva_v6"></script>
 </body>
 </html>
