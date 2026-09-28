@@ -193,6 +193,7 @@ function resetarFormularioImovel() {
     document.getElementById('div-detalhes-mobilia').style.display = 'none';
     document.getElementById('previewFotos').innerHTML = '';
     
+    document.getElementById('previewVideoBox').style.display = 'none';
     const vHelp = document.getElementById('videoHelpText');
     if(vHelp) {
         vHelp.style.color = 'var(--gold)';
@@ -276,6 +277,16 @@ if(videoInput) {
     });
 }
 
+function removerVideoAntigo() {
+    if(videoAntigoEdicao) {
+        urlsFotosParaApagar.push(videoAntigoEdicao);
+        videoAntigoEdicao = null;
+        document.getElementById('previewVideoBox').style.display = 'none';
+        const vHelp = document.getElementById('videoHelpText');
+        if(vHelp) vHelp.innerHTML = 'Selecione um novo arquivo de vídeo (Opcional). <b>Tamanho máximo: 50MB.</b>';
+    }
+}
+
 // SELEÇÃO INCREMENTAL DE FOTOS (MARCA D'ÁGUA)
 const fileInput = document.getElementById('imoFotos');
 if(fileInput) {
@@ -286,7 +297,7 @@ if(fileInput) {
 
         const container = document.getElementById('previewFotos');
         const loadingMsg = document.createElement('div');
-        loadingMsg.innerHTML = '<span style="color: var(--gold); font-size:14px; width:100%;">Aplicando marca d\'água nas novas fotos...</span>';
+        loadingMsg.innerHTML = '<span style="color: var(--gold); font-size:14px; width:100%; display:block; margin-bottom:10px;">Aplicando marca d\'água nas novas fotos...</span>';
         container.prepend(loadingMsg);
 
         const marcaDagua = new Image();
@@ -453,7 +464,7 @@ if (formImovel) {
 
         const fotosFinaisOrdenadas = await subirFotosNovasParaSupabase();
 
-        // UPLOAD DO VÍDEO
+        // UPLOAD DO VÍDEO NOVO
         let videoUrl = videoAntigoEdicao;
         if (videoInput && videoInput.files.length > 0) {
             const videoFile = videoInput.files[0];
@@ -476,7 +487,6 @@ if (formImovel) {
             tipo: document.getElementById('imoTipo').value,
             finalidade: document.getElementById('imoFinalidade').value,
             
-            // DESMASCARA OS VALORES (De "R$ 1.500,00" para 1500.00)
             valor_venda: desmascararMoeda(document.getElementById('imoVenda').value),
             valor_aluguel: desmascararMoeda(document.getElementById('imoAluguel').value),
             valor_condominio: desmascararMoeda(document.getElementById('imoCondominio').value),
@@ -609,12 +619,16 @@ function abrirEdicao(id) {
     idImovelEditando = imovel.id;
     videoAntigoEdicao = imovel.video || null;
     
+    // Mostra a caixinha do vídeo se ele existir
     if(videoAntigoEdicao) {
+        document.getElementById('previewVideoBox').style.display = 'flex';
+        document.getElementById('linkVideoAtual').href = videoAntigoEdicao;
         const vHelp = document.getElementById('videoHelpText');
-        if(vHelp) vHelp.innerHTML = '<b>✓ Vídeo atual carregado.</b> Escolha outro apenas se quiser substituir o atual.';
+        if(vHelp) vHelp.innerHTML = 'Escolha um arquivo abaixo <b>apenas se quiser substituir</b> o vídeo atual.';
     }
 
-    if (imovel.fotos) {
+    // Carrega as fotos do banco para o array visual
+    if (imovel.fotos && Array.isArray(imovel.fotos)) {
         imovel.fotos.forEach(url => { fotosGlobais.push({ id: gerarIdUnico(), tipo: 'url', url: url }); });
         renderizarPreviewFotos();
     }
@@ -624,7 +638,7 @@ function abrirEdicao(id) {
     document.getElementById('imoTipo').value = imovel.tipo || 'Apartamento';
     document.getElementById('imoFinalidade').value = imovel.finalidade || 'Venda';
     
-    // FORMATANDO VALORES PARA MÁSCARA NA EDIÇÃO
+    // Formata a Moeda
     document.getElementById('imoVenda').value = formatarParaInputMoeda(imovel.valor_venda);
     document.getElementById('imoAluguel').value = formatarParaInputMoeda(imovel.valor_aluguel);
     document.getElementById('imoCondominio').value = formatarParaInputMoeda(imovel.valor_condominio);
