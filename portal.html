@@ -283,13 +283,15 @@
                         </div>
 
                         <!-- FOTOS -->
-                        <div class="form-group full-width">
-                            <label id="labelFotos">Fotos do Imóvel (A marca d'água será aplicada automaticamente)</label>
+                        <div class="form-group full-width" id="containerBlocoFotos">
+                            <label id="labelFotos">Fotos do Imóvel (Você pode selecionar de várias pastas, elas serão acumuladas)</label>
                             
                             <!-- CAIXA EXCLUSIVA DO MODO EDIÇÃO (Onde as fotos do banco aparecerão) -->
                             <div id="previewFotosSalvas" style="display: none; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px dashed var(--gold); margin-bottom: 15px;"></div>
                             
                             <input type="file" id="imoFotos" multiple accept="image/*">
+                            
+                            <!-- CAIXA DE NOVAS FOTOS ACUMULADAS -->
                             <div id="previewFotos"></div>
                         </div>
                         
@@ -379,7 +381,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- VERSÃO ATUALIZADA PARA FORÇAR SEU NAVEGADOR A PUXAR O JS NOVO -->
-    <script src="portal.js?v=producao_definitiva_v3"></script>
+    <!-- ATUALIZADO PARA CONTORNAR O CACHE E PUXAR A NOVA LOGICA -->
+    <script src="portal.js?v=producao_definitiva_v4"></script>
 </body>
 </html>
