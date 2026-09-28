@@ -96,6 +96,10 @@ function resetarFormularioImovel() {
     document.getElementById('div-detalhes-mobilia').style.display = 'none';
     document.getElementById('previewFotos').innerHTML = '';
     
+    // NOVO: Esconde a caixa de preview do vídeo no reset
+    const previewVideoBox = document.getElementById('previewVideoBox');
+    if (previewVideoBox) previewVideoBox.style.display = 'none';
+
     const vHelp = document.getElementById('videoHelpText');
     if(vHelp) {
         vHelp.style.color = 'var(--gold)';
@@ -172,7 +176,7 @@ if (cepInput) {
     });
 }
 
-// TRAVA DE SEGURANÇA PARA O VÍDEO (Max 50MB)
+// TRAVA DE SEGURANÇA PARA O VÍDEO E FUNÇÃO REMOVER
 const videoInput = document.getElementById('imoVideo');
 const videoHelpText = document.getElementById('videoHelpText');
 
@@ -199,6 +203,14 @@ if(videoInput) {
     });
 }
 
+// NOVO: Função para o usuário limpar o vídeo na edição
+function removerVideoAntigo() {
+    videoAntigoEdicao = null;
+    document.getElementById('previewVideoBox').style.display = 'none';
+    const vHelp = document.getElementById('videoHelpText');
+    if(vHelp) vHelp.innerHTML = 'Vídeo atual removido. Você pode publicar sem vídeo ou escolher um novo. <b>Tamanho máximo: 50MB.</b>';
+}
+
 // Processamento de Fotos (Marca D'água)
 const fileInput = document.getElementById('imoFotos');
 if(fileInput) {
@@ -220,6 +232,17 @@ if(fileInput) {
         marcaDagua.src = 'marca-dagua.png'; 
         await new Promise(r => { marcaDagua.onload = r; marcaDagua.onerror = r; });
         previewContainer.innerHTML = '';
+
+        // NOVO: Aviso de que as fotos antigas serão sobrepostas
+        if (idImovelEditando && fotosAntigasEdicao.length > 0) {
+            const aviso = document.createElement('div');
+            aviso.style.width = '100%';
+            aviso.style.fontSize = '12px';
+            aviso.style.color = '#ff4444';
+            aviso.style.marginBottom = '10px';
+            aviso.innerHTML = '<b>As novas fotos irão substituir as fotos antigas do banco.</b>';
+            previewContainer.appendChild(aviso);
+        }
 
         for(let file of files) {
             const img = new Image();
@@ -549,10 +572,55 @@ function abrirEdicao(id) {
     resetarFormularioImovel(); // Limpa sujeiras anteriores
     
     idImovelEditando = imovel.id;
-    fotosAntigasEdicao = imovel.fotos || [];
+    
+    // NOVO: Tratamento robusto para recuperar as fotos do banco de dados
+    fotosAntigasEdicao = [];
+    if (imovel.fotos) {
+        if (Array.isArray(imovel.fotos)) {
+            fotosAntigasEdicao = imovel.fotos;
+        } else if (typeof imovel.fotos === 'string') {
+            try { 
+                fotosAntigasEdicao = JSON.parse(imovel.fotos); 
+            } catch (e) { 
+                fotosAntigasEdicao = imovel.fotos.split(',').map(u => u.trim()); 
+            }
+        }
+    }
+
     videoAntigoEdicao = imovel.video || null;
 
-    // Preencher campos
+    // NOVO: Renderizar as fotos visualmente na tela
+    const previewContainer = document.getElementById('previewFotos');
+    if (fotosAntigasEdicao.length > 0) {
+        const aviso = document.createElement('div');
+        aviso.style.width = '100%';
+        aviso.style.fontSize = '12px';
+        aviso.style.color = 'var(--gold)';
+        aviso.style.marginBottom = '10px';
+        aviso.innerHTML = '<b>Atenção:</b> Estas são as fotos atuais. Pela regra atual, se você selecionar novos arquivos, estas serão apagadas e totalmente substituídas pelas novas.';
+        previewContainer.appendChild(aviso);
+
+        fotosAntigasEdicao.forEach(url => {
+            if (url && url.trim() !== '') {
+                const img = document.createElement('img');
+                img.src = url.trim();
+                previewContainer.appendChild(img);
+            }
+        });
+    }
+
+    // NOVO: Renderizar a caixinha do vídeo visualmente na tela
+    const previewVideoBox = document.getElementById('previewVideoBox');
+    if (videoAntigoEdicao && videoAntigoEdicao.trim() !== '') {
+        if (previewVideoBox) previewVideoBox.style.display = 'flex';
+        document.getElementById('linkVideoAtual').href = videoAntigoEdicao;
+        const vHelp = document.getElementById('videoHelpText');
+        if(vHelp) vHelp.innerHTML = 'Escolha um arquivo acima <b>apenas se quiser substituir</b> o vídeo atual.';
+    } else {
+        if (previewVideoBox) previewVideoBox.style.display = 'none';
+    }
+
+    // Preencher campos textuais
     document.getElementById('imoTitulo').value = imovel.titulo || '';
     document.getElementById('imoTipo').value = imovel.tipo || 'Apartamento';
     document.getElementById('imoFinalidade').value = imovel.finalidade || 'Venda';
