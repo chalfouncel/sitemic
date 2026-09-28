@@ -82,7 +82,7 @@ function mudarAba(aba) {
     }
 }
 
-// Reset do formulário
+// Reset do formulário (Restaurando a tela para Modo "Novo Imóvel")
 function resetarFormularioImovel() {
     idImovelEditando = null;
     fotosAntigasEdicao = [];
@@ -95,21 +95,39 @@ function resetarFormularioImovel() {
     document.getElementById('div-detalhes-mobilia').style.display = 'none';
     document.getElementById('previewFotos').innerHTML = '';
     
+    // Esconder e limpar a caixa de fotos salvas do banco
+    const previewSalvas = document.getElementById('previewFotosSalvas');
+    if(previewSalvas) {
+        previewSalvas.style.display = 'none';
+        previewSalvas.innerHTML = '';
+    }
+    
     const previewVideoBox = document.getElementById('previewVideoBox');
     if (previewVideoBox) previewVideoBox.style.display = 'none';
+
+    // Voltar label de fotos original
+    const lblFotos = document.getElementById('labelFotos');
+    if(lblFotos) lblFotos.innerText = "Fotos do Imóvel (A marca d'água será aplicada automaticamente)";
 
     const vHelp = document.getElementById('videoHelpText');
     if(vHelp) {
         vHelp.style.color = 'var(--gold)';
-        vHelp.innerHTML = 'Selecione um arquivo de vídeo para exibir dentro do imóvel. <b>Tamanho máximo permitido: 50MB.</b>';
+        vHelp.innerHTML = 'Selecione um arquivo de vídeo. <b>Tamanho máximo: 50MB.</b>';
     }
     
     document.getElementById('tituloAbaImovel').innerText = 'Novo Imóvel (Padrão Integração)';
     document.getElementById('btnSubmit').innerText = 'Publicar Imóvel';
     document.getElementById('btnSubmit').disabled = true;
-    document.getElementById('btnGerarIA').innerText = '✨ Analisar e Gerar Anúncio com IA';
-    document.getElementById('btnGerarIA').style.background = '#25D366';
-    document.getElementById('btnGerarIA').disabled = false;
+    
+    // Restaurar botão de IA
+    const btnIA = document.getElementById('btnGerarIA');
+    if(btnIA) {
+        btnIA.style.display = 'block';
+        btnIA.innerText = '✨ Analisar e Gerar Anúncio com IA';
+        btnIA.style.background = '#25D366';
+        btnIA.disabled = false;
+    }
+    
     document.getElementById('imovelMsg').innerText = '';
 }
 
@@ -220,13 +238,14 @@ if(fileInput) {
         await new Promise(r => { marcaDagua.onload = r; marcaDagua.onerror = r; });
         previewContainer.innerHTML = '';
 
+        // Aviso se estiver no modo edição
         if (idImovelEditando && fotosAntigasEdicao.length > 0) {
             const aviso = document.createElement('div');
             aviso.style.width = '100%';
             aviso.style.fontSize = '12px';
             aviso.style.color = '#ff4444';
             aviso.style.marginBottom = '10px';
-            aviso.innerHTML = '<b>As novas fotos irão substituir as fotos antigas do banco ao salvar.</b>';
+            aviso.innerHTML = '<b>Atenção: As novas fotos selecionadas abaixo irão excluir e substituir as fotos antigas do banco ao salvar.</b>';
             previewContainer.appendChild(aviso);
         }
 
@@ -531,14 +550,25 @@ function filtrarListaGestao() {
     renderizarTabelaGestao(filtrados);
 }
 
-// ABRIR MODO EDIÇÃO BLINDADO
+// ABRIR MODO EDIÇÃO (SESSÃO ISOLADA DE BANCO DE DADOS)
 function abrirEdicao(id) {
     const imovel = listaImoveisGestao.find(i => i.id === id);
     if(!imovel) return;
 
-    resetarFormularioImovel(); // Limpa a div #previewFotos
+    resetarFormularioImovel(); // Limpa a div #previewFotos e prepara o form
     idImovelEditando = imovel.id;
     
+    // TRANSFORMAR A TELA
+    document.getElementById('tituloAbaImovel').innerText = `📝 MODO DE EDIÇÃO (Banco de Dados) - Ref: ${imovel.referencia || imovel.id}`;
+    
+    // Esconder Botão da IA
+    const btnIA = document.getElementById('btnGerarIA');
+    if(btnIA) btnIA.style.display = 'none';
+    
+    // Alterar label da foto
+    const lblFotos = document.getElementById('labelFotos');
+    if(lblFotos) lblFotos.innerText = 'SUBSTITUIR FOTOS (Atenção: Ao enviar novos arquivos, as fotos atuais serão excluídas)';
+
     // EXTRAÇÃO ROBUSTA DAS FOTOS
     fotosAntigasEdicao = [];
     if (imovel.fotos) {
@@ -572,36 +602,37 @@ function abrirEdicao(id) {
     fotosAntigasEdicao = fotosAntigasEdicao.filter(url => typeof url === 'string' && url.length > 5);
     videoAntigoEdicao = imovel.video || null;
 
-    // RENDERIZAR AS FOTOS NA TELA (CAIXA DE PREVIEW)
-    const previewContainer = document.getElementById('previewFotos');
-    
-    if (fotosAntigasEdicao.length > 0) {
-        const aviso = document.createElement('div');
-        aviso.style.width = '100%';
-        aviso.style.fontSize = '12px';
-        aviso.style.color = 'var(--gold)';
-        aviso.style.marginBottom = '10px';
-        aviso.innerHTML = '<b>Atenção:</b> Estas são as fotos atuais. Se você selecionar novos arquivos, estas serão apagadas e substituídas pelas novas.';
-        previewContainer.appendChild(aviso);
-
-        fotosAntigasEdicao.forEach(url => {
-            const img = document.createElement('img');
-            img.src = url;
-            // Se o link vier quebrado, vai marcar de vermelho
-            img.onerror = function() {
-                this.style.border = '2px solid red';
-                this.title = 'Link da foto quebrado: ' + url;
-            };
-            previewContainer.appendChild(img);
-        });
-    } else {
-        // SE REALMENTE NÃO HOUVER FOTOS PARA ESTE IMÓVEL
-        const erroMsg = document.createElement('div');
-        erroMsg.style.width = '100%';
-        erroMsg.style.fontSize = '12px';
-        erroMsg.style.color = '#ff4444';
-        erroMsg.innerHTML = '<b>Nenhuma foto salva no banco de dados para este imóvel.</b> (Se você as enviou no passado, ocorreu alguma falha na gravação delas na época).';
-        previewContainer.appendChild(erroMsg);
+    // RENDERIZAR AS FOTOS NA CAIXA DO BANCO DE DADOS
+    const previewSalvas = document.getElementById('previewFotosSalvas');
+    if (previewSalvas) {
+        previewSalvas.style.display = 'block';
+        previewSalvas.innerHTML = '<strong style="display:block; margin-bottom:10px; color:var(--gold);">📸 Fotos atuais salvas neste anúncio:</strong>';
+        
+        if (fotosAntigasEdicao.length > 0) {
+            const containerImgs = document.createElement('div');
+            containerImgs.style.display = 'flex';
+            containerImgs.style.gap = '10px';
+            containerImgs.style.flexWrap = 'wrap';
+            
+            fotosAntigasEdicao.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.style.width = '100px';
+                img.style.height = '100px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '5px';
+                img.style.border = '1px solid #444';
+                // Se o link vier quebrado, vai marcar de vermelho
+                img.onerror = function() {
+                    this.style.border = '2px solid red';
+                    this.title = 'Link da foto quebrado: ' + url;
+                };
+                containerImgs.appendChild(img);
+            });
+            previewSalvas.appendChild(containerImgs);
+        } else {
+            previewSalvas.innerHTML += '<span style="color:#ff4444;">Nenhuma foto salva no banco de dados para este imóvel.</span>';
+        }
     }
 
     // RENDERIZAR CAIXA DO VÍDEO
@@ -657,13 +688,13 @@ function abrirEdicao(id) {
     document.getElementById('imoEstado').value = imovel.estado || '';
     document.getElementById('imoDescricao').value = imovel.descricao || '';
 
+    // Switch View
     document.getElementById('btnAbaGestao').classList.remove('active');
     document.getElementById('abaGestao').style.display = 'none';
     document.getElementById('btnAbaImovel').classList.add('active');
     document.getElementById('abaImovel').style.display = 'block';
 
-    document.getElementById('tituloAbaImovel').innerText = `Editar Imóvel (${imovel.referencia || imovel.id})`;
-    document.getElementById('btnSubmit').innerText = 'Atualizar Imóvel';
+    document.getElementById('btnSubmit').innerText = '💾 Atualizar Imóvel (Banco de Dados)';
     document.getElementById('btnSubmit').disabled = false;
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
