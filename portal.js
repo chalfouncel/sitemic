@@ -21,7 +21,6 @@ function mascaraMoeda(campo) {
         campo.value = '';
         return;
     }
-    // Transforma em decimal e depois no padrão R$ 1.000,00
     valor = (parseInt(valor, 10) / 100).toFixed(2) + ''; 
     valor = valor.replace(".", ",");
     valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
@@ -43,18 +42,16 @@ function formatarParaInputMoeda(valorBruto) {
     return 'R$ ' + v;
 }
 
-
 // ==========================================
 // SISTEMA DE GERENCIAMENTO DE FOTOS
 // ==========================================
-let fotosGlobais = []; // Guarda objetos: { id, tipo: 'url'|'novo', url, file }
-let urlsFotosParaApagar = []; // Lixeira para apagar do Supabase Storage
+let fotosGlobais = []; 
+let urlsFotosParaApagar = []; 
 
 function gerarIdUnico() {
     return Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
 }
 
-// Renderiza a galeria na tela com os botões e Drag & Drop
 function renderizarPreviewFotos() {
     const container = document.getElementById('previewFotos');
     container.innerHTML = '';
@@ -115,8 +112,6 @@ function moverFoto(index, direcao) {
 }
 // ==========================================
 
-
-// Verifica sessão
 async function checarSessao() {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -129,7 +124,6 @@ async function checarSessao() {
     }
 }
 
-// Lógica de Login e Logout
 async function fazerLogin() {
     const email = document.getElementById('loginEmail').value;
     const senha = document.getElementById('loginSenha').value;
@@ -181,7 +175,6 @@ function mudarAba(aba) {
     }
 }
 
-// Reset do formulário
 function resetarFormularioImovel() {
     idImovelEditando = null;
     fotosGlobais = [];
@@ -209,7 +202,6 @@ function resetarFormularioImovel() {
     document.getElementById('imovelMsg').innerText = '';
 }
 
-// Habilitar botão ao digitar manualmente
 document.getElementById('imoTitulo').addEventListener('input', habilitarBotaoPublicar);
 document.getElementById('imoDescricao').addEventListener('input', habilitarBotaoPublicar);
 
@@ -223,7 +215,6 @@ function habilitarBotaoPublicar() {
     }
 }
 
-// Interações do Formulário (Mobília e Lazer)
 function toggleMobiliaDetalhes() {
     const radioSim = document.getElementById('mobSim');
     const divDetalhes = document.getElementById('div-detalhes-mobilia');
@@ -239,7 +230,6 @@ function toggleTodosLazer() {
     document.getElementById('btnToggleLazer').innerText = todosLazerMarcados ? 'Desmarcar Todos' : 'Marcar Todos';
 }
 
-// Busca CEP
 const cepInput = document.getElementById('imoCep');
 if (cepInput) {
     cepInput.addEventListener('blur', async function() {
@@ -260,7 +250,6 @@ if (cepInput) {
     });
 }
 
-// TRAVA DE SEGURANÇA VÍDEO
 const videoInput = document.getElementById('imoVideo');
 const videoHelpText = document.getElementById('videoHelpText');
 if(videoInput) {
@@ -287,7 +276,6 @@ function removerVideoAntigo() {
     }
 }
 
-// SELEÇÃO INCREMENTAL DE FOTOS (MARCA D'ÁGUA)
 const fileInput = document.getElementById('imoFotos');
 if(fileInput) {
     fileInput.addEventListener('change', async function(e) {
@@ -342,7 +330,6 @@ if(fileInput) {
     });
 }
 
-// Subir Fotos Novas (Utilitário)
 async function subirFotosNovasParaSupabase() {
     let urlsCompletas = [];
     for (let i = 0; i < fotosGlobais.length; i++) {
@@ -364,7 +351,6 @@ async function subirFotosNovasParaSupabase() {
     return urlsCompletas;
 }
 
-// GERAR TEXTO COM INTELIGÊNCIA ARTIFICIAL
 async function gerarTextoIA() {
     if(fotosGlobais.length === 0) { alert('Por favor, adicione as fotos do imóvel. A IA precisa delas para criar o anúncio.'); return; }
 
@@ -442,7 +428,6 @@ function extrairPathDoStorage(url) {
     return null;
 }
 
-// INSERIR OU ATUALIZAR IMÓVEL NO BANCO (Submit Final)
 const formImovel = document.getElementById('formImovel');
 if (formImovel) {
     formImovel.addEventListener('submit', async (e) => {
@@ -464,7 +449,6 @@ if (formImovel) {
 
         const fotosFinaisOrdenadas = await subirFotosNovasParaSupabase();
 
-        // UPLOAD DO VÍDEO NOVO
         let videoUrl = videoAntigoEdicao;
         if (videoInput && videoInput.files.length > 0) {
             const videoFile = videoInput.files[0];
@@ -513,7 +497,6 @@ if (formImovel) {
         };
 
         if (idImovelEditando) {
-            // MODO EDIÇÃO
             const { error } = await supabase.from('imoveis').update(payload).eq('id', idImovelEditando);
             
             if (!error) {
@@ -530,9 +513,7 @@ if (formImovel) {
                 msg.innerText = 'Erro ao atualizar o imóvel.';
                 document.getElementById('btnSubmit').disabled = false;
             }
-
         } else {
-            // MODO NOVO
             payload.status = 'Ativo';
             const { error } = await supabase.from('imoveis').insert([payload]);
 
@@ -549,7 +530,6 @@ if (formImovel) {
     });
 }
 
-// ABA GERENCIAR ANÚNCIOS (LISTAGEM)
 async function carregarImoveisGestao() {
     const loading = document.getElementById('loadingGestao');
     const tabela = document.getElementById('tabelaGestao');
@@ -610,35 +590,57 @@ function filtrarListaGestao() {
     renderizarTabelaGestao(filtrados);
 }
 
-// ABRIR MODO EDIÇÃO
+// ABRIR MODO EDIÇÃO (AGORA COM LEITURA FORÇADA DOS DADOS)
 function abrirEdicao(id) {
     const imovel = listaImoveisGestao.find(i => i.id === id);
     if(!imovel) return;
 
     resetarFormularioImovel();
     idImovelEditando = imovel.id;
-    videoAntigoEdicao = imovel.video || null;
     
-    // Mostra a caixinha do vídeo se ele existir
-    if(videoAntigoEdicao) {
+    // ==========================================
+    // LEITURA ROBUSTA DO VÍDEO
+    // ==========================================
+    videoAntigoEdicao = imovel.video || null;
+    if(videoAntigoEdicao && typeof videoAntigoEdicao === 'string' && videoAntigoEdicao.trim() !== '') {
         document.getElementById('previewVideoBox').style.display = 'flex';
         document.getElementById('linkVideoAtual').href = videoAntigoEdicao;
         const vHelp = document.getElementById('videoHelpText');
         if(vHelp) vHelp.innerHTML = 'Escolha um arquivo abaixo <b>apenas se quiser substituir</b> o vídeo atual.';
     }
 
-    // Carrega as fotos do banco para o array visual
-    if (imovel.fotos && Array.isArray(imovel.fotos)) {
-        imovel.fotos.forEach(url => { fotosGlobais.push({ id: gerarIdUnico(), tipo: 'url', url: url }); });
-        renderizarPreviewFotos();
+    // ==========================================
+    // LEITURA ROBUSTA DAS FOTOS
+    // ==========================================
+    let arrayFotosCarregadas = [];
+    if (imovel.fotos) {
+        if (Array.isArray(imovel.fotos)) {
+            arrayFotosCarregadas = imovel.fotos;
+        } else if (typeof imovel.fotos === 'string') {
+            try {
+                // Tenta transformar de volta em Array se o banco salvou como string (JSON)
+                arrayFotosCarregadas = JSON.parse(imovel.fotos);
+            } catch (e) {
+                // Se der erro, separa por vírgula
+                arrayFotosCarregadas = imovel.fotos.split(',').map(u => u.trim());
+            }
+        }
     }
 
-    // Preencher campos normais
+    arrayFotosCarregadas.forEach(url => {
+        if (url && typeof url === 'string' && url.trim() !== '') {
+            fotosGlobais.push({ id: gerarIdUnico(), tipo: 'url', url: url.trim() });
+        }
+    });
+    renderizarPreviewFotos();
+
+    // ==========================================
+    // PREENCHIMENTO DOS CAMPOS DE TEXTO
+    // ==========================================
     document.getElementById('imoTitulo').value = imovel.titulo || '';
     document.getElementById('imoTipo').value = imovel.tipo || 'Apartamento';
     document.getElementById('imoFinalidade').value = imovel.finalidade || 'Venda';
     
-    // Formata a Moeda
     document.getElementById('imoVenda').value = formatarParaInputMoeda(imovel.valor_venda);
     document.getElementById('imoAluguel').value = formatarParaInputMoeda(imovel.valor_aluguel);
     document.getElementById('imoCondominio').value = formatarParaInputMoeda(imovel.valor_condominio);
@@ -671,6 +673,7 @@ function abrirEdicao(id) {
     document.getElementById('imoEstado').value = imovel.estado || '';
     document.getElementById('imoDescricao').value = imovel.descricao || '';
 
+    // Mudar para Aba
     document.getElementById('btnAbaGestao').classList.remove('active');
     document.getElementById('abaGestao').style.display = 'none';
     document.getElementById('btnAbaImovel').classList.add('active');
@@ -683,7 +686,6 @@ function abrirEdicao(id) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// AÇÕES DE STATUS E EXCLUIR
 let idAcaoGestao = null;
 let statusParaAcao = null;
 
@@ -735,7 +737,17 @@ async function executarExclusaoGestao() {
 
     const imo = listaImoveisGestao.find(i => i.id === idAcaoGestao);
     let arquivos = [];
-    if(imo.fotos) imo.fotos.forEach(u => { let p = extrairPathDoStorage(u); if(p) arquivos.push(p); });
+    
+    // Tratamento robusto também na exclusão
+    let arrayParaExcluir = [];
+    if (imo.fotos) {
+        if (Array.isArray(imo.fotos)) arrayParaExcluir = imo.fotos;
+        else if (typeof imo.fotos === 'string') {
+            try { arrayParaExcluir = JSON.parse(imo.fotos); } catch (e) { arrayParaExcluir = imo.fotos.split(','); }
+        }
+    }
+    
+    arrayParaExcluir.forEach(u => { let p = extrairPathDoStorage(u); if(p) arquivos.push(p); });
     if(imo.video) { let p = extrairPathDoStorage(imo.video); if(p) arquivos.push(p); }
 
     if(arquivos.length > 0) await supabase.storage.from('imoveis_fotos').remove(arquivos);
@@ -746,7 +758,6 @@ async function executarExclusaoGestao() {
     else { alert('Erro ao excluir o registro.'); cancelarAcao(); }
 }
 
-// Lógica de Leads
 async function carregarLeads() {
     const loading = document.getElementById('loadingLeads');
     const tabela = document.getElementById('tabelaLeads');
