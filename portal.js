@@ -20,6 +20,27 @@ let fotosProcessadas = [];
 // Variável segura para não perder o vídeo ao clicar no input novamente
 let videoNovoProcessado = null; 
 
+// ==========================================
+// FUNÇÕES DE FORMATAÇÃO DE MOEDA
+// ==========================================
+function formatarMoeda(campo) {
+    // Remove tudo que não for número
+    let valor = campo.value.replace(/\D/g, ''); 
+    if (valor) {
+        // Coloca o ponto de separação de milhar no padrão brasileiro
+        valor = parseInt(valor, 10).toLocaleString('pt-BR');
+    }
+    campo.value = valor;
+}
+
+function limparMoeda(valor) {
+    if (!valor) return null;
+    // Remove os pontos para enviar para o banco de dados limpo
+    let limpo = valor.replace(/\./g, '');
+    return limpo ? parseInt(limpo, 10) : null;
+}
+// ==========================================
+
 // Verifica sessão
 async function checarSessao() {
     const { data: { session } } = await supabase.auth.getSession();
@@ -556,15 +577,16 @@ if (formImovel) {
         const itensLazer = [];
         document.querySelectorAll('input[name="lazer"]:checked').forEach(cb => itensLazer.push(cb.value));
 
+        // UTILIZANDO A FUNÇÃO DE LIMPAR OS PONTOS DA MOEDA ANTES DE GRAVAR
         const payload = {
             titulo: titulo,
             descricao: descricao,
             tipo: document.getElementById('imoTipo').value,
             finalidade: document.getElementById('imoFinalidade').value,
-            valor_venda: document.getElementById('imoVenda').value || null,
-            valor_aluguel: document.getElementById('imoAluguel').value || null,
-            valor_condominio: document.getElementById('imoCondominio').value || null,
-            valor_iptu: document.getElementById('imoIptu').value || null,
+            valor_venda: limparMoeda(document.getElementById('imoVenda').value),
+            valor_aluguel: limparMoeda(document.getElementById('imoAluguel').value),
+            valor_condominio: limparMoeda(document.getElementById('imoCondominio').value),
+            valor_iptu: limparMoeda(document.getElementById('imoIptu').value),
             area_util: document.getElementById('imoAreaUtil').value || null,
             area_total: document.getElementById('imoAreaTotal').value || null,
             quartos: document.getElementById('imoQuartos').value || 0,
@@ -871,14 +893,16 @@ function abrirEdicao(id) {
         }
     }
 
-    // Preencher campos textuais
+    // Preencher campos textuais E TRAZER OS VALORES DO BANCO COM MÁSCARA
     document.getElementById('imoTitulo').value = imovel.titulo || '';
     document.getElementById('imoTipo').value = imovel.tipo || 'Apartamento';
     document.getElementById('imoFinalidade').value = imovel.finalidade || 'Venda';
-    document.getElementById('imoVenda').value = imovel.valor_venda || '';
-    document.getElementById('imoAluguel').value = imovel.valor_aluguel || '';
-    document.getElementById('imoCondominio').value = imovel.valor_condominio || '';
-    document.getElementById('imoIptu').value = imovel.valor_iptu || '';
+    
+    document.getElementById('imoVenda').value = imovel.valor_venda ? parseInt(imovel.valor_venda, 10).toLocaleString('pt-BR') : '';
+    document.getElementById('imoAluguel').value = imovel.valor_aluguel ? parseInt(imovel.valor_aluguel, 10).toLocaleString('pt-BR') : '';
+    document.getElementById('imoCondominio').value = imovel.valor_condominio ? parseInt(imovel.valor_condominio, 10).toLocaleString('pt-BR') : '';
+    document.getElementById('imoIptu').value = imovel.valor_iptu ? parseInt(imovel.valor_iptu, 10).toLocaleString('pt-BR') : '';
+    
     document.getElementById('imoAreaUtil').value = imovel.area_util || '';
     document.getElementById('imoAreaTotal').value = imovel.area_total || '';
     document.getElementById('imoQuartos').value = imovel.quartos || '0';
