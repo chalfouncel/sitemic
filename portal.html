@@ -284,12 +284,17 @@
 
                         <!-- FOTOS -->
                         <div class="form-group full-width" id="containerBlocoFotos">
-                            <label id="labelFotos">Fotos do Imóvel (Você pode selecionar de várias pastas, elas serão acumuladas)</label>
+                            <label id="labelFotos" style="color: var(--gold);">Gestão de Fotos (Fique à vontade para adicionar, os envios são acumulados)</label>
                             
                             <!-- CAIXA EXCLUSIVA DO MODO EDIÇÃO (Onde as fotos do banco aparecerão) -->
                             <div id="previewFotosSalvas" style="display: none; background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px dashed var(--gold); margin-bottom: 15px;"></div>
                             
-                            <input type="file" id="imoFotos" multiple accept="image/*">
+                            <!-- BOTÃO PERSONALIZADO (Esconde o input nativo confuso) -->
+                            <button type="button" onclick="document.getElementById('imoFotos').click()" style="background: transparent; border: 2px dashed var(--gold); color: var(--gold); padding: 15px; font-size: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                📸 CLIQUE AQUI PARA ADICIONAR FOTOS
+                            </button>
+                            <!-- Input original escondido para evitar a mensagem "Nenhum arquivo escolhido" -->
+                            <input type="file" id="imoFotos" multiple accept="image/*" style="display: none;">
                             
                             <!-- CAIXA DE NOVAS FOTOS ACUMULADAS -->
                             <div id="previewFotos"></div>
@@ -308,8 +313,22 @@
                                 <button type="button" onclick="removerVideoAntigo()" style="width: auto; padding: 6px 12px; background: #ff4444; color: white; border: none; border-radius: 4px; font-size: 12px; margin: 0; cursor: pointer;">Apagar Vídeo</button>
                             </div>
                             
-                            <input type="file" id="imoVideo" accept="video/mp4,video/x-m4v,video/*">
-                            <small id="videoHelpText" style="color: var(--gold); font-size: 12px; margin-top: 5px; display: block;">Selecione um arquivo de vídeo. <b>Tamanho máximo: 50MB.</b></small>
+                            <!-- BOTÃO PERSONALIZADO DE VÍDEO -->
+                            <button type="button" onclick="document.getElementById('imoVideo').click()" style="background: transparent; border: 2px dashed #9a9a9a; color: #9a9a9a; padding: 12px; font-size: 14px; border-radius: 8px; margin-bottom: 10px;">
+                                🎥 CLIQUE AQUI PARA ADICIONAR VÍDEO
+                            </button>
+                            <input type="file" id="imoVideo" accept="video/mp4,video/x-m4v,video/*" style="display: none;">
+
+                            <!-- CAIXA DE PREVIEW DO VÍDEO NOVO (ACUMULADO) -->
+                            <div id="previewVideoNovoBox" style="display: none; margin-bottom: 15px; padding: 12px; background: #2a2a2a; border: 1px solid #25D366; border-radius: 4px; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <span style="color: #25D366; font-size: 14px; font-weight: bold;">🎥 Novo Vídeo Selecionado:</span><br>
+                                    <span id="nomeVideoNovo" style="color: white; font-size: 13px;"></span>
+                                </div>
+                                <button type="button" onclick="removerVideoNovo()" style="width: auto; padding: 6px 12px; background: #ff4444; color: white; border: none; border-radius: 4px; font-size: 12px; margin: 0; cursor: pointer;">🗑️ Cancelar este</button>
+                            </div>
+
+                            <small id="videoHelpText" style="color: var(--gold); font-size: 12px; display: block;">Selecione um arquivo de vídeo. <b>Tamanho máximo: 50MB.</b></small>
                         </div>
                     </div>
                     
@@ -381,7 +400,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- ATUALIZADO PARA CONTORNAR O CACHE E PUXAR A NOVA LOGICA -->
-    <script src="portal.js?v=producao_definitiva_v4"></script>
+    <!-- VERSÃO V5 PARA FORÇAR SEU NAVEGADOR A LIMPAR O CACHE DE UMA VEZ POR TODAS -->
+    <script src="portal.js?v=producao_definitiva_v5"></script>
 </body>
 </html>
