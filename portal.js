@@ -66,15 +66,14 @@ function mudarAba(aba) {
     if(aba === 'imovel') {
         document.getElementById('btnAbaImovel').classList.add('active');
         document.getElementById('abaImovel').style.display = 'block';
-        // Se clicar diretamente na aba, reseta para modo NOVO IMÓVEL
         if (!idImovelEditando || (event && event.type === 'click')) {
             resetarFormularioImovel();
         }
     } else if(aba === 'gestao') {
         document.getElementById('btnAbaGestao').classList.add('active');
         document.getElementById('abaGestao').style.display = 'block';
-        resetarFormularioImovel(); // Sai do modo edição
-        carregarImoveisGestao(); // Carrega a lista
+        resetarFormularioImovel();
+        carregarImoveisGestao();
     } else {
         document.getElementById('btnAbaLeads').classList.add('active');
         document.getElementById('abaLeads').style.display = 'block';
@@ -83,7 +82,7 @@ function mudarAba(aba) {
     }
 }
 
-// Reset do formulário (Alterna para Cadastrar)
+// Reset do formulário
 function resetarFormularioImovel() {
     idImovelEditando = null;
     fotosAntigasEdicao = [];
@@ -96,7 +95,6 @@ function resetarFormularioImovel() {
     document.getElementById('div-detalhes-mobilia').style.display = 'none';
     document.getElementById('previewFotos').innerHTML = '';
     
-    // NOVO: Esconde a caixa de preview do vídeo no reset
     const previewVideoBox = document.getElementById('previewVideoBox');
     if (previewVideoBox) previewVideoBox.style.display = 'none';
 
@@ -115,7 +113,6 @@ function resetarFormularioImovel() {
     document.getElementById('imovelMsg').innerText = '';
 }
 
-// Habilitar botão ao digitar manualmente no Título ou Descrição
 document.getElementById('imoTitulo').addEventListener('input', habilitarBotaoPublicar);
 document.getElementById('imoDescricao').addEventListener('input', habilitarBotaoPublicar);
 
@@ -129,12 +126,10 @@ function habilitarBotaoPublicar() {
     }
 }
 
-// Interações do Formulário (Mobília e Lazer)
 function toggleMobiliaDetalhes() {
     const radioSim = document.getElementById('mobSim');
     const divDetalhes = document.getElementById('div-detalhes-mobilia');
     const textareaDetalhes = document.getElementById('detalhes_mobilia');
-
     if (radioSim && radioSim.checked) {
         divDetalhes.style.display = 'block';
     } else {
@@ -148,12 +143,10 @@ function toggleTodosLazer() {
     todosLazerMarcados = !todosLazerMarcados;
     const checkboxes = document.querySelectorAll('input[name="lazer"]');
     checkboxes.forEach(cb => cb.checked = todosLazerMarcados);
-    
     const btn = document.getElementById('btnToggleLazer');
     btn.innerText = todosLazerMarcados ? 'Desmarcar Todos' : 'Marcar Todos';
 }
 
-// Busca CEP
 const cepInput = document.getElementById('imoCep');
 if (cepInput) {
     cepInput.addEventListener('blur', async function() {
@@ -169,24 +162,18 @@ if (cepInput) {
                     document.getElementById('imoEstado').value = dados.uf;
                     document.getElementById('imoNumero').focus();
                 }
-            } catch (error) {
-                console.error("Erro ao buscar CEP:", error);
-            }
+            } catch (error) { console.error("Erro ao buscar CEP:", error); }
         }
     });
 }
 
-// TRAVA DE SEGURANÇA PARA O VÍDEO E FUNÇÃO REMOVER
 const videoInput = document.getElementById('imoVideo');
 const videoHelpText = document.getElementById('videoHelpText');
-
 if(videoInput) {
     videoInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if(!file) return;
-
         const maxSizeBytes = 52428800; 
-
         if (file.size > maxSizeBytes) {
             alert('🚨 ARQUIVO MUITO GRANDE! \n\nO vídeo selecionado tem ' + (file.size / 1048576).toFixed(2) + 'MB.\nO limite máximo é de 50MB.');
             videoInput.value = ''; 
@@ -203,21 +190,21 @@ if(videoInput) {
     });
 }
 
-// NOVO: Função para o usuário limpar o vídeo na edição
 function removerVideoAntigo() {
     videoAntigoEdicao = null;
     document.getElementById('previewVideoBox').style.display = 'none';
     const vHelp = document.getElementById('videoHelpText');
-    if(vHelp) vHelp.innerHTML = 'Vídeo atual removido. Você pode publicar sem vídeo ou escolher um novo. <b>Tamanho máximo: 50MB.</b>';
+    if(vHelp) {
+        vHelp.style.color = '#ff4444';
+        vHelp.innerHTML = 'Vídeo atual será removido. Você pode publicar sem vídeo ou escolher um novo.';
+    }
 }
 
-// Processamento de Fotos (Marca D'água)
 const fileInput = document.getElementById('imoFotos');
 if(fileInput) {
     fileInput.addEventListener('change', async function(e) {
         urlsDasFotosEnviadas = [];
         tentativasIA = 0; 
-        
         const previewContainer = document.getElementById('previewFotos');
         previewContainer.innerHTML = '<span style="color: var(--gold);">Processando imagens com marca d\'água...</span>';
         fotosProcessadas = [];
@@ -233,14 +220,13 @@ if(fileInput) {
         await new Promise(r => { marcaDagua.onload = r; marcaDagua.onerror = r; });
         previewContainer.innerHTML = '';
 
-        // NOVO: Aviso de que as fotos antigas serão sobrepostas
         if (idImovelEditando && fotosAntigasEdicao.length > 0) {
             const aviso = document.createElement('div');
             aviso.style.width = '100%';
             aviso.style.fontSize = '12px';
             aviso.style.color = '#ff4444';
             aviso.style.marginBottom = '10px';
-            aviso.innerHTML = '<b>As novas fotos irão substituir as fotos antigas do banco.</b>';
+            aviso.innerHTML = '<b>As novas fotos irão substituir as fotos antigas do banco ao salvar.</b>';
             previewContainer.appendChild(aviso);
         }
 
@@ -277,7 +263,6 @@ if(fileInput) {
     });
 }
 
-// GERAR TEXTO COM INTELIGÊNCIA ARTIFICIAL
 async function gerarTextoIA() {
     if(fotosProcessadas.length === 0 && !idImovelEditando) {
         alert('Por favor, adicione as fotos do imóvel. A IA precisa delas para criar o anúncio.');
@@ -347,7 +332,6 @@ async function gerarTextoIA() {
         console.error(error);
         tentativasIA++; 
         btnIA.disabled = false;
-        
         if (tentativasIA >= 2) {
             btnIA.innerText = '⚠️ IA Indisponível. Edição Manual Liberada.';
             btnIA.style.background = '#e6a100'; 
@@ -363,7 +347,6 @@ async function gerarTextoIA() {
     }
 }
 
-// Função para extrair caminho do Storage
 function extrairPathDoStorage(url) {
     if(!url) return null;
     const nomeBucket = 'imoveis_fotos/';
@@ -371,7 +354,7 @@ function extrairPathDoStorage(url) {
     return null;
 }
 
-// INSERIR OU ATUALIZAR IMÓVEL NO BANCO (Publicar)
+// SALVAR MODO EDIÇÃO E NOVO
 const formImovel = document.getElementById('formImovel');
 if (formImovel) {
     formImovel.addEventListener('submit', async (e) => {
@@ -389,7 +372,6 @@ if (formImovel) {
             return;
         }
 
-        // Caso o usuário não tenha usado o botão da IA, mas selecionou fotos, faz o upload silencioso aqui
         if (fotosProcessadas.length > 0 && urlsDasFotosEnviadas.length === 0) {
             for(let file of fotosProcessadas) {
                 const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
@@ -401,20 +383,17 @@ if (formImovel) {
             }
         }
 
-        // UPLOAD DO VÍDEO
         let videoUrl = videoAntigoEdicao;
         if (videoInput && videoInput.files.length > 0) {
             const videoFile = videoInput.files[0];
             const videoName = `video_${Date.now()}_${videoFile.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
             const { data: vData, error: vError } = await supabase.storage.from('imoveis_fotos').upload(videoName, videoFile);
-            
             if (!vError) {
                 const { data: vPublicUrl } = supabase.storage.from('imoveis_fotos').getPublicUrl(videoName);
                 videoUrl = vPublicUrl.publicUrl;
             }
         }
 
-        // DEFINIR FOTOS FINAIS
         let fotosFinais = urlsDasFotosEnviadas.length > 0 ? urlsDasFotosEnviadas : fotosAntigasEdicao;
 
         const itensLazer = [];
@@ -450,11 +429,8 @@ if (formImovel) {
         };
 
         if (idImovelEditando) {
-            // MODO EDIÇÃO (Update)
             const { error } = await supabase.from('imoveis').update(payload).eq('id', idImovelEditando);
-            
             if (!error) {
-                // Apaga mídias velhas se o usuário enviou novas
                 if (urlsDasFotosEnviadas.length > 0 && fotosAntigasEdicao.length > 0) {
                     let paths = fotosAntigasEdicao.map(u => extrairPathDoStorage(u)).filter(p => p);
                     if(paths.length > 0) supabase.storage.from('imoveis_fotos').remove(paths);
@@ -463,7 +439,6 @@ if (formImovel) {
                     let pathV = extrairPathDoStorage(videoAntigoEdicao);
                     if(pathV) supabase.storage.from('imoveis_fotos').remove([pathV]);
                 }
-
                 msg.style.color = '#25D366'; 
                 msg.innerText = 'Imóvel atualizado com sucesso!';
                 setTimeout(() => { mudarAba('gestao'); }, 2000);
@@ -471,12 +446,9 @@ if (formImovel) {
                 msg.style.color = '#ff4444';
                 msg.innerText = 'Erro ao atualizar o imóvel.';
             }
-
         } else {
-            // MODO NOVO (Insert)
             payload.status = 'Ativo';
             const { error } = await supabase.from('imoveis').insert([payload]);
-
             if (!error) {
                 msg.style.color = '#25D366'; 
                 msg.innerText = 'Imóvel publicado com sucesso!';
@@ -489,10 +461,7 @@ if (formImovel) {
     });
 }
 
-
-// ==========================================
-// ABA GERENCIAR ANÚNCIOS (LISTAGEM)
-// ==========================================
+// ABA GERENCIAR ANÚNCIOS
 async function carregarImoveisGestao() {
     const loading = document.getElementById('loadingGestao');
     const tabela = document.getElementById('tabelaGestao');
@@ -503,7 +472,6 @@ async function carregarImoveisGestao() {
     cancelarAcao();
 
     const { data, error } = await supabase.from('imoveis').select('*').order('created_at', { ascending: false });
-    
     loading.style.display = 'none';
 
     if (error) {
@@ -519,7 +487,6 @@ async function carregarImoveisGestao() {
 
 function renderizarTabelaGestao(lista) {
     const corpo = document.getElementById('corpoTabelaGestao');
-    
     if (lista.length === 0) {
         corpo.innerHTML = '<tr><td colspan="5">Nenhum imóvel encontrado.</td></tr>';
         return;
@@ -564,60 +531,93 @@ function filtrarListaGestao() {
     renderizarTabelaGestao(filtrados);
 }
 
-// ABRIR MODO EDIÇÃO
+// ABRIR MODO EDIÇÃO BLINDADO
 function abrirEdicao(id) {
     const imovel = listaImoveisGestao.find(i => i.id === id);
     if(!imovel) return;
 
-    resetarFormularioImovel(); // Limpa sujeiras anteriores
-    
+    resetarFormularioImovel(); // Limpa a div #previewFotos
     idImovelEditando = imovel.id;
     
-    // NOVO: Tratamento robusto para recuperar as fotos do banco de dados
+    // EXTRAÇÃO ROBUSTA DAS FOTOS
     fotosAntigasEdicao = [];
     if (imovel.fotos) {
-        if (Array.isArray(imovel.fotos)) {
-            fotosAntigasEdicao = imovel.fotos;
-        } else if (typeof imovel.fotos === 'string') {
-            try { 
-                fotosAntigasEdicao = JSON.parse(imovel.fotos); 
-            } catch (e) { 
-                fotosAntigasEdicao = imovel.fotos.split(',').map(u => u.trim()); 
+        let raw = imovel.fotos;
+        if (Array.isArray(raw)) {
+            fotosAntigasEdicao = [...raw];
+        } else if (typeof raw === 'string') {
+            let clean = raw.trim();
+            // Verifica se é Array estilo Postgres {}
+            if (clean.startsWith('{') && clean.endsWith('}')) {
+                clean = clean.slice(1, -1);
+                if (clean) fotosAntigasEdicao = clean.split(',').map(s => s.replace(/^"|"$/g, '').trim());
+            } 
+            // Verifica se é Array estilo JSON []
+            else if (clean.startsWith('[') && clean.endsWith(']')) {
+                try {
+                    fotosAntigasEdicao = JSON.parse(clean);
+                } catch(e) {
+                    clean = clean.slice(1, -1);
+                    if (clean) fotosAntigasEdicao = clean.split(',').map(s => s.replace(/^"|"$/g, '').trim());
+                }
+            } 
+            // Se for apenas string separada por vírgula
+            else {
+                if (clean) fotosAntigasEdicao = clean.split(',').map(s => s.trim());
             }
         }
     }
 
+    // Filtra pra ter certeza que são URLs de verdade (não nulos/vazios)
+    fotosAntigasEdicao = fotosAntigasEdicao.filter(url => typeof url === 'string' && url.length > 5);
     videoAntigoEdicao = imovel.video || null;
 
-    // NOVO: Renderizar as fotos visualmente na tela
+    // RENDERIZAR AS FOTOS NA TELA (CAIXA DE PREVIEW)
     const previewContainer = document.getElementById('previewFotos');
+    
     if (fotosAntigasEdicao.length > 0) {
         const aviso = document.createElement('div');
         aviso.style.width = '100%';
         aviso.style.fontSize = '12px';
         aviso.style.color = 'var(--gold)';
         aviso.style.marginBottom = '10px';
-        aviso.innerHTML = '<b>Atenção:</b> Estas são as fotos atuais. Pela regra atual, se você selecionar novos arquivos, estas serão apagadas e totalmente substituídas pelas novas.';
+        aviso.innerHTML = '<b>Atenção:</b> Estas são as fotos atuais. Se você selecionar novos arquivos, estas serão apagadas e substituídas pelas novas.';
         previewContainer.appendChild(aviso);
 
         fotosAntigasEdicao.forEach(url => {
-            if (url && url.trim() !== '') {
-                const img = document.createElement('img');
-                img.src = url.trim();
-                previewContainer.appendChild(img);
-            }
+            const img = document.createElement('img');
+            img.src = url;
+            // Se o link vier quebrado, vai marcar de vermelho
+            img.onerror = function() {
+                this.style.border = '2px solid red';
+                this.title = 'Link da foto quebrado: ' + url;
+            };
+            previewContainer.appendChild(img);
         });
+    } else {
+        // SE REALMENTE NÃO HOUVER FOTOS PARA ESTE IMÓVEL
+        const erroMsg = document.createElement('div');
+        erroMsg.style.width = '100%';
+        erroMsg.style.fontSize = '12px';
+        erroMsg.style.color = '#ff4444';
+        erroMsg.innerHTML = '<b>Nenhuma foto salva no banco de dados para este imóvel.</b> (Se você as enviou no passado, ocorreu alguma falha na gravação delas na época).';
+        previewContainer.appendChild(erroMsg);
     }
 
-    // NOVO: Renderizar a caixinha do vídeo visualmente na tela
+    // RENDERIZAR CAIXA DO VÍDEO
     const previewVideoBox = document.getElementById('previewVideoBox');
-    if (videoAntigoEdicao && videoAntigoEdicao.trim() !== '') {
+    if (videoAntigoEdicao && typeof videoAntigoEdicao === 'string' && videoAntigoEdicao.trim() !== '') {
         if (previewVideoBox) previewVideoBox.style.display = 'flex';
         document.getElementById('linkVideoAtual').href = videoAntigoEdicao;
         const vHelp = document.getElementById('videoHelpText');
         if(vHelp) vHelp.innerHTML = 'Escolha um arquivo acima <b>apenas se quiser substituir</b> o vídeo atual.';
     } else {
         if (previewVideoBox) previewVideoBox.style.display = 'none';
+        const vHelp = document.getElementById('videoHelpText');
+        if(vHelp) {
+            vHelp.style.color = '#ff4444';
+            vHelp.innerHTML = '<b>Nenhum vídeo salvo para este imóvel.</b> Selecione um arquivo se desejar adicionar.';
+        }
     }
 
     // Preencher campos textuais
@@ -657,7 +657,6 @@ function abrirEdicao(id) {
     document.getElementById('imoEstado').value = imovel.estado || '';
     document.getElementById('imoDescricao').value = imovel.descricao || '';
 
-    // Mudar UI visualmente para Aba Imóvel
     document.getElementById('btnAbaGestao').classList.remove('active');
     document.getElementById('abaGestao').style.display = 'none';
     document.getElementById('btnAbaImovel').classList.add('active');
@@ -670,7 +669,6 @@ function abrirEdicao(id) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// AÇÕES DE STATUS E EXCLUIR
 let idAcaoGestao = null;
 let statusParaAcao = null;
 
@@ -686,7 +684,6 @@ function confirmarAcaoGestao(acao, id, statusAtual = null) {
     if(acao === 'status') {
         const isAtivo = (statusAtual === 'Ativo' || statusAtual === 'ativo');
         statusParaAcao = isAtivo ? 'Inativo' : 'Ativo';
-        
         area.style.background = 'rgba(230,161,0,0.1)';
         area.style.borderColor = '#e6a100';
         texto.innerText = isAtivo ? 'Tem certeza que deseja OCULTAR este anúncio do site público?' : 'Tem certeza que deseja REATIVAR este anúncio e mostrá-lo no site público?';
@@ -716,7 +713,7 @@ async function executarStatusGestao() {
     document.getElementById('btnConfirmaSim').disabled = false;
     if(!error) {
         alert(`Status alterado com sucesso!`);
-        carregarImoveisGestao(); // Atualiza tabela
+        carregarImoveisGestao();
     } else {
         alert('Erro ao tentar mudar o status.');
         cancelarAcao();
@@ -746,8 +743,6 @@ async function executarExclusaoGestao() {
     }
 }
 
-
-// Lógica de Leads (Inalterada)
 async function carregarLeads() {
     const loading = document.getElementById('loadingLeads');
     const tabela = document.getElementById('tabelaLeads');
