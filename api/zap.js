@@ -83,7 +83,15 @@ export default async function handler(req, res) {
                 if (imovel.valor_aluguel) xml += `        <RentalPrice>${imovel.valor_aluguel}</RentalPrice>\n`;
             }
             if (imovel.valor_condominio) xml += `        <PropertyAdministrationFee>${imovel.valor_condominio}</PropertyAdministrationFee>\n`;
-            if (imovel.valor_iptu) xml += `        <YearlyTax>${imovel.valor_iptu}</YearlyTax>\n`;
+            
+            // REGRA DO IPTU: Se for 0, enviar "isento"
+            if (imovel.valor_iptu !== undefined && imovel.valor_iptu !== null && imovel.valor_iptu !== '') {
+                if (String(imovel.valor_iptu).trim() === '0') {
+                    xml += `        <YearlyTax>isento</YearlyTax>\n`;
+                } else {
+                    xml += `        <YearlyTax>${imovel.valor_iptu}</YearlyTax>\n`;
+                }
+            }
             
             // Áreas e Cômodos
             if (imovel.area_util) xml += `        <LivingArea unit="square metres">${imovel.area_util}</LivingArea>\n`;
