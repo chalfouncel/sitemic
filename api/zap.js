@@ -82,7 +82,15 @@ export default async function handler(req, res) {
             if (transactionType === 'For Rent' || transactionType === 'Sale/Rent') {
                 if (imovel.valor_aluguel) xml += `        <RentalPrice>${imovel.valor_aluguel}</RentalPrice>\n`;
             }
-            if (imovel.valor_condominio) xml += `        <PropertyAdministrationFee>${imovel.valor_condominio}</PropertyAdministrationFee>\n`;
+            
+            // REGRA DO CONDOMÍNIO: Se for 0, enviar "isento"
+            if (imovel.valor_condominio !== undefined && imovel.valor_condominio !== null && imovel.valor_condominio !== '') {
+                if (String(imovel.valor_condominio).trim() === '0') {
+                    xml += `        <PropertyAdministrationFee>isento</PropertyAdministrationFee>\n`;
+                } else {
+                    xml += `        <PropertyAdministrationFee>${imovel.valor_condominio}</PropertyAdministrationFee>\n`;
+                }
+            }
             
             // REGRA DO IPTU: Se for 0, enviar "isento"
             if (imovel.valor_iptu !== undefined && imovel.valor_iptu !== null && imovel.valor_iptu !== '') {
