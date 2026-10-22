@@ -353,11 +353,17 @@
                 </form>
             </div>
 
-            <!-- ABA GERENCIAR IMÓVEIS -->
+             <!-- ABA GERENCIAR IMÓVEIS -->
             <div id="abaGestao" class="card" style="display:none;">
                 <h2>Gerenciar Anúncios</h2>
-                <div class="form-group">
-                    <input type="text" id="buscaRef" placeholder="Filtrar por código, rua ou bairro..." oninput="filtrarListaGestao()" style="text-transform: uppercase;">
+                
+                <!-- CONTAINER DE BUSCA E BOTÃO DE IMPULSIONAR -->
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap;">
+                    <input type="text" id="buscaRef" placeholder="Filtrar por código, rua ou bairro..." oninput="filtrarListaGestao()" style="flex: 1; padding: 12px; background: var(--black); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 4px; box-sizing: border-box; font-family: 'Inter', sans-serif; text-transform: uppercase;">
+                    
+                    <button id="btnImpulsionarTodos" type="button" onclick="impulsionarTodos()" style="width: auto; background: #007bff; color: white; padding: 12px 20px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.3s; white-space: nowrap;">
+                        🚀 Impulsionar Todos no Zap
+                    </button>
                 </div>
                 
                 <div id="loadingGestao" style="color: var(--gold); margin-bottom: 15px;">Carregando imóveis...</div>
