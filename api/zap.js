@@ -24,6 +24,9 @@ export default async function handler(req, res) {
 
         // Transforma cada imóvel no formato VRSYNC exigido
         imoveis.forEach(imovel => {
+            // SE O CORRETOR MARCOU 'NÃO ENVIAR', PULA ESTE IMÓVEL E NÃO COLOCA NO XML!
+            if (imovel.destaque === false) return;
+
             xml += `    <Listing>\n`;
             
             // CÓDIGO DO IMÓVEL E TÍTULO
