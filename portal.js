@@ -594,7 +594,7 @@ if (formImovel) {
             suites: document.getElementById('imoSuites').value || 0,
             banheiros: document.getElementById('imoBanheiros').value || 0,
             vagas: document.getElementById('imoVagas').value || 0,
-            destaque: document.getElementById('zapSim').checked, // <--- ADICIONADO
+            enviar_zap: document.getElementById('zapSim').checked, // <--- ADICIONADO
             mobiliado: document.getElementById('mobSim').checked,
             detalhes_mobilia: document.getElementById('detalhes_mobilia').value,
             itens_lazer: itensLazer,
@@ -922,7 +922,7 @@ function abrirEdicao(id) {
     }
 
     // --- BLOCO DO ZAP ADICIONADO ---
-    if(imovel.destaque === false) {
+    if(imovel.enviar_zap === false) {
         document.getElementById('zapNao').checked = true;
     } else {
         document.getElementById('zapSim').checked = true;
