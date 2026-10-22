@@ -815,6 +815,7 @@ function renderizarTabelaGestao(lista) {
                 <td><small>${strValores}</small></td>
                 <td><span style="color:${statusCor}; font-weight:bold;">${textoStatus}</span></td>
                 <td class="acoes-container">
+                    <button class="btn-acao" style="background: #007bff; color: white;" onclick="impulsionarImovel('${imo.id}', this)" title="Atualiza o valor em R$1 para subir no Zap">🚀 Impulsionar</button>
                     <button class="btn-acao" style="background: var(--gold); color: black;" onclick="abrirEdicao('${imo.id}')">Editar</button>
                     <button class="btn-acao" style="background: ${isAtivo ? '#e6a100' : '#25D366'};" onclick="confirmarAcaoGestao('status', '${imo.id}', '${imo.status}')">${isAtivo ? 'Inativar' : 'Reativar'}</button>
                     <button class="btn-acao" style="background: #ff4444;" onclick="confirmarAcaoGestao('excluir', '${imo.id}')">Excluir</button>
@@ -1085,6 +1086,63 @@ async function atualizarStatusLead(id, novoStatus) {
         if(novoStatus === 'Novo') badge.classList.add('novo');
         if(novoStatus === 'Em atendimento') badge.classList.add('atendimento');
         if(novoStatus === 'Concluído') badge.classList.add('concluido');
+    }
+}
+
+// ==========================================
+// IMPULSIONAMENTO (ATUALIZAÇÃO DE R$ 1,00)
+// ==========================================
+async function impulsionarImovel(id, btnElement) {
+    const imo = listaImoveisGestao.find(i => i.id === id);
+    if (!imo) return;
+
+    if (!imo.valor_venda && !imo.valor_aluguel) {
+        alert('Este imóvel não possui valor de venda nem de aluguel para impulsionar.');
+        return;
+    }
+
+    // Feedback visual de carregamento no botão
+    const textoOriginal = btnElement.innerHTML;
+    const corOriginal = btnElement.style.background;
+    btnElement.innerHTML = '⏳ Subindo...';
+    btnElement.disabled = true;
+
+    let novoVenda = imo.valor_venda;
+    let novoAluguel = imo.valor_aluguel;
+
+    // Regra da Venda: Se o valor termina com '1', subtrai 1 real. Se não, soma 1 real.
+    if (novoVenda) {
+        let val = parseInt(novoVenda, 10);
+        novoVenda = (val % 10 === 1) ? val - 1 : val + 1;
+    }
+
+    // Regra do Aluguel: Mesma coisa
+    if (novoAluguel) {
+        let val = parseInt(novoAluguel, 10);
+        novoAluguel = (val % 10 === 1) ? val - 1 : val + 1;
+    }
+
+    const payload = {};
+    if (novoVenda) payload.valor_venda = novoVenda;
+    if (novoAluguel) payload.valor_aluguel = novoAluguel;
+
+    // Atualiza apenas os valores no banco
+    const { error } = await supabase.from('imoveis').update(payload).eq('id', id);
+
+    if (!error) {
+        // Sucesso visual
+        btnElement.innerHTML = '✅ Topo no Zap!';
+        btnElement.style.background = '#25D366';
+        
+        // Recarrega a tabela após 1.5s para o corretor ver o novo preço na tela
+        setTimeout(() => {
+            carregarImoveisGestao();
+        }, 1500);
+    } else {
+        alert('Erro ao tentar atualizar o valor do imóvel.');
+        btnElement.innerHTML = textoOriginal;
+        btnElement.style.background = corOriginal;
+        btnElement.disabled = false;
     }
 }
 
