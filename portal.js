@@ -815,7 +815,6 @@ function renderizarTabelaGestao(lista) {
                 <td><small>${strValores}</small></td>
                 <td><span style="color:${statusCor}; font-weight:bold;">${textoStatus}</span></td>
                 <td class="acoes-container">
-                    <button class="btn-acao" style="background: #007bff; color: white;" onclick="impulsionarImovel('${imo.id}', this)" title="Atualiza o valor em R$1 para subir no Zap">🚀 Impulsionar</button>
                     <button class="btn-acao" style="background: var(--gold); color: black;" onclick="abrirEdicao('${imo.id}')">Editar</button>
                     <button class="btn-acao" style="background: ${isAtivo ? '#e6a100' : '#25D366'};" onclick="confirmarAcaoGestao('status', '${imo.id}', '${imo.status}')">${isAtivo ? 'Inativar' : 'Reativar'}</button>
                     <button class="btn-acao" style="background: #ff4444;" onclick="confirmarAcaoGestao('excluir', '${imo.id}')">Excluir</button>
