@@ -244,12 +244,24 @@
                                 <label class="checkbox-item"><input type="checkbox" name="lazer" value="Vaga de garagem"> Vaga de garagem</label>
                                 <label class="checkbox-item"><input type="checkbox" name="lazer" value="Elevador"> Elevador</label>
                                 <label class="checkbox-item"><input type="checkbox" name="lazer" value="Portaria 24hs"> Portaria 24hs</label>
-                            </div>
-                        </div>
+                           </div>
+                    </div>
 
-                        <!-- ENDEREÇO -->
-                        <div class="form-group">
-                            <label>CEP</label>
+                    <!-- PERGUNTA SOBRE ZAP IMÓVEIS (Usa a coluna 'destaque' do banco) -->
+                    <div class="form-group full-width">
+                        <label>Publicar este anúncio no Zap Imóveis?</label>
+                        <div class="btn-group">
+                            <input type="radio" id="zapSim" name="destaque" value="sim" checked>
+                            <label for="zapSim">Sim, enviar para o Zap</label>
+                            
+                            <input type="radio" id="zapNao" name="destaque" value="nao">
+                            <label for="zapNao">Não enviar</label>
+                        </div>
+                    </div>
+
+                    <!-- ENDEREÇO -->
+                    <div class="form-group">
+                        <label>CEP</label>
                             <input type="text" id="imoCep" placeholder="00000-000">
                         </div>
                         <div class="form-group">
