@@ -121,6 +121,7 @@ function resetarFormularioImovel() {
     
     document.getElementById('formImovel').reset();
     document.getElementById('div-detalhes-mobilia').style.display = 'none';
+    document.getElementById('zapSim').checked = true; // <--- ADICIONADO
     document.getElementById('previewFotos').innerHTML = '';
     
     const previewSalvas = document.getElementById('previewFotosSalvas');
@@ -593,6 +594,7 @@ if (formImovel) {
             suites: document.getElementById('imoSuites').value || 0,
             banheiros: document.getElementById('imoBanheiros').value || 0,
             vagas: document.getElementById('imoVagas').value || 0,
+            destaque: document.getElementById('zapSim').checked, // <--- ADICIONADO
             mobiliado: document.getElementById('mobSim').checked,
             detalhes_mobilia: document.getElementById('detalhes_mobilia').value,
             itens_lazer: itensLazer,
@@ -919,9 +921,18 @@ function abrirEdicao(id) {
         document.getElementById('div-detalhes-mobilia').style.display = 'none';
     }
 
+    // --- BLOCO DO ZAP ADICIONADO ---
+    if(imovel.destaque === false) {
+        document.getElementById('zapNao').checked = true;
+    } else {
+        document.getElementById('zapSim').checked = true;
+    }
+    // -------------------------------
+
     document.querySelectorAll('input[name="lazer"]').forEach(cb => {
         cb.checked = imovel.itens_lazer && imovel.itens_lazer.includes(cb.value);
     });
+
 
     document.getElementById('imoCep').value = imovel.cep || '';
     document.getElementById('imoEndereco').value = imovel.endereco || '';
