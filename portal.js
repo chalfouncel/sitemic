@@ -1089,60 +1089,73 @@ async function atualizarStatusLead(id, novoStatus) {
 }
 
 // ==========================================
-// IMPULSIONAMENTO (ATUALIZAÇÃO DE R$ 1,00)
+// IMPULSIONAMENTO EM MASSA NO ZAP (ATUALIZAÇÃO DE R$ 1,00)
 // ==========================================
-async function impulsionarImovel(id, btnElement) {
-    const imo = listaImoveisGestao.find(i => i.id === id);
-    if (!imo) return;
+async function impulsionarTodos() {
+    // Filtra apenas os imóveis ATIVOS e que estão marcados para ENVIAR PARA O ZAP
+    const imoveisParaImpulsionar = listaImoveisGestao.filter(i => 
+        (i.status === 'Ativo' || i.status === 'ativo') && 
+        i.enviar_zap !== false
+    );
 
-    if (!imo.valor_venda && !imo.valor_aluguel) {
-        alert('Este imóvel não possui valor de venda nem de aluguel para impulsionar.');
+    if (imoveisParaImpulsionar.length === 0) {
+        alert('Nenhum imóvel ativo configurado para o Zap foi encontrado.');
         return;
     }
 
-    // Feedback visual de carregamento no botão
-    const textoOriginal = btnElement.innerHTML;
-    const corOriginal = btnElement.style.background;
-    btnElement.innerHTML = '⏳ Subindo...';
-    btnElement.disabled = true;
+    const confirmacao = confirm(`🚀 Você está prestes a atualizar o preço de TODOS os ${imoveisParaImpulsionar.length} anúncios ativos em R$ 1,00 para forçar a subida no Zap.\n\nDeseja continuar?`);
+    if (!confirmacao) return;
 
-    let novoVenda = imo.valor_venda;
-    let novoAluguel = imo.valor_aluguel;
+    const btn = document.getElementById('btnImpulsionarTodos');
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = `⏳ Processando 0 de ${imoveisParaImpulsionar.length}...`;
+    btn.disabled = true;
 
-    // Regra da Venda: Se o valor termina com '1', subtrai 1 real. Se não, soma 1 real.
-    if (novoVenda) {
-        let val = parseInt(novoVenda, 10);
-        novoVenda = (val % 10 === 1) ? val - 1 : val + 1;
-    }
+    let sucesso = 0;
+    let falha = 0;
 
-    // Regra do Aluguel: Mesma coisa
-    if (novoAluguel) {
-        let val = parseInt(novoAluguel, 10);
-        novoAluguel = (val % 10 === 1) ? val - 1 : val + 1;
-    }
-
-    const payload = {};
-    if (novoVenda) payload.valor_venda = novoVenda;
-    if (novoAluguel) payload.valor_aluguel = novoAluguel;
-
-    // Atualiza apenas os valores no banco
-    const { error } = await supabase.from('imoveis').update(payload).eq('id', id);
-
-    if (!error) {
-        // Sucesso visual
-        btnElement.innerHTML = '✅ Topo no Zap!';
-        btnElement.style.background = '#25D366';
+    // Faz um loop por cada imóvel e atualiza no banco
+    for (let i = 0; i < imoveisParaImpulsionar.length; i++) {
+        let imo = imoveisParaImpulsionar[i];
         
-        // Recarrega a tabela após 1.5s para o corretor ver o novo preço na tela
-        setTimeout(() => {
-            carregarImoveisGestao();
-        }, 1500);
-    } else {
-        alert('Erro ao tentar atualizar o valor do imóvel.');
-        btnElement.innerHTML = textoOriginal;
-        btnElement.style.background = corOriginal;
-        btnElement.disabled = false;
+        let novoVenda = imo.valor_venda;
+        let novoAluguel = imo.valor_aluguel;
+        let precisaAtualizar = false;
+
+        if (novoVenda) {
+            let val = parseInt(novoVenda, 10);
+            novoVenda = (val % 10 === 1) ? val - 1 : val + 1;
+            precisaAtualizar = true;
+        }
+
+        if (novoAluguel) {
+            let val = parseInt(novoAluguel, 10);
+            novoAluguel = (val % 10 === 1) ? val - 1 : val + 1;
+            precisaAtualizar = true;
+        }
+
+        if (precisaAtualizar) {
+            const payload = {};
+            if (novoVenda) payload.valor_venda = novoVenda;
+            if (novoAluguel) payload.valor_aluguel = novoAluguel;
+
+            const { error } = await supabase.from('imoveis').update(payload).eq('id', imo.id);
+            if (!error) sucesso++;
+            else falha++;
+        } else {
+            falha++; // Caso o imóvel não tenha preço preenchido
+        }
+
+        // Atualiza visualmente o botão para o corretor saber que não travou
+        btn.innerHTML = `⏳ Processando ${i + 1} de ${imoveisParaImpulsionar.length}...`;
     }
+
+    alert(`✅ Impulsionamento concluído!\n\n${sucesso} anúncios foram atualizados e voltarão para o topo no Zap.\n${falha} falharam (ou estavam sem preço).`);
+    
+    // Restaura o botão e recarrega a tabela
+    btn.innerHTML = textoOriginal;
+    btn.disabled = false;
+    carregarImoveisGestao();
 }
 
 checarSessao();
