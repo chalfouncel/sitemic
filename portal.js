@@ -122,6 +122,9 @@ function resetarFormularioImovel() {
     document.getElementById('formImovel').reset();
     document.getElementById('div-detalhes-mobilia').style.display = 'none';
     document.getElementById('zapSim').checked = true; // <--- ADICIONADO
+    if (document.getElementById('imoDestaqueZap')) {
+        document.getElementById('imoDestaqueZap').value = 'STANDARD';
+    }
     document.getElementById('previewFotos').innerHTML = '';
     
     const previewSalvas = document.getElementById('previewFotosSalvas');
@@ -595,6 +598,7 @@ if (formImovel) {
             banheiros: document.getElementById('imoBanheiros').value || 0,
             vagas: document.getElementById('imoVagas').value || 0,
             enviar_zap: document.getElementById('zapSim').checked, // <--- ADICIONADO
+            destaque_zap: document.getElementById('imoDestaqueZap').value,
             mobiliado: document.getElementById('mobSim').checked,
             detalhes_mobilia: document.getElementById('detalhes_mobilia').value,
             itens_lazer: itensLazer,
@@ -926,6 +930,9 @@ function abrirEdicao(id) {
         document.getElementById('zapNao').checked = true;
     } else {
         document.getElementById('zapSim').checked = true;
+    }
+    if (document.getElementById('imoDestaqueZap')) {
+        document.getElementById('imoDestaqueZap').value = imovel.destaque_zap || 'STANDARD';
     }
     // -------------------------------
 
