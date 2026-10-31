@@ -45,6 +45,10 @@ export default async function handler(req, res) {
             }
             xml += `      <TransactionType>${transactionType}</TransactionType>\n`;
 
+            // TIPO DE DESTAQUE NO ZAP (STANDARD, PREMIUM ou SUPER_PREMIUM)
+            const pubType = imovel.destaque_zap || 'STANDARD';
+            xml += `      <PublicationType>${pubType}</PublicationType>\n`;
+
             // MÍDIAS (Fotos e Vídeos)
             xml += `      <Media>\n`;
             if (imovel.fotos && imovel.fotos.length > 0) {
