@@ -52,31 +52,40 @@
         .btn-action { width: 100%; padding: 16px; border: none; border-radius: 6px; font-weight: 700; font-size: 14px; text-transform: uppercase; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-zap { background: var(--green); color: var(--white); }
         .btn-relatorio { background: var(--gold); color: var(--black); }
+        .btn-imprimir { background: #007bff; color: var(--white); margin-top: 8px; }
         .btn-novo { background: transparent; border: 1px solid var(--gray); color: var(--gray); padding: 10px; font-size: 12px; margin-bottom: 16px; }
 
         #statusMsg { text-align: center; font-size: 13px; font-weight: 600; margin: 10px 0; min-height: 18px; }
 
-        /* Lista de Visitas Salvas */
         .visita-item { background: var(--black); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 14px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; }
         .visita-item:hover { border-color: var(--gold); }
         .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
         .badge.agendada { background: rgba(201,168,76,0.2); color: var(--gold); }
         .badge.confirmada { background: rgba(0, 150, 255, 0.2); color: #4db8ff; }
         .badge.realizada { background: rgba(37, 211, 102, 0.2); color: var(--green); }
+
+        /* ESTILO EXCLUSIVO PARA IMPRESSÃO EM PDF (A4) */
+        #areaImpressaoPDF { display: none; }
+        @media print {
+            body * { visibility: hidden; }
+            #areaImpressaoPDF, #areaImpressaoPDF * { visibility: visible; }
+            #areaImpressaoPDF { display: block !important; position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; padding: 30px; font-family: 'Inter', sans-serif; }
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
+    <div class="header no-print">
         <img src="logo.png" alt="M&IC Corretores">
         <p>Controle de Visitas e Intermediação</p>
     </div>
 
-    <!-- TELA 1: VISÃO DO CLIENTE/PARCEIRO QUANDO CLICA NO LINK DE CONFIRMAÇÃO -->
-    <div class="container" id="telaConfirmacaoCliente" style="display: none;">
+    <!-- TELA DO CLIENTE PARA CONFIRMAÇÃO -->
+    <div class="container no-print" id="telaConfirmacaoCliente" style="display: none;">
         <div class="card" style="text-align: center;">
             <h1>Confirmação de Visita</h1>
-            <p id="infoConfirmacao" style="color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">Carregando dados do agendamento...</p>
+            <p id="infoConfirmacao" style="color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">Carregando...</p>
             <button type="button" id="btnClienteConfirmar" class="btn-action btn-zap" onclick="confirmarPresencaCliente()">
                 ✅ CONFIRMAR PRESENÇA E CIÊNCIA
             </button>
@@ -86,8 +95,8 @@
         </div>
     </div>
 
-    <!-- TELA 2: PAINEL DO CORRETOR (MARIO / IVY) -->
-    <div class="container" id="painelCorretor">
+    <!-- PAINEL DO CORRETOR -->
+    <div class="container no-print" id="painelCorretor">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(201,168,76,0.15); margin-bottom: 18px; padding-bottom: 10px;">
                 <h1 id="tituloForm" style="border: none; margin: 0; padding: 0;">Nova Visita</h1>
@@ -166,14 +175,12 @@
 
             <hr style="border: 0; border-top: 1px solid rgba(201,168,76,0.15); margin: 20px 0;">
 
-            <!-- Etapa 1: Salva no Banco e Envia Zap com Link de Confirmação -->
             <button type="button" id="btnAgendar" class="btn-action btn-zap" onclick="salvarEEnviarConfirmacao()">
                 📲 1. Salvar e Enviar Confirmação (Zap)
             </button>
 
             <hr style="border: 0; border-top: 1px solid rgba(201,168,76,0.15); margin: 20px 0;">
 
-            <!-- Etapa 2: Evidências no Local + Print opcional -->
             <div class="form-group">
                 <label style="color: var(--gold);">Comprovação no Local e Anexos</label>
                 <div class="camera-grid">
@@ -193,7 +200,6 @@
                     </div>
                 </div>
 
-                <!-- Opção para subir o print da resposta "Sim" do cliente no WhatsApp -->
                 <div style="margin-top: 10px;">
                     <button type="button" class="btn-camera" onclick="document.getElementById('inputFotoPrint').click()">
                         <span>💬</span> Anexar Print do "Sim" no WhatsApp (Opcional)
@@ -215,12 +221,58 @@
             <button type="button" id="btnRelatorio" class="btn-action btn-relatorio" onclick="abrirZapRelatorio()">
                 📄 2. Salvar Fotos e Enviar Relatório Final
             </button>
+
+            <button type="button" id="btnImprimirPdf" class="btn-action btn-imprimir" style="display: none;" onclick="imprimirTermoPDF()">
+                🖨️ Imprimir Termo em PDF para Processo
+            </button>
         </div>
 
-        <!-- HISTÓRICO DE VISITAS SALVAS NO SISTEMA -->
         <div class="card">
-            <h2>Visitas Registradas (Toque para abrir)</h2>
+            <h2>Visitas Registradas (Toque para abrir / gerar PDF)</h2>
             <div id="listaVisitas">Carregando histórico...</div>
+        </div>
+    </div>
+
+    <!-- LAYOUT PROFISSIONAL PARA IMPRESSÃO EM PDF (OCULTO NA TELA, VISÍVEL NO PRINT) -->
+    <div id="areaImpressaoPDF">
+        <div style="text-align: center; border-bottom: 2px solid #C9A84C; padding-bottom: 15px; margin-bottom: 20px;">
+            <h2 style="color: #0A0A0A; font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 5px;">M&IC CORRETORES DE IMÓVEIS</h2>
+            <p style="font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px;">Termo Oficial de Comprovação de Visita e Intermediação Imobiliária (Lei 13.709/18 - LGPD)</p>
+        </div>
+
+        <div style="margin-bottom: 15px; font-size: 13px; line-height: 1.6;">
+            <p><strong>Status do Registro:</strong> <span id="pdfStatus" style="color: #007bff; font-weight: bold;"></span></p>
+            <p><strong>Corretor(a) Responsável:</strong> <span id="pdfCorretor"></span></p>
+            <p><strong>Data e Horário da Visita:</strong> <span id="pdfDataHora"></span></p>
+        </div>
+
+        <div style="background: #f9f9f9; border: 1px solid #ddd; padding: 12px; border-radius: 4px; margin-bottom: 15px; font-size: 13px;">
+            <h4 style="color: #C9A84C; margin-bottom: 6px; text-transform: uppercase; font-size: 12px;">Dados do Imóvel</h4>
+            <p id="pdfImovelInfo"></p>
+            <p id="pdfEnderecoInfo" style="margin-top: 4px;"></p>
+        </div>
+
+        <div style="background: #f9f9f9; border: 1px solid #ddd; padding: 12px; border-radius: 4px; margin-bottom: 20px; font-size: 13px;">
+            <h4 style="color: #C9A84C; margin-bottom: 6px; text-transform: uppercase; font-size: 12px;">Parte Interessada / Visitante</h4>
+            <p id="pdfClienteInfo"></p>
+        </div>
+
+        <h4 style="color: #333; font-size: 13px; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 4px;">Evidências Fotográficas e Probatórias</h4>
+        <div style="display: flex; gap: 15px; justify-content: space-around; margin-bottom: 30px; text-align: center;">
+            <div style="flex: 1;" id="boxPdfFachada">
+                <p style="font-size: 11px; font-weight: bold; margin-bottom: 4px;">Foto no Local / Fachada</p>
+                <img id="pdfImgFachada" style="width: 100%; max-height: 220px; object-fit: contain; border: 1px solid #ccc; border-radius: 4px; display: none;">
+                <p id="pdfSemFachada" style="font-size: 11px; color: #777; font-style: italic; display: none;">Não anexada</p>
+            </div>
+            <div style="flex: 1;" id="boxPdfSelfie">
+                <p style="font-size: 11px; font-weight: bold; margin-bottom: 4px;">Selfie com as Partes</p>
+                <img id="pdfImgSelfie" style="width: 100%; max-height: 220px; object-fit: contain; border: 1px solid #ccc; border-radius: 4px; display: none;">
+                <p id="pdfSemSelfie" style="font-size: 11px; color: #777; font-style: italic; display: none;">Não anexada</p>
+            </div>
+        </div>
+
+        <div style="font-size: 10px; color: #666; line-height: 1.4; border-top: 1px solid #ddd; padding-top: 15px; margin-top: 40px;">
+            <p><strong>Declaração Legal:</strong> Este documento serve como prova hábil de aproximação comercial e intermediação imobiliária, garantindo o direito à comissão de corretagem conforme o Código Civil Brasileiro. Gerado eletronicamente pelo sistema M&IC.</p>
         </div>
     </div>
 
@@ -235,9 +287,9 @@
         let arquivoFachada = null, arquivoSelfie = null, arquivoPrint = null;
         let urlFachadaSalva = '', urlSelfieSalva = '', urlPrintSalva = '';
         let listaVisitasCache = [];
+        let dadosVisitaPDF = null;
 
         window.addEventListener('DOMContentLoaded', async () => {
-            // Verifica se é o cliente abrindo o link de confirmação (?confirmar=UUID)
             const params = new URLSearchParams(window.location.search);
             const idConfirmar = params.get('confirmar');
 
@@ -272,7 +324,6 @@
             carregarHistoricoVisitas();
         });
 
-        // LÓGICA DO LINK DE 1 CLIQUE DO CLIENTE/PARCEIRO
         async function carregarDadosConfirmacaoCliente(id) {
             const { data, error } = await supabaseClient.from('visitas').select('*').eq('id', id).single();
             const info = document.getElementById('infoConfirmacao');
@@ -292,14 +343,8 @@
         async function confirmarPresencaCliente() {
             if (!idVisitaAtual) return;
             const btn = document.getElementById('btnClienteConfirmar');
-            btn.disabled = true;
-            btn.innerText = 'Confirmando...';
-
-            await supabaseClient.from('visitas').update({
-                status: 'Confirmada',
-                confirmado_em: new Date().toISOString()
-            }).eq('id', idVisitaAtual);
-
+            btn.disabled = true; btn.innerText = 'Confirmando...';
+            await supabaseClient.from('visitas').update({ status: 'Confirmada', confirmado_em: new Date().toISOString() }).eq('id', idVisitaAtual);
             btn.style.display = 'none';
             document.getElementById('msgSucessoCliente').style.display = 'block';
         }
@@ -413,7 +458,6 @@
                 endereco: enderecoFinal,
                 fotoCapa: origem === 'site' ? imovelSelecionado.fotoCapa : '',
                 data: dataFormatada,
-                dataIso: dataBruta,
                 hora: document.getElementById('horaVisita').value,
                 tipoContato: document.getElementById('tipoContato').value,
                 nome: document.getElementById('nomeParte').value.trim(),
@@ -423,28 +467,17 @@
             };
         }
 
-        // 1. SALVA NO SUPABASE E ABRE O WHATSAPP COM O LINK DE CONFIRMAÇÃO
         async function salvarEEnviarConfirmacao() {
             const d = obterDadosFormulario();
-
-            if (d.origem === 'site' && !d.endereco) return alert('Clique em BUSCAR primeiro para carregar o imóvel.');
-            if (d.origem === 'outro' && !d.endereco) return alert('Digite o endereço completo do imóvel.');
-            if (!d.nome || !d.telefone) return alert('Preencha o Nome e o WhatsApp.');
-            if (d.tipoContato === 'parceiro' && !d.creciParceiro) return alert('Preencha o CRECI do corretor parceiro.');
+            if (d.origem === 'site' && !d.endereco) return alert('Busque o imóvel primeiro.');
+            if (d.origem === 'outro' && !d.endereco) return alert('Digite o endereço.');
+            if (!d.nome || !d.telefone) return alert('Preencha Nome e WhatsApp.');
 
             const payload = {
-                corretor_mic: d.corretorMic,
-                origem: d.origem,
-                codigo_imovel: d.codigo,
-                titulo_imovel: d.titulo,
-                endereco: d.endereco,
-                foto_capa: d.fotoCapa,
-                data_visita: d.data,
-                hora_visita: d.hora,
-                tipo_contato: d.tipoContato,
-                nome_parte: d.nome,
-                telefone_parte: d.telefone,
-                creci_parceiro: d.creciParceiro,
+                corretor_mic: d.corretorMic, origem: d.origem, codigo_imovel: d.codigo,
+                titulo_imovel: d.titulo, endereco: d.endereco, foto_capa: d.fotoCapa,
+                data_visita: d.data, hora_visita: d.hora, tipo_contato: d.tipoContato,
+                nome_parte: d.nome, telefone_parte: d.telefone, creci_parceiro: d.creciParceiro,
                 status: 'Agendada'
             };
 
@@ -452,97 +485,68 @@
             if (registroId) {
                 await supabaseClient.from('visitas').update(payload).eq('id', registroId);
             } else {
-                const { data, error } = await supabaseClient.from('visitas').insert([payload]).select().single();
-                if (!error && data) {
-                    registroId = data.id;
-                    idVisitaAtual = data.id;
-                }
+                const { data } = await supabaseClient.from('visitas').insert([payload]).select().single();
+                if (data) { registroId = data.id; idVisitaAtual = data.id; }
             }
 
             carregarHistoricoVisitas();
+            document.getElementById('btnImprimirPdf').style.display = 'block';
 
             let msg = '';
-            if (d.origem === 'site') {
-                msg += `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}\n\n`;
-            }
+            if (d.origem === 'site') msg += `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}\n\n`;
 
             if (d.tipoContato === 'parceiro') {
                 msg += `Olá colega corretor(a) *${d.nome}* (CRECI: ${d.creciParceiro}), tudo bem?\n\n`;
-                msg += `Aqui é da *M&IC Corretores de Imóveis*. Estamos registrando nossa parceria de intermediação para a visita agendada:\n\n`;
+                msg += `Aqui é da *M&IC Corretores de Imóveis*. Estamos registrando nossa parceria para a visita agendada:\n\n`;
             } else {
                 msg += `Olá *${d.nome}*, tudo bem?\n\n`;
-                msg += `Aqui é da *M&IC Corretores de Imóveis*. Passando para confirmar os detalhes da nossa visita ao imóvel:\n\n`;
+                msg += `Aqui é da *M&IC Corretores de Imóveis*. Passando para confirmar os detalhes da nossa visita:\n\n`;
             }
 
             if (d.origem === 'site') msg += `• *Imóvel:* ${d.codigo} - ${d.titulo}\n`;
             msg += `• *Endereço:* ${d.endereco}\n`;
             msg += `• *Data:* ${d.data} às *${d.hora}*\n\n`;
-
-            msg += `*Você confirma o nosso agendamento neste local e horário?*\n`;
-            if (registroId) {
-                msg += `👉 Confirme com 1 clique aqui: ${window.location.origin}/visita.html?confirmar=${registroId}\n_(Ou responda "Sim" nesta mensagem)._\n\n`;
-            } else {
-                msg += `_(Por favor, responda com "Sim" ou "Confirmado" para validarmos o acesso)._\n\n`;
-            }
+            if (registroId) msg += `👉 Confirme com 1 clique: ${window.location.origin}/visita.html?confirmar=${registroId}\n\n`;
             msg += `Atenciosamente,\n*${d.corretorMic}*`;
 
-            const fone = d.telefone.startsWith('55') ? d.telefone : `55${d.telefone}`;
-            window.open(`https://wa.me/${fone}?text=${encodeURIComponent(msg)}`, '_blank');
+            window.open(`https://wa.me/55${d.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        // 2. FAZ UPLOAD DAS FOTOS, ATUALIZA O REGISTRO NO BANCO PARA "REALIZADA" E ENVIA O RELATÓRIO
         async function abrirZapRelatorio() {
             const d = obterDadosFormulario();
-
-            if (!d.endereco || !d.nome || !d.telefone) return alert('Verifique se o Imóvel, Nome e WhatsApp estão preenchidos.');
-            if (d.tipoContato === 'parceiro' && !d.creciParceiro) return alert('Informe o CRECI do corretor parceiro.');
-            if (!d.lgpd) return alert('É necessário marcar a ciência da LGPD.');
+            if (!d.endereco || !d.nome || !d.telefone) return alert('Preencha os campos básicos.');
+            if (!d.lgpd) return alert('Aceite a LGPD.');
 
             const btn = document.getElementById('btnRelatorio');
-            const statusMsg = document.getElementById('statusMsg');
             btn.disabled = true;
-            statusMsg.style.color = 'var(--gold)';
-            statusMsg.innerText = 'Salvando fotos e amarrando visita no banco...';
+            btn.innerText = 'A guardar fotos no servidor...';
 
-            let urlFachada = urlFachadaSalva;
-            let urlSelfie = urlSelfieSalva;
-            let urlPrint = urlPrintSalva;
+            let urlFachada = urlFachadaSalva, urlSelfie = urlSelfieSalva, urlPrint = urlPrintSalva;
 
             try {
                 if (arquivoFachada) {
-                    const nomeArq1 = `visita_fachada_${Date.now()}.jpg`;
-                    const { error: err1 } = await supabaseClient.storage.from('imoveis_fotos').upload(nomeArq1, arquivoFachada);
-                    if (!err1) urlFachada = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(nomeArq1).data.publicUrl;
+                    const n1 = `visita_fachada_${Date.now()}.jpg`;
+                    const { error: e1 } = await supabaseClient.storage.from('imoveis_fotos').upload(n1, arquivoFachada);
+                    if (!e1) urlFachada = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(n1).data.publicUrl;
                 }
                 if (arquivoSelfie) {
-                    const nomeArq2 = `visita_selfie_${Date.now()}.jpg`;
-                    const { error: err2 } = await supabaseClient.storage.from('imoveis_fotos').upload(nomeArq2, arquivoSelfie);
-                    if (!err2) urlSelfie = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(nomeArq2).data.publicUrl;
+                    const n2 = `visita_selfie_${Date.now()}.jpg`;
+                    const { error: e2 } = await supabaseClient.storage.from('imoveis_fotos').upload(n2, arquivoSelfie);
+                    if (!e2) urlSelfie = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(n2).data.publicUrl;
                 }
                 if (arquivoPrint) {
-                    const nomeArq3 = `visita_print_${Date.now()}.jpg`;
-                    const { error: err3 } = await supabaseClient.storage.from('imoveis_fotos').upload(nomeArq3, arquivoPrint);
-                    if (!err3) urlPrint = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(nomeArq3).data.publicUrl;
+                    const n3 = `visita_print_${Date.now()}.jpg`;
+                    const { error: e3 } = await supabaseClient.storage.from('imoveis_fotos').upload(n3, arquivoPrint);
+                    if (!e3) urlPrint = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(n3).data.publicUrl;
                 }
             } catch (e) {}
 
             const payload = {
-                corretor_mic: d.corretorMic,
-                origem: d.origem,
-                codigo_imovel: d.codigo,
-                titulo_imovel: d.titulo,
-                endereco: d.endereco,
-                foto_capa: d.fotoCapa,
-                data_visita: d.data,
-                hora_visita: d.hora,
-                tipo_contato: d.tipoContato,
-                nome_parte: d.nome,
-                telefone_parte: d.telefone,
-                creci_parceiro: d.creciParceiro,
-                status: 'Realizada',
-                foto_fachada: urlFachada || null,
-                foto_selfie: urlSelfie || null,
-                foto_print_zap: urlPrint || null
+                corretor_mic: d.corretorMic, origem: d.origem, codigo_imovel: d.codigo,
+                titulo_imovel: d.titulo, endereco: d.endereco, foto_capa: d.fotoCapa,
+                data_visita: d.data, hora_visita: d.hora, tipo_contato: d.tipoContato,
+                nome_parte: d.nome, telefone_parte: d.telefone, creci_parceiro: d.creciParceiro,
+                status: 'Realizada', foto_fachada: urlFachada || null, foto_selfie: urlSelfie || null, foto_print_zap: urlPrint || null
             };
 
             if (idVisitaAtual) {
@@ -552,53 +556,35 @@
                 if (data) idVisitaAtual = data.id;
             }
 
+            urlFachadaSalva = urlFachada; urlSelfieSalva = urlSelfie; urlPrintSalva = urlPrint;
             carregarHistoricoVisitas();
 
             btn.disabled = false;
-            statusMsg.style.color = '#25D366';
-            statusMsg.innerText = 'Visita salva no sistema! Abrindo WhatsApp...';
+            btn.innerText = '📄 2. Salvar Fotos e Enviar Relatório Final';
+            document.getElementById('btnImprimirPdf').style.display = 'block';
 
-            const carimboAgora = new Date().toLocaleString('pt-BR');
             let rel = '';
-            if (d.origem === 'site') {
-                rel += `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}\n\n`;
-            }
-
-            rel += `*TERMO E RELATÓRIO DE VISITA IMOBILIÁRIA*\n`;
-            rel += `Registro: ${carimboAgora}\n\n`;
-
+            if (d.origem === 'site') rel += `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}\n\n`;
+            rel += `*TERMO E RELATÓRIO DE VISITA IMOBILIÁRIA*\nRegistro: ${new Date().toLocaleString('pt-BR')}\n\n`;
             if (d.origem === 'site') rel += `• *Imóvel:* ${d.codigo} - ${d.titulo}\n`;
             rel += `• *Endereço:* ${d.endereco}\n\n`;
 
             if (d.tipoContato === 'parceiro') {
-                rel += `• *Modalidade:* Visita em Parceria Imobiliária\n`;
-                rel += `• *Corretor Parceiro:* ${d.nome}\n`;
-                rel += `• *CRECI Parceiro:* ${d.creciParceiro}\n`;
+                rel += `• *Modalidade:* Parceria Imobiliária\n• *Parceiro:* ${d.nome} (CRECI: ${d.creciParceiro})\n`;
             } else {
-                rel += `• *Modalidade:* Atendimento Direto\n`;
-                rel += `• *Cliente Visitante:* ${d.nome}\n`;
+                rel += `• *Modalidade:* Atendimento Direto\n• *Cliente:* ${d.nome}\n`;
             }
 
-            rel += `\n*EVIDÊNCIAS DE PRESENÇA E INTERMEDIAÇÃO:*\n`;
-            rel += `> *Foto no Local:* ${urlFachada || 'Registrada no sistema'}\n`;
-            rel += `> *Selfie com as Partes:* ${urlSelfie || 'Registrada no sistema'}\n`;
-            if (urlPrint) rel += `> *Confirmação Prévia:* ${urlPrint}\n`;
-
-            rel += `\n*Nota Legal e LGPD:* Este registro comprova a efetiva apresentação do imóvel e a intermediação imobiliária realizada nesta data. Os dados mínimos acima foram coletados exclusivamente para este fim (Lei 13.709/18).\n\n`;
-            rel += `*Por favor, responda "Ciente" ou "De acordo" abaixo para confirmação deste registro.*\n\n`;
-            rel += `*${d.corretorMic}*`;
-
-            const fone = d.telefone.startsWith('55') ? d.telefone : `55${d.telefone}`;
-            window.open(`https://wa.me/${fone}?text=${encodeURIComponent(rel)}`, '_blank');
+            rel += `\n*EVIDÊNCIAS:*\n> *Foto no Local:* ${urlFachada || 'Registrada'}\n> *Selfie:* ${urlSelfie || 'Registrada'}\n\n*${d.corretorMic}*`;
+            window.open(`https://wa.me/55${d.telefone}?text=${encodeURIComponent(rel)}`, '_blank');
         }
 
-        // LISTA AS VISITAS SALVAS PARA VOCÊ REABRIR NO CELULAR QUANDO CHEGAR NO IMÓVEL
         async function carregarHistoricoVisitas() {
             const container = document.getElementById('listaVisitas');
             const { data, error } = await supabaseClient.from('visitas').select('*').order('created_at', { ascending: false }).limit(20);
 
             if (error || !data || data.length === 0) {
-                container.innerHTML = '<p style="color:var(--gray); font-size:13px;">Nenhuma visita registrada ainda.</p>';
+                container.innerHTML = '<p style="color:var(--gray); font-size:13px;">Nenhuma visita registada.</p>';
                 return;
             }
 
@@ -610,14 +596,15 @@
                 if (v.status === 'Confirmada') badgeClass = 'confirmada';
                 if (v.status === 'Realizada') badgeClass = 'realizada';
 
-                const dataConf = v.confirmado_em ? ` (Confirmado em ${new Date(v.confirmado_em).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})})` : '';
-
                 container.innerHTML += `
-                    <div class="visita-item" onclick="selecionarVisitaSalva('${v.id}')">
-                        <span class="badge ${badgeClass}">${v.status || 'Agendada'}${dataConf}</span>
-                        <div style="font-weight:700; color:var(--gold); font-size:14px;">${v.codigo_imovel || 'Imóvel'} - ${v.nome_parte}</div>
-                        <div style="font-size:12px; color:#ccc; margin-top:4px;">📍 ${v.endereco}</div>
-                        <div style="font-size:11px; color:var(--gray); margin-top:4px;">🗓️ ${v.data_visita} às ${v.hora_visita} | ${v.tipo_contato === 'parceiro' ? 'Parceiro (' + v.creci_parceiro + ')' : 'Cliente Direto'}</div>
+                    <div class="visita-item">
+                        <div onclick="selecionarVisitaSalva('${v.id}')">
+                            <span class="badge ${badgeClass}">${v.status}</span>
+                            <div style="font-weight:700; color:var(--gold); font-size:14px;">${v.codigo_imovel} - ${v.nome_parte}</div>
+                            <div style="font-size:12px; color:#ccc; margin-top:4px;">📍 ${v.endereco}</div>
+                            <div style="font-size:11px; color:var(--gray); margin-top:4px;">🗓️ ${v.data_visita} às ${v.hora_visita}</div>
+                        </div>
+                        <button type="button" class="btn-action btn-imprimir" style="padding:8px; font-size:11px; margin-top:10px;" onclick="imprimirPDFEspecifico('${v.id}')">🖨️ Imprimir PDF deste Termo</button>
                     </div>
                 `;
             });
@@ -628,41 +615,35 @@
             if (!v) return;
 
             idVisitaAtual = v.id;
+            dadosVisitaPDF = v;
             document.getElementById('tituloForm').innerText = `Editando Visita (${v.status})`;
             document.getElementById('btnLimpar').style.display = 'block';
+            document.getElementById('btnImprimirPdf').style.display = 'block';
 
-            document.getElementById('corretorMic').value = v.corretor_mic || 'Mario Chalfoun Junior | CRECI 101338';
-            document.getElementById('origemImovel').value = v.origem || 'site';
+            document.getElementById('corretorMic').value = v.corretor_mic;
+            document.getElementById('origemImovel').value = v.origem;
             alternarOrigem();
 
             if (v.origem === 'site') {
-                document.getElementById('refImovel').value = v.codigo_imovel || '';
-                imovelSelecionado = {
-                    codigo: v.codigo_imovel,
-                    titulo: v.titulo_imovel,
-                    endereco: v.endereco,
-                    fotoCapa: v.foto_capa
-                };
-                document.getElementById('previewTitulo').innerText = `${v.codigo_imovel} - ${v.titulo_imovel || ''}`;
+                document.getElementById('refImovel').value = v.codigo_imovel;
+                imovelSelecionado = { codigo: v.codigo_imovel, titulo: v.titulo_imovel, endereco: v.endereco, fotoCapa: v.foto_capa };
+                document.getElementById('previewTitulo').innerText = `${v.codigo_imovel} - ${v.titulo_imovel}`;
                 document.getElementById('previewEndereco').innerText = v.endereco;
-                if (v.foto_capa) {
-                    document.getElementById('previewFoto').src = v.foto_capa;
-                    document.getElementById('previewFoto').style.display = 'block';
-                }
+                if (v.foto_capa) { document.getElementById('previewFoto').src = v.foto_capa; document.getElementById('previewFoto').style.display = 'block'; }
                 document.getElementById('previewCard').style.display = 'block';
             } else {
-                document.getElementById('enderecoAvulso').value = v.endereco || '';
+                document.getElementById('enderecoAvulso').value = v.endereco;
             }
 
             if (v.data_visita && v.data_visita.includes('/')) {
                 document.getElementById('dataVisita').value = v.data_visita.split('/').reverse().join('-');
             }
-            document.getElementById('horaVisita').value = v.hora_visita || '';
-            document.getElementById('tipoContato').value = v.tipo_contato || 'direto';
+            document.getElementById('horaVisita').value = v.hora_visita;
+            document.getElementById('tipoContato').value = v.tipo_contato;
             alternarParceiro();
 
-            document.getElementById('nomeParte').value = v.nome_parte || '';
-            document.getElementById('telefoneParte').value = v.telefone_parte || '';
+            document.getElementById('nomeParte').value = v.nome_parte;
+            document.getElementById('telefoneParte').value = v.telefone_parte;
             document.getElementById('creciParceiro').value = v.creci_parceiro || '';
 
             urlFachadaSalva = v.foto_fachada || '';
@@ -681,12 +662,66 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        function imprimirPDFEspecifico(id) {
+            const v = listaVisitasCache.find(item => item.id === id);
+            if (!v) return;
+            dadosVisitaPDF = v;
+            preencherDadosPDFNaTela();
+            window.print();
+        }
+
+        function imprimirTermoPDF() {
+            const d = obterDadosFormulario();
+            dadosVisitaPDF = {
+                status: idVisitaAtual ? 'Registrada no Sistema' : 'Nova Ficha',
+                corretor_mic: d.corretorMic,
+                data_visita: d.data || 'Não informada',
+                hora_visita: d.hora || '',
+                codigo_imovel: d.codigo,
+                titulo_imovel: d.titulo,
+                endereco: d.endereco,
+                tipo_contato: d.tipoContato,
+                nome_parte: d.nome || 'Não preenchido',
+                telefone_parte: d.telefone,
+                creci_parceiro: d.creciParceiro,
+                foto_fachada: urlFachadaSalva,
+                foto_selfie: urlSelfieSalva
+            };
+            preencherDadosPDFNaTela();
+            window.print();
+        }
+
+        function preencherDadosPDFNaTela() {
+            if (!dadosVisitaPDF) return;
+            const v = dadosVisitaPDF;
+            document.getElementById('pdfStatus').innerText = v.status || 'Ativo';
+            document.getElementById('pdfCorretor').innerText = v.corretor_mic;
+            document.getElementById('pdfDataHora').innerText = `${v.data_visita} às ${v.hora_visita || ''}`;
+            document.getElementById('pdfImovelInfo').innerText = `Código/Ref: ${v.codigo_imovel || 'Externo'} - ${v.titulo_imovel || ''}`;
+            document.getElementById('pdfEnderecoInfo').innerText = `Endereço: ${v.endereco}`;
+
+            let clienteStr = `Nome: ${v.nome_parte} | WhatsApp: ${v.telefone_parte}`;
+            if (v.tipo_contato === 'parceiro') clienteStr += ` | Corretor Parceiro (CRECI: ${v.creci_parceiro})`;
+            document.getElementById('pdfClienteInfo').innerText = clienteStr;
+
+            const imgF = document.getElementById('pdfImgFachada');
+            const semF = document.getElementById('pdfSemFachada');
+            if (v.foto_fachada) { imgF.src = v.foto_fachada; imgF.style.display = 'block'; semF.style.display = 'none'; }
+            else { imgF.style.display = 'none'; semF.style.display = 'block'; }
+
+            const imgS = document.getElementById('pdfImgSelfie');
+            const semS = document.getElementById('pdfSemSelfie');
+            if (v.foto_selfie) { imgS.src = v.foto_selfie; imgS.style.display = 'block'; semS.style.display = 'none'; }
+            else { imgS.style.display = 'none'; semS.style.display = 'block'; }
+        }
+
         function limparFormulario() {
-            idVisitaAtual = null;
+            idVisitaAtual = null; dadosVisitaPDF = null;
             arquivoFachada = null; arquivoSelfie = null; arquivoPrint = null;
             urlFachadaSalva = ''; urlSelfieSalva = ''; urlPrintSalva = '';
             document.getElementById('tituloForm').innerText = 'Nova Visita';
             document.getElementById('btnLimpar').style.display = 'none';
+            document.getElementById('btnImprimirPdf').style.display = 'none';
             document.getElementById('refImovel').value = '';
             document.getElementById('enderecoAvulso').value = '';
             document.getElementById('nomeParte').value = '';
