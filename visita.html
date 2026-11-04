@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Visita - M&IC</title>
+    <link rel="stylesheet" href="visita.css">
+</head>
+<body>
+    <main class="container">
+        <h1>Ficha de Visita</h1>
+        
+        <form id="visitaForm">
+            <fieldset>
+                <legend>Sobre o Imóvel</legend>
+                <select id="origemImovel" required>
+                    <option value="site">Imóvel do Site (M&IC)</option>
+                    <option value="outro">Outro Imóvel / Parceria</option>
+                </select>
+                <input type="text" id="identificacaoImovel" placeholder="Código no site ou Endereço completo" required>
+            </fieldset>
+
+            <fieldset>
+                <legend>Parte Interessada</legend>
+                <select id="tipoContato" required>
+                    <option value="direto">Cliente Direto</option>
+                    <option value="parceiro">Corretor Parceiro</option>
+                </select>
+                
+                <input type="text" id="nomeCliente" placeholder="Nome Completo" required>
+                <input type="tel" id="telefoneCliente" placeholder="WhatsApp com DDD" required>
+                
+                <div id="dadosParceiro" class="hidden">
+                    <input type="text" id="creciParceiro" placeholder="CRECI do Parceiro">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Comprovação (No Local)</legend>
+                <label>Foto do Imóvel/Fachada:</label>
+                <input type="file" id="fotoImovel" accept="image/*" capture="environment">
+                
+                <label>Selfie com as Partes:</label>
+                <input type="file" id="fotoSelfie" accept="image/*" capture="user">
+            </fieldset>
+
+            <fieldset class="lgpd-box">
+                <label>
+                    <input type="checkbox" id="aceiteLgpd" required>
+                    Autorizo o uso destes dados mínimos (nome e telefone) e imagens exclusivamente para fins de comprovação de intermediação imobiliária, conforme a LGPD.
+                </label>
+            </fieldset>
+
+            <div class="actions">
+                <button type="button" id="btnAgendamento" class="btn-zap">📲 Enviar Confirmação de Agendamento</button>
+                <button type="button" id="btnRelatorio" class="btn-relatorio">📄 Gerar e Enviar Relatório Final</button>
+            </div>
+        </form>
+    </main>
+    <script src="visita.js"></script>
+</body>
+</html>
