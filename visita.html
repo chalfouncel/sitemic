@@ -3,113 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Registro de Visita - M&IC</title>
-    <!-- Reaproveitando as fontes e o CSS principal do seu projeto -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <title>Ficha de Visita | M&IC</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Ajustes específicos para manter o padrão do app.html e portal.html */
-        body { padding: 20px 0 70px 0; }
-        .visita-container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .card { background: var(--black-light); padding: 25px; border-radius: 8px; border: 1px solid rgba(201,168,76,0.2); margin-bottom: 20px; }
-        .card h2 { font-family: var(--font-display); color: var(--gold); margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        :root {
+            --gold: #C9A84C;
+            --gold-light: #E8D48B;
+            --black: #0A0A0A;
+            --black-light: #1A1A1A;
+            --black-lighter: #242424;
+            --white: #FFFFFF;
+            --gray: #9A9A9A;
+            --green: #25D366;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--black); color: var(--white); padding-bottom: 50px; }
+        
+        .header { text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(201,168,76,0.2); margin-bottom: 20px; }
+        .header img { height: 50px; }
+        .header p { color: var(--gold); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; }
+
+        .container { max-width: 550px; margin: 0 auto; padding: 0 16px; }
+        .card { background: var(--black-light); padding: 24px 20px; border-radius: 8px; border: 1px solid rgba(201,168,76,0.25); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .card h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 24px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(201,168,76,0.15); }
+
         .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; margin-bottom: 6px; color: var(--gray-light); font-size: 12px; text-transform: uppercase; font-weight: 600; }
-        .form-group input, .form-group select { width: 100%; padding: 14px; background: var(--black); border: 1px solid rgba(255,255,255,0.1); color: var(--white); border-radius: 4px; font-family: var(--font-body); }
-        .form-group input:focus, .form-group select:focus { border-color: var(--gold); outline: none; }
-        
-        .preview-imovel { display: none; background: var(--black); padding: 15px; border: 1px dashed var(--gold); border-radius: 6px; margin-top: 10px; }
-        .preview-imovel img { width: 100%; height: 160px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; }
-        .preview-imovel p { font-size: 14px; color: var(--silver); margin: 0; }
-        
-        .hidden { display: none !important; }
-        .btn-full { width: 100%; margin-bottom: 10px; border-radius: 4px; }
-        .btn-whatsapp { background: #25D366; color: #fff; border: none; font-weight: 600; padding: 14px; font-family: var(--font-body); cursor: pointer; transition: 0.3s; }
-        .btn-whatsapp:hover { background: #128C7E; }
+        .form-group label { display: block; margin-bottom: 6px; color: var(--gray); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group input, .form-group select { width: 100%; padding: 13px 14px; background: var(--black); border: 1px solid rgba(255,255,255,0.12); color: var(--white); border-radius: 6px; font-size: 14px; font-family: 'Inter', sans-serif; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--gold); }
+
+        .busca-row { display: flex; gap: 10px; }
+        .busca-row input { flex: 1; text-transform: uppercase; }
+        .btn-buscar { width: auto; padding: 0 24px; background: var(--gold); color: var(--black); font-weight: 700; border: none; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-size: 13px; }
+        .btn-buscar:active { transform: scale(0.98); }
+
+        /* Card de Preview do Imóvel */
+        #previewCard { display: none; background: var(--black-lighter); border: 1px solid var(--gold); border-radius: 6px; padding: 12px; margin-top: 12px; }
+        #previewFoto { width: 100%; height: 170px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        #previewTitulo { font-weight: 700; color: var(--gold); font-size: 15px; margin-bottom: 4px; }
+        #previewEndereco { color: var(--white); font-size: 13px; line-height: 1.4; }
+
+        /* Botões de Câmera */
+        .camera-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+        .btn-camera { background: var(--black); border: 1px dashed var(--gold); color: var(--gold); padding: 14px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .preview-evidencia { width: 100%; height: 110px; object-fit: cover; border-radius: 4px; margin-top: 8px; border: 2px solid var(--green); display: none; }
+
+        /* Caixa LGPD */
+        .lgpd-box { background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.25); padding: 12px; border-radius: 6px; margin: 20px 0; }
+        .lgpd-box label { display: flex; align-items: flex-start; gap: 10px; color: #ccc; font-size: 12px; line-height: 1.4; text-transform: none; font-weight: 400; cursor: pointer; }
+        .lgpd-box input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); margin-top: 2px; flex-shrink: 0; }
+
+        /* Botões Principais */
+        .btn-action { width: 100%; padding: 16px; border: none; border-radius: 6px; font-weight: 700; font-size: 14px; text-transform: uppercase; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.5px; }
+        .btn-zap { background: var(--green); color: var(--white); }
+        .btn-relatorio { background: var(--gold); color: var(--black); }
+        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #statusMsg { text-align: center; font-size: 13px; font-weight: 600; margin: 10px 0; min-height: 18px; }
     </style>
 </head>
 <body>
-    <div class="header" style="text-align: center; margin-bottom: 20px;">
-        <img src="logo.png" alt="M&IC Logo" style="height: 50px;">
+
+    <div class="header">
+        <img src="logo.png" alt="M&IC Corretores">
+        <p>Controle de Visitas e Intermediação</p>
     </div>
 
-    <div class="visita-container">
+    <div class="container">
         <div class="card">
-            <h2>Ficha de Visita</h2>
-            
-            <form id="formVisita">
-                <div class="form-group">
-                    <label>Origem do Imóvel</label>
-                    <select id="origemImovel">
-                        <option value="site">Imóvel do Site (Buscar no Banco)</option>
-                        <option value="outro">Outro Imóvel / Avulso</option>
-                    </select>
+            <h1>Ficha de Visita</h1>
+
+            <!-- Corretor Responsável -->
+            <div class="form-group">
+                <label>Corretor Responsável (M&IC)</label>
+                <select id="corretorMic">
+                    <option value="Mario Chalfoun Junior | CRECI 101338">Mario Jr (CRECI 101338)</option>
+                    <option value="Ivy Carla Teixeira Chalfoun | CRECI 75179">Ivy Carla (CRECI 75179)</option>
+                    <option value="M&IC Corretores | CRECI 75179 / 101338">Ambos (Ivy Carla & Mario Jr)</option>
+                </select>
+            </div>
+
+            <!-- Origem do Imóvel -->
+            <div class="form-group">
+                <label>Origem do Imóvel</label>
+                <select id="origemImovel" onchange="alternarOrigem()">
+                    <option value="site">Imóvel do Nosso Site (Buscar pelo Código)</option>
+                    <option value="outro">Outro Imóvel (Captação / Parceiro / Avulso)</option>
+                </select>
+            </div>
+
+            <!-- BLOCO 1: Imóvel do Site -->
+            <div id="blocoSite" class="form-group">
+                <label>Código do Imóvel (Ex: MIC_0021)</label>
+                <div class="busca-row">
+                    <input type="text" id="refImovel" placeholder="MIC_0021">
+                    <button type="button" id="btnBuscar" class="btn-buscar" onclick="buscarImovelBanco()">Buscar</button>
                 </div>
 
-                <!-- Busca de Imóvel do Site -->
-                <div id="blocoBuscaSite" class="form-group">
-                    <label>Código do Imóvel (Ex: MIC_001)</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="refImovel" placeholder="Digite a referência" style="text-transform: uppercase;">
-                        <button type="button" id="btnBuscar" class="btn-primary" style="width: auto; padding: 0 20px;">Buscar</button>
+                <!-- Preview que abre após buscar -->
+                <div id="previewCard">
+                    <img id="previewFoto" src="" alt="Foto Principal">
+                    <div id="previewTitulo"></div>
+                    <div id="previewEndereco"></div>
+                </div>
+            </div>
+
+            <!-- BLOCO 2: Imóvel Fora do Site -->
+            <div id="blocoOutro" class="form-group" style="display: none;">
+                <label>Endereço Completo do Imóvel</label>
+                <input type="text" id="enderecoAvulso" placeholder="Ex: Av. Lúcio Costa, 3500 - Barra da Tijuca">
+            </div>
+
+            <!-- Data e Hora da Visita -->
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Data da Visita</label>
+                    <input type="date" id="dataVisita">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Horário</label>
+                    <input type="time" id="horaVisita">
+                </div>
+            </div>
+
+            <!-- Tipo de Parte -->
+            <div class="form-group">
+                <label>A visita será com quem?</label>
+                <select id="tipoContato" onchange="alternarParceiro()">
+                    <option value="direto">Cliente Direto</option>
+                    <option value="parceiro">Corretor Parceiro</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label id="labelNome">Nome do Cliente</label>
+                <input type="text" id="nomeParte" placeholder="Nome e Sobrenome">
+            </div>
+
+            <div class="form-group">
+                <label>WhatsApp (com DDD)</label>
+                <input type="tel" id="telefoneParte" placeholder="21999999999">
+            </div>
+
+            <!-- Campo exclusivo para Corretor Parceiro -->
+            <div id="blocoParceiro" class="form-group" style="display: none;">
+                <label>CRECI do Corretor Parceiro</label>
+                <input type="text" id="creciParceiro" placeholder="Ex: CRECI-RJ 00000">
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid rgba(201,168,76,0.15); margin: 20px 0;">
+
+            <!-- Etapa 1: Agendamento -->
+            <button type="button" class="btn-action btn-zap" onclick="enviarConfirmacaoAgendamento()">
+                📲 1. Enviar Pedido de Confirmação (Zap)
+            </button>
+
+            <hr style="border: 0; border-top: 1px solid rgba(201,168,76,0.15); margin: 20px 0;">
+
+            <!-- Etapa 2: No Local da Visita -->
+            <div class="form-group">
+                <label style="color: var(--gold);">Comprovação no Local (Fotos Obrigatórias na Visita)</label>
+                <div class="camera-grid">
+                    <div>
+                        <button type="button" class="btn-camera" onclick="document.getElementById('inputFotoImovel').click()">
+                            <span>📸</span> Foto do Imóvel / Fachada
+                        </button>
+                        <input type="file" id="inputFotoImovel" accept="image/*" capture="environment" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewFachada', 'fachada')">
+                        <img id="imgPreviewFachada" class="preview-evidencia">
                     </div>
-                    
-                    <div id="previewCard" class="preview-imovel">
-                        <img id="previewFoto" src="" alt="Capa do Imóvel">
-                        <p id="previewEndereco" style="font-weight: 600; color: var(--gold);"></p>
+                    <div>
+                        <button type="button" class="btn-camera" onclick="document.getElementById('inputFotoSelfie').click()">
+                            <span>🤳</span> Selfie com Cliente/Parceiro
+                        </button>
+                        <input type="file" id="inputFotoSelfie" accept="image/*" capture="user" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewSelfie', 'selfie')">
+                        <img id="imgPreviewSelfie" class="preview-evidencia">
                     </div>
                 </div>
+            </div>
 
-                <!-- Imóvel Avulso -->
-                <div id="blocoAvulso" class="form-group hidden">
-                    <label>Endereço Completo do Imóvel</label>
-                    <input type="text" id="enderecoAvulso" placeholder="Rua, Número, Bairro...">
-                </div>
+            <!-- Termo LGPD Mínimo -->
+            <div class="lgpd-box">
+                <label>
+                    <input type="checkbox" id="aceiteLgpd" checked>
+                    <span>Coleta mínima de dados (Nome, Telefone e Registro Fotográfico local) realizada estritamente para comprovação de visita e intermediação imobiliária, nos termos da LGPD (Lei 13.709/18).</span>
+                </label>
+            </div>
 
-                <div class="form-group">
-                    <label>Tipo de Contato</label>
-                    <select id="tipoContato">
-                        <option value="direto">Cliente Direto</option>
-                        <option value="parceiro">Corretor Parceiro</option>
-                    </select>
-                </div>
+            <div id="statusMsg"></div>
 
-                <div class="form-group">
-                    <label>Nome Completo</label>
-                    <input type="text" id="nomeParte" required>
-                </div>
-
-                <div class="form-group">
-                    <label>WhatsApp (com DDD)</label>
-                    <input type="tel" id="telefoneParte" placeholder="21999999999" required>
-                </div>
-
-                <div id="blocoParceiro" class="form-group hidden">
-                    <label>CRECI do Parceiro</label>
-                    <input type="text" id="creciParceiro">
-                </div>
-
-                <div class="form-group">
-                    <label style="color: var(--gold);">Evidências da Visita (Fotos)</label>
-                    <span style="font-size: 11px; color: var(--gray-light); display: block; margin-bottom: 10px;">Mínimo de dados coletados conforme LGPD.</span>
-                    
-                    <button type="button" onclick="document.getElementById('fotoImovel').click()" class="btn-secondary btn-full">📸 Foto da Fachada/Imóvel</button>
-                    <input type="file" id="fotoImovel" accept="image/*" capture="environment" class="hidden">
-
-                    <button type="button" onclick="document.getElementById('fotoSelfie').click()" class="btn-secondary btn-full">🤳 Selfie com as Partes</button>
-                    <input type="file" id="fotoSelfie" accept="image/*" capture="user" class="hidden">
-                </div>
-
-                <hr style="border: 0; border-top: 1px solid rgba(201,168,76,0.2); margin: 25px 0;">
-
-                <button type="button" id="btnAgendar" class="btn-full btn-whatsapp">📲 Enviar Confirmação com Pergunta</button>
-                <button type="button" id="btnRelatorio" class="btn-primary btn-full">📄 Enviar Relatório de Intermediação</button>
-            </form>
+            <!-- Botão Relatório Final -->
+            <button type="button" id="btnRelatorio" class="btn-action btn-relatorio" onclick="gerarRelatorioVisita()">
+                📄 2. Gerar e Enviar Relatório de Visita
+            </button>
         </div>
     </div>
 
-    <!-- Script do Supabase -->
+    <!-- Supabase SDK + Script com cache busting -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="visita.js"></script>
+    <script src="visita.js?v=definitivo_1"></script>
 </body>
 </html>
