@@ -9,7 +9,6 @@
     <style>
         :root {
             --gold: #C9A84C;
-            --gold-light: #E8D48B;
             --black: #0A0A0A;
             --black-light: #1A1A1A;
             --black-lighter: #242424;
@@ -18,49 +17,52 @@
             --green: #25D366;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: var(--black); color: var(--white); padding-bottom: 50px; }
+        body { font-family: 'Inter', sans-serif; background: var(--black); color: var(--white); padding-bottom: 60px; }
         
         .header { text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(201,168,76,0.2); margin-bottom: 20px; }
         .header img { height: 50px; }
         .header p { color: var(--gold); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; }
 
         .container { max-width: 550px; margin: 0 auto; padding: 0 16px; }
-        .card { background: var(--black-light); padding: 24px 20px; border-radius: 8px; border: 1px solid rgba(201,168,76,0.25); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .card h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 24px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(201,168,76,0.15); }
+        .card { background: var(--black-light); padding: 24px 20px; border-radius: 8px; border: 1px solid rgba(201,168,76,0.25); box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 24px; }
+        .card h1, .card h2 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 22px; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid rgba(201,168,76,0.15); }
 
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; margin-bottom: 6px; color: var(--gray); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; color: var(--gray); font-size: 12px; font-weight: 600; text-transform: uppercase; }
         .form-group input, .form-group select { width: 100%; padding: 13px 14px; background: var(--black); border: 1px solid rgba(255,255,255,0.12); color: var(--white); border-radius: 6px; font-size: 14px; font-family: 'Inter', sans-serif; }
         .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--gold); }
 
         .busca-row { display: flex; gap: 10px; }
         .busca-row input { flex: 1; text-transform: uppercase; }
         .btn-buscar { width: auto; padding: 0 24px; background: var(--gold); color: var(--black); font-weight: 700; border: none; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-size: 13px; }
-        .btn-buscar:active { transform: scale(0.98); }
 
-        /* Card de Preview do Imóvel */
         #previewCard { display: none; background: var(--black-lighter); border: 1px solid var(--gold); border-radius: 6px; padding: 12px; margin-top: 12px; }
-        #previewFoto { width: 100%; height: 170px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        #previewFoto { width: 100%; height: 170px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; }
         #previewTitulo { font-weight: 700; color: var(--gold); font-size: 15px; margin-bottom: 4px; }
         #previewEndereco { color: var(--white); font-size: 13px; line-height: 1.4; }
 
-        /* Botões de Câmera */
         .camera-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
-        .btn-camera { background: var(--black); border: 1px dashed var(--gold); color: var(--gold); padding: 14px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .btn-camera { background: var(--black); border: 1px dashed var(--gold); color: var(--gold); padding: 14px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: center; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
         .preview-evidencia { width: 100%; height: 110px; object-fit: cover; border-radius: 4px; margin-top: 8px; border: 2px solid var(--green); display: none; }
 
-        /* Caixa LGPD */
-        .lgpd-box { background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.25); padding: 12px; border-radius: 6px; margin: 20px 0; }
-        .lgpd-box label { display: flex; align-items: flex-start; gap: 10px; color: #ccc; font-size: 12px; line-height: 1.4; text-transform: none; font-weight: 400; cursor: pointer; }
+        .lgpd-box { background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.25); padding: 12px; border-radius: 6px; margin: 18px 0; }
+        .lgpd-box label { display: flex; align-items: flex-start; gap: 10px; color: #ccc; font-size: 12px; line-height: 1.4; cursor: pointer; }
         .lgpd-box input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); margin-top: 2px; flex-shrink: 0; }
 
-        /* Botões Principais */
-        .btn-action { width: 100%; padding: 16px; border: none; border-radius: 6px; font-weight: 700; font-size: 14px; text-transform: uppercase; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.5px; }
+        .btn-action { width: 100%; padding: 16px; border: none; border-radius: 6px; font-weight: 700; font-size: 14px; text-transform: uppercase; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-zap { background: var(--green); color: var(--white); }
         .btn-relatorio { background: var(--gold); color: var(--black); }
-        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-novo { background: transparent; border: 1px solid var(--gray); color: var(--gray); padding: 10px; font-size: 12px; margin-bottom: 16px; }
 
         #statusMsg { text-align: center; font-size: 13px; font-weight: 600; margin: 10px 0; min-height: 18px; }
+
+        /* Lista de Visitas Salvas */
+        .visita-item { background: var(--black); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 14px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; }
+        .visita-item:hover { border-color: var(--gold); }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
+        .badge.agendada { background: rgba(201,168,76,0.2); color: var(--gold); }
+        .badge.confirmada { background: rgba(0, 150, 255, 0.2); color: #4db8ff; }
+        .badge.realizada { background: rgba(37, 211, 102, 0.2); color: var(--green); }
     </style>
 </head>
 <body>
@@ -70,11 +72,28 @@
         <p>Controle de Visitas e Intermediação</p>
     </div>
 
-    <div class="container">
-        <div class="card">
-            <h1>Ficha de Visita</h1>
+    <!-- TELA 1: VISÃO DO CLIENTE/PARCEIRO QUANDO CLICA NO LINK DE CONFIRMAÇÃO -->
+    <div class="container" id="telaConfirmacaoCliente" style="display: none;">
+        <div class="card" style="text-align: center;">
+            <h1>Confirmação de Visita</h1>
+            <p id="infoConfirmacao" style="color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">Carregando dados do agendamento...</p>
+            <button type="button" id="btnClienteConfirmar" class="btn-action btn-zap" onclick="confirmarPresencaCliente()">
+                ✅ CONFIRMAR PRESENÇA E CIÊNCIA
+            </button>
+            <p id="msgSucessoCliente" style="color: var(--green); font-weight: 700; display: none; margin-top: 15px;">
+                Visita confirmada com sucesso! Nos vemos no local.
+            </p>
+        </div>
+    </div>
 
-            <!-- Corretor Responsável -->
+    <!-- TELA 2: PAINEL DO CORRETOR (MARIO / IVY) -->
+    <div class="container" id="painelCorretor">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(201,168,76,0.15); margin-bottom: 18px; padding-bottom: 10px;">
+                <h1 id="tituloForm" style="border: none; margin: 0; padding: 0;">Nova Visita</h1>
+                <button type="button" id="btnLimpar" class="btn-novo" style="display: none; width: auto; margin: 0;" onclick="limparFormulario()">+ Nova Ficha</button>
+            </div>
+
             <div class="form-group">
                 <label>Corretor Responsável (M&IC)</label>
                 <select id="corretorMic">
@@ -84,7 +103,6 @@
                 </select>
             </div>
 
-            <!-- Origem do Imóvel -->
             <div class="form-group">
                 <label>Origem do Imóvel</label>
                 <select id="origemImovel" onchange="alternarOrigem()">
@@ -93,7 +111,6 @@
                 </select>
             </div>
 
-            <!-- BLOCO 1: Imóvel do Site -->
             <div id="blocoSite" class="form-group">
                 <label>Código do Imóvel (Ex: MIC_0021)</label>
                 <div class="busca-row">
@@ -101,7 +118,6 @@
                     <button type="button" id="btnBuscar" class="btn-buscar" onclick="buscarImovelBanco()">Buscar</button>
                 </div>
 
-                <!-- Preview que abre após buscar -->
                 <div id="previewCard">
                     <img id="previewFoto" src="" alt="Foto Principal">
                     <div id="previewTitulo"></div>
@@ -109,13 +125,11 @@
                 </div>
             </div>
 
-            <!-- BLOCO 2: Imóvel Fora do Site -->
             <div id="blocoOutro" class="form-group" style="display: none;">
                 <label>Endereço Completo do Imóvel</label>
                 <input type="text" id="enderecoAvulso" placeholder="Ex: Av. Lúcio Costa, 3500 - Barra da Tijuca">
             </div>
 
-            <!-- Data e Hora da Visita -->
             <div style="display: flex; gap: 10px;">
                 <div class="form-group" style="flex: 1;">
                     <label>Data da Visita</label>
@@ -127,7 +141,6 @@
                 </div>
             </div>
 
-            <!-- Tipo de Parte -->
             <div class="form-group">
                 <label>A visita será com quem?</label>
                 <select id="tipoContato" onchange="alternarParceiro()">
@@ -146,7 +159,6 @@
                 <input type="tel" id="telefoneParte" placeholder="21999999999">
             </div>
 
-            <!-- Campo exclusivo para Corretor Parceiro -->
             <div id="blocoParceiro" class="form-group" style="display: none;">
                 <label>CRECI do Corretor Parceiro</label>
                 <input type="text" id="creciParceiro" placeholder="Ex: CRECI-RJ 00000">
@@ -154,35 +166,43 @@
 
             <hr style="border: 0; border-top: 1px solid rgba(201,168,76,0.15); margin: 20px 0;">
 
-            <!-- Etapa 1: Agendamento -->
-            <button type="button" class="btn-action btn-zap" onclick="enviarConfirmacaoAgendamento()">
-                📲 1. Enviar Pedido de Confirmação (Zap)
+            <!-- Etapa 1: Salva no Banco e Envia Zap com Link de Confirmação -->
+            <button type="button" id="btnAgendar" class="btn-action btn-zap" onclick="salvarEEnviarConfirmacao()">
+                📲 1. Salvar e Enviar Confirmação (Zap)
             </button>
 
             <hr style="border: 0; border-top: 1px solid rgba(201,168,76,0.15); margin: 20px 0;">
 
-            <!-- Etapa 2: No Local da Visita -->
+            <!-- Etapa 2: Evidências no Local + Print opcional -->
             <div class="form-group">
-                <label style="color: var(--gold);">Comprovação no Local (Fotos Obrigatórias na Visita)</label>
+                <label style="color: var(--gold);">Comprovação no Local e Anexos</label>
                 <div class="camera-grid">
                     <div>
                         <button type="button" class="btn-camera" onclick="document.getElementById('inputFotoImovel').click()">
-                            <span>📸</span> Foto do Imóvel / Fachada
+                            <span>📸</span> Foto Fachada/Imóvel
                         </button>
                         <input type="file" id="inputFotoImovel" accept="image/*" capture="environment" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewFachada', 'fachada')">
                         <img id="imgPreviewFachada" class="preview-evidencia">
                     </div>
                     <div>
                         <button type="button" class="btn-camera" onclick="document.getElementById('inputFotoSelfie').click()">
-                            <span>🤳</span> Selfie com Cliente/Parceiro
+                            <span>🤳</span> Selfie com as Partes
                         </button>
                         <input type="file" id="inputFotoSelfie" accept="image/*" capture="user" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewSelfie', 'selfie')">
                         <img id="imgPreviewSelfie" class="preview-evidencia">
                     </div>
                 </div>
+
+                <!-- Opção para subir o print da resposta "Sim" do cliente no WhatsApp -->
+                <div style="margin-top: 10px;">
+                    <button type="button" class="btn-camera" onclick="document.getElementById('inputFotoPrint').click()">
+                        <span>💬</span> Anexar Print do "Sim" no WhatsApp (Opcional)
+                    </button>
+                    <input type="file" id="inputFotoPrint" accept="image/*" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewPrint', 'print')">
+                    <img id="imgPreviewPrint" class="preview-evidencia">
+                </div>
             </div>
 
-            <!-- Termo LGPD Mínimo -->
             <div class="lgpd-box">
                 <label>
                     <input type="checkbox" id="aceiteLgpd" checked>
@@ -192,15 +212,492 @@
 
             <div id="statusMsg"></div>
 
-            <!-- Botão Relatório Final -->
-            <button type="button" id="btnRelatorio" class="btn-action btn-relatorio" onclick="gerarRelatorioVisita()">
-                📄 2. Gerar e Enviar Relatório de Visita
+            <button type="button" id="btnRelatorio" class="btn-action btn-relatorio" onclick="abrirZapRelatorio()">
+                📄 2. Salvar Fotos e Enviar Relatório Final
             </button>
+        </div>
+
+        <!-- HISTÓRICO DE VISITAS SALVAS NO SISTEMA -->
+        <div class="card">
+            <h2>Visitas Registradas (Toque para abrir)</h2>
+            <div id="listaVisitas">Carregando histórico...</div>
         </div>
     </div>
 
-    <!-- Supabase SDK + Script com cache busting -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="visita.js?v=definitivo_3"></script>
+    <script>
+        var SUPABASE_URL = 'https://uztsmkhlvoemjbbyebcr.supabase.co';
+        var SUPABASE_ANON_KEY = 'sb_publishable_nmolEh_G5_hKcfdgy2Xpeg_s4T6ePAz';
+        var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let idVisitaAtual = null;
+        let imovelSelecionado = { codigo: '', titulo: '', endereco: '', fotoCapa: '' };
+        let arquivoFachada = null, arquivoSelfie = null, arquivoPrint = null;
+        let urlFachadaSalva = '', urlSelfieSalva = '', urlPrintSalva = '';
+        let listaVisitasCache = [];
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Verifica se é o cliente abrindo o link de confirmação (?confirmar=UUID)
+            const params = new URLSearchParams(window.location.search);
+            const idConfirmar = params.get('confirmar');
+
+            if (idConfirmar) {
+                document.getElementById('painelCorretor').style.display = 'none';
+                document.getElementById('telaConfirmacaoCliente').style.display = 'block';
+                carregarDadosConfirmacaoCliente(idConfirmar);
+                return;
+            }
+
+            const agora = new Date();
+            document.getElementById('dataVisita').value = agora.toISOString().split('T')[0];
+            document.getElementById('horaVisita').value = agora.toTimeString().substring(0, 5);
+
+            const selectCorretor = document.getElementById('corretorMic');
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (user && user.email) {
+                    const email = user.email.toLowerCase();
+                    if (email.includes('ivy')) selectCorretor.value = 'Ivy Carla Teixeira Chalfoun | CRECI 75179';
+                    else if (email.includes('mario') || email.includes('chalfoun')) selectCorretor.value = 'Mario Chalfoun Junior | CRECI 101338';
+                } else {
+                    const salvo = localStorage.getItem('mic_corretor_padrao');
+                    if (salvo) selectCorretor.value = salvo;
+                }
+            } catch (e) {}
+
+            selectCorretor.addEventListener('change', () => {
+                localStorage.setItem('mic_corretor_padrao', selectCorretor.value);
+            });
+
+            carregarHistoricoVisitas();
+        });
+
+        // LÓGICA DO LINK DE 1 CLIQUE DO CLIENTE/PARCEIRO
+        async function carregarDadosConfirmacaoCliente(id) {
+            const { data, error } = await supabaseClient.from('visitas').select('*').eq('id', id).single();
+            const info = document.getElementById('infoConfirmacao');
+            if (error || !data) {
+                info.innerText = 'Agendamento não localizado.';
+                document.getElementById('btnClienteConfirmar').style.display = 'none';
+                return;
+            }
+            idVisitaAtual = data.id;
+            info.innerHTML = `Olá <strong>${data.nome_parte}</strong>,<br><br>Confirme abaixo o seu agendamento de visita:<br>📍 <strong>${data.endereco}</strong><br>🗓️ <strong>${data.data_visita} às ${data.hora_visita}</strong><br><br><small>Corretor: ${data.corretor_mic}</small>`;
+            if (data.status === 'Confirmada' || data.status === 'Realizada') {
+                document.getElementById('btnClienteConfirmar').style.display = 'none';
+                document.getElementById('msgSucessoCliente').style.display = 'block';
+            }
+        }
+
+        async function confirmarPresencaCliente() {
+            if (!idVisitaAtual) return;
+            const btn = document.getElementById('btnClienteConfirmar');
+            btn.disabled = true;
+            btn.innerText = 'Confirmando...';
+
+            await supabaseClient.from('visitas').update({
+                status: 'Confirmada',
+                confirmado_em: new Date().toISOString()
+            }).eq('id', idVisitaAtual);
+
+            btn.style.display = 'none';
+            document.getElementById('msgSucessoCliente').style.display = 'block';
+        }
+
+        function alternarOrigem() {
+            const origem = document.getElementById('origemImovel').value;
+            document.getElementById('blocoSite').style.display = (origem === 'site') ? 'block' : 'none';
+            document.getElementById('blocoOutro').style.display = (origem === 'site') ? 'none' : 'block';
+        }
+
+        function alternarParceiro() {
+            const tipo = document.getElementById('tipoContato').value;
+            document.getElementById('blocoParceiro').style.display = (tipo === 'parceiro') ? 'block' : 'none';
+            document.getElementById('labelNome').innerText = (tipo === 'parceiro') ? 'Nome do Corretor Parceiro' : 'Nome do Cliente';
+        }
+
+        async function buscarImovelBanco() {
+            const termo = document.getElementById('refImovel').value.trim();
+            const btn = document.getElementById('btnBuscar');
+            const previewCard = document.getElementById('previewCard');
+
+            if (!termo) return alert('Digite o código do imóvel (Ex: MIC_0021).');
+            btn.innerText = '...'; btn.disabled = true;
+
+            const { data, error } = await supabaseClient.from('imoveis').select('*').ilike('referencia', `%${termo}%`).limit(1);
+            btn.innerText = 'Buscar'; btn.disabled = false;
+
+            if (error || !data || data.length === 0) {
+                alert('Nenhum imóvel encontrado com o código: ' + termo);
+                previewCard.style.display = 'none';
+                return;
+            }
+
+            const imo = data[0];
+            let listaFotos = [];
+            if (Array.isArray(imo.fotos)) listaFotos = imo.fotos;
+            else if (typeof imo.fotos === 'string') {
+                let clean = imo.fotos.trim().replace(/^[{[\]}]|[{[\]}]$/g, '');
+                if (clean) listaFotos = clean.split(',').map(s => s.replace(/^"|"$/g, '').trim());
+            }
+
+            const fotoPrincipal = listaFotos.length > 0 ? listaFotos[0] : '';
+            const endFormatado = `${imo.endereco || ''}${imo.numero ? ', ' + imo.numero : ''}${imo.bairro ? ' - ' + imo.bairro : ''}${imo.cidade ? ', ' + imo.cidade : ''}`;
+
+            imovelSelecionado = {
+                codigo: imo.referencia || termo.toUpperCase(),
+                titulo: imo.titulo || 'Imóvel M&IC',
+                endereco: endFormatado,
+                fotoCapa: fotoPrincipal
+            };
+
+            const imgEl = document.getElementById('previewFoto');
+            if (fotoPrincipal) { imgEl.src = fotoPrincipal; imgEl.style.display = 'block'; }
+            else { imgEl.style.display = 'none'; }
+
+            document.getElementById('previewTitulo').innerText = `${imovelSelecionado.codigo} - ${imovelSelecionado.titulo}`;
+            document.getElementById('previewEndereco').innerText = imovelSelecionado.endereco;
+            previewCard.style.display = 'block';
+        }
+
+        async function processarFotoLocal(input, idImgPreview, tipo) {
+            if (!input.files || input.files.length === 0) return;
+            const file = input.files[0];
+
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            await new Promise(r => img.onload = r);
+
+            const canvas = document.createElement('canvas');
+            const maxDim = 1280;
+            let w = img.width, h = img.height;
+            if (w > maxDim || h > maxDim) {
+                if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                else { w = Math.round((w * maxDim) / h); h = maxDim; }
+            }
+
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+
+            const carimbo = new Date().toLocaleString('pt-BR');
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(10, h - 40, 310, 30);
+            ctx.fillStyle = '#C9A84C';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText(`M&IC Registro: ${carimbo}`, 18, h - 20);
+
+            const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.82));
+            const arquivoFinal = new File([blob], `visita_${tipo}_${Date.now()}.jpg`, { type: 'image/jpeg' });
+
+            if (tipo === 'fachada') arquivoFachada = arquivoFinal;
+            if (tipo === 'selfie') arquivoSelfie = arquivoFinal;
+            if (tipo === 'print') arquivoPrint = arquivoFinal;
+
+            const previewEl = document.getElementById(idImgPreview);
+            previewEl.src = URL.createObjectURL(blob);
+            previewEl.style.display = 'block';
+        }
+
+        function obterDadosFormulario() {
+            const origem = document.getElementById('origemImovel').value;
+            const enderecoFinal = (origem === 'site') ? imovelSelecionado.endereco : document.getElementById('enderecoAvulso').value.trim();
+            const dataBruta = document.getElementById('dataVisita').value;
+            const dataFormatada = dataBruta ? dataBruta.split('-').reverse().join('/') : '';
+
+            return {
+                corretorMic: document.getElementById('corretorMic').value,
+                origem: origem,
+                codigo: origem === 'site' ? imovelSelecionado.codigo : 'Imóvel Externo',
+                titulo: origem === 'site' ? imovelSelecionado.titulo : '',
+                endereco: enderecoFinal,
+                fotoCapa: origem === 'site' ? imovelSelecionado.fotoCapa : '',
+                data: dataFormatada,
+                dataIso: dataBruta,
+                hora: document.getElementById('horaVisita').value,
+                tipoContato: document.getElementById('tipoContato').value,
+                nome: document.getElementById('nomeParte').value.trim(),
+                telefone: document.getElementById('telefoneParte').value.replace(/\D/g, ''),
+                creciParceiro: document.getElementById('creciParceiro').value.trim(),
+                lgpd: document.getElementById('aceiteLgpd').checked
+            };
+        }
+
+        // 1. SALVA NO SUPABASE E ABRE O WHATSAPP COM O LINK DE CONFIRMAÇÃO
+        async function salvarEEnviarConfirmacao() {
+            const d = obterDadosFormulario();
+
+            if (d.origem === 'site' && !d.endereco) return alert('Clique em BUSCAR primeiro para carregar o imóvel.');
+            if (d.origem === 'outro' && !d.endereco) return alert('Digite o endereço completo do imóvel.');
+            if (!d.nome || !d.telefone) return alert('Preencha o Nome e o WhatsApp.');
+            if (d.tipoContato === 'parceiro' && !d.creciParceiro) return alert('Preencha o CRECI do corretor parceiro.');
+
+            const payload = {
+                corretor_mic: d.corretorMic,
+                origem: d.origem,
+                codigo_imovel: d.codigo,
+                titulo_imovel: d.titulo,
+                endereco: d.endereco,
+                foto_capa: d.fotoCapa,
+                data_visita: d.data,
+                hora_visita: d.hora,
+                tipo_contato: d.tipoContato,
+                nome_parte: d.nome,
+                telefone_parte: d.telefone,
+                creci_parceiro: d.creciParceiro,
+                status: 'Agendada'
+            };
+
+            let registroId = idVisitaAtual;
+            if (registroId) {
+                await supabaseClient.from('visitas').update(payload).eq('id', registroId);
+            } else {
+                const { data, error } = await supabaseClient.from('visitas').insert([payload]).select().single();
+                if (!error && data) {
+                    registroId = data.id;
+                    idVisitaAtual = data.id;
+                }
+            }
+
+            carregarHistoricoVisitas();
+
+            let msg = '';
+            if (d.origem === 'site') {
+                msg += `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}\n\n`;
+            }
+
+            if (d.tipoContato === 'parceiro') {
+                msg += `Olá colega corretor(a) *${d.nome}* (CRECI: ${d.creciParceiro}), tudo bem?\n\n`;
+                msg += `Aqui é da *M&IC Corretores de Imóveis*. Estamos registrando nossa parceria de intermediação para a visita agendada:\n\n`;
+            } else {
+                msg += `Olá *${d.nome}*, tudo bem?\n\n`;
+                msg += `Aqui é da *M&IC Corretores de Imóveis*. Passando para confirmar os detalhes da nossa visita ao imóvel:\n\n`;
+            }
+
+            if (d.origem === 'site') msg += `• *Imóvel:* ${d.codigo} - ${d.titulo}\n`;
+            msg += `• *Endereço:* ${d.endereco}\n`;
+            msg += `• *Data:* ${d.data} às *${d.hora}*\n\n`;
+
+            msg += `*Você confirma o nosso agendamento neste local e horário?*\n`;
+            if (registroId) {
+                msg += `👉 Confirme com 1 clique aqui: ${window.location.origin}/visita.html?confirmar=${registroId}\n_(Ou responda "Sim" nesta mensagem)._\n\n`;
+            } else {
+                msg += `_(Por favor, responda com "Sim" ou "Confirmado" para validarmos o acesso)._\n\n`;
+            }
+            msg += `Atenciosamente,\n*${d.corretorMic}*`;
+
+            const fone = d.telefone.startsWith('55') ? d.telefone : `55${d.telefone}`;
+            window.open(`https://wa.me/${fone}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // 2. FAZ UPLOAD DAS FOTOS, ATUALIZA O REGISTRO NO BANCO PARA "REALIZADA" E ENVIA O RELATÓRIO
+        async function abrirZapRelatorio() {
+            const d = obterDadosFormulario();
+
+            if (!d.endereco || !d.nome || !d.telefone) return alert('Verifique se o Imóvel, Nome e WhatsApp estão preenchidos.');
+            if (d.tipoContato === 'parceiro' && !d.creciParceiro) return alert('Informe o CRECI do corretor parceiro.');
+            if (!d.lgpd) return alert('É necessário marcar a ciência da LGPD.');
+
+            const btn = document.getElementById('btnRelatorio');
+            const statusMsg = document.getElementById('statusMsg');
+            btn.disabled = true;
+            statusMsg.style.color = 'var(--gold)';
+            statusMsg.innerText = 'Salvando fotos e amarrando visita no banco...';
+
+            let urlFachada = urlFachadaSalva;
+            let urlSelfie = urlSelfieSalva;
+            let urlPrint = urlPrintSalva;
+
+            try {
+                if (arquivoFachada) {
+                    const nomeArq1 = `visita_fachada_${Date.now()}.jpg`;
+                    const { error: err1 } = await supabaseClient.storage.from('imoveis_fotos').upload(nomeArq1, arquivoFachada);
+                    if (!err1) urlFachada = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(nomeArq1).data.publicUrl;
+                }
+                if (arquivoSelfie) {
+                    const nomeArq2 = `visita_selfie_${Date.now()}.jpg`;
+                    const { error: err2 } = await supabaseClient.storage.from('imoveis_fotos').upload(nomeArq2, arquivoSelfie);
+                    if (!err2) urlSelfie = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(nomeArq2).data.publicUrl;
+                }
+                if (arquivoPrint) {
+                    const nomeArq3 = `visita_print_${Date.now()}.jpg`;
+                    const { error: err3 } = await supabaseClient.storage.from('imoveis_fotos').upload(nomeArq3, arquivoPrint);
+                    if (!err3) urlPrint = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(nomeArq3).data.publicUrl;
+                }
+            } catch (e) {}
+
+            const payload = {
+                corretor_mic: d.corretorMic,
+                origem: d.origem,
+                codigo_imovel: d.codigo,
+                titulo_imovel: d.titulo,
+                endereco: d.endereco,
+                foto_capa: d.fotoCapa,
+                data_visita: d.data,
+                hora_visita: d.hora,
+                tipo_contato: d.tipoContato,
+                nome_parte: d.nome,
+                telefone_parte: d.telefone,
+                creci_parceiro: d.creciParceiro,
+                status: 'Realizada',
+                foto_fachada: urlFachada || null,
+                foto_selfie: urlSelfie || null,
+                foto_print_zap: urlPrint || null
+            };
+
+            if (idVisitaAtual) {
+                await supabaseClient.from('visitas').update(payload).eq('id', idVisitaAtual);
+            } else {
+                const { data } = await supabaseClient.from('visitas').insert([payload]).select().single();
+                if (data) idVisitaAtual = data.id;
+            }
+
+            carregarHistoricoVisitas();
+
+            btn.disabled = false;
+            statusMsg.style.color = '#25D366';
+            statusMsg.innerText = 'Visita salva no sistema! Abrindo WhatsApp...';
+
+            const carimboAgora = new Date().toLocaleString('pt-BR');
+            let rel = '';
+            if (d.origem === 'site') {
+                rel += `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}\n\n`;
+            }
+
+            rel += `*TERMO E RELATÓRIO DE VISITA IMOBILIÁRIA*\n`;
+            rel += `Registro: ${carimboAgora}\n\n`;
+
+            if (d.origem === 'site') rel += `• *Imóvel:* ${d.codigo} - ${d.titulo}\n`;
+            rel += `• *Endereço:* ${d.endereco}\n\n`;
+
+            if (d.tipoContato === 'parceiro') {
+                rel += `• *Modalidade:* Visita em Parceria Imobiliária\n`;
+                rel += `• *Corretor Parceiro:* ${d.nome}\n`;
+                rel += `• *CRECI Parceiro:* ${d.creciParceiro}\n`;
+            } else {
+                rel += `• *Modalidade:* Atendimento Direto\n`;
+                rel += `• *Cliente Visitante:* ${d.nome}\n`;
+            }
+
+            rel += `\n*EVIDÊNCIAS DE PRESENÇA E INTERMEDIAÇÃO:*\n`;
+            rel += `> *Foto no Local:* ${urlFachada || 'Registrada no sistema'}\n`;
+            rel += `> *Selfie com as Partes:* ${urlSelfie || 'Registrada no sistema'}\n`;
+            if (urlPrint) rel += `> *Confirmação Prévia:* ${urlPrint}\n`;
+
+            rel += `\n*Nota Legal e LGPD:* Este registro comprova a efetiva apresentação do imóvel e a intermediação imobiliária realizada nesta data. Os dados mínimos acima foram coletados exclusivamente para este fim (Lei 13.709/18).\n\n`;
+            rel += `*Por favor, responda "Ciente" ou "De acordo" abaixo para confirmação deste registro.*\n\n`;
+            rel += `*${d.corretorMic}*`;
+
+            const fone = d.telefone.startsWith('55') ? d.telefone : `55${d.telefone}`;
+            window.open(`https://wa.me/${fone}?text=${encodeURIComponent(rel)}`, '_blank');
+        }
+
+        // LISTA AS VISITAS SALVAS PARA VOCÊ REABRIR NO CELULAR QUANDO CHEGAR NO IMÓVEL
+        async function carregarHistoricoVisitas() {
+            const container = document.getElementById('listaVisitas');
+            const { data, error } = await supabaseClient.from('visitas').select('*').order('created_at', { ascending: false }).limit(20);
+
+            if (error || !data || data.length === 0) {
+                container.innerHTML = '<p style="color:var(--gray); font-size:13px;">Nenhuma visita registrada ainda.</p>';
+                return;
+            }
+
+            listaVisitasCache = data;
+            container.innerHTML = '';
+
+            data.forEach(v => {
+                let badgeClass = 'agendada';
+                if (v.status === 'Confirmada') badgeClass = 'confirmada';
+                if (v.status === 'Realizada') badgeClass = 'realizada';
+
+                const dataConf = v.confirmado_em ? ` (Confirmado em ${new Date(v.confirmado_em).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})})` : '';
+
+                container.innerHTML += `
+                    <div class="visita-item" onclick="selecionarVisitaSalva('${v.id}')">
+                        <span class="badge ${badgeClass}">${v.status || 'Agendada'}${dataConf}</span>
+                        <div style="font-weight:700; color:var(--gold); font-size:14px;">${v.codigo_imovel || 'Imóvel'} - ${v.nome_parte}</div>
+                        <div style="font-size:12px; color:#ccc; margin-top:4px;">📍 ${v.endereco}</div>
+                        <div style="font-size:11px; color:var(--gray); margin-top:4px;">🗓️ ${v.data_visita} às ${v.hora_visita} | ${v.tipo_contato === 'parceiro' ? 'Parceiro (' + v.creci_parceiro + ')' : 'Cliente Direto'}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function selecionarVisitaSalva(id) {
+            const v = listaVisitasCache.find(item => item.id === id);
+            if (!v) return;
+
+            idVisitaAtual = v.id;
+            document.getElementById('tituloForm').innerText = `Editando Visita (${v.status})`;
+            document.getElementById('btnLimpar').style.display = 'block';
+
+            document.getElementById('corretorMic').value = v.corretor_mic || 'Mario Chalfoun Junior | CRECI 101338';
+            document.getElementById('origemImovel').value = v.origem || 'site';
+            alternarOrigem();
+
+            if (v.origem === 'site') {
+                document.getElementById('refImovel').value = v.codigo_imovel || '';
+                imovelSelecionado = {
+                    codigo: v.codigo_imovel,
+                    titulo: v.titulo_imovel,
+                    endereco: v.endereco,
+                    fotoCapa: v.foto_capa
+                };
+                document.getElementById('previewTitulo').innerText = `${v.codigo_imovel} - ${v.titulo_imovel || ''}`;
+                document.getElementById('previewEndereco').innerText = v.endereco;
+                if (v.foto_capa) {
+                    document.getElementById('previewFoto').src = v.foto_capa;
+                    document.getElementById('previewFoto').style.display = 'block';
+                }
+                document.getElementById('previewCard').style.display = 'block';
+            } else {
+                document.getElementById('enderecoAvulso').value = v.endereco || '';
+            }
+
+            if (v.data_visita && v.data_visita.includes('/')) {
+                document.getElementById('dataVisita').value = v.data_visita.split('/').reverse().join('-');
+            }
+            document.getElementById('horaVisita').value = v.hora_visita || '';
+            document.getElementById('tipoContato').value = v.tipo_contato || 'direto';
+            alternarParceiro();
+
+            document.getElementById('nomeParte').value = v.nome_parte || '';
+            document.getElementById('telefoneParte').value = v.telefone_parte || '';
+            document.getElementById('creciParceiro').value = v.creci_parceiro || '';
+
+            urlFachadaSalva = v.foto_fachada || '';
+            urlSelfieSalva = v.foto_selfie || '';
+            urlPrintSalva = v.foto_print_zap || '';
+
+            const p1 = document.getElementById('imgPreviewFachada');
+            if (urlFachadaSalva) { p1.src = urlFachadaSalva; p1.style.display = 'block'; } else p1.style.display = 'none';
+
+            const p2 = document.getElementById('imgPreviewSelfie');
+            if (urlSelfieSalva) { p2.src = urlSelfieSalva; p2.style.display = 'block'; } else p2.style.display = 'none';
+
+            const p3 = document.getElementById('imgPreviewPrint');
+            if (urlPrintSalva) { p3.src = urlPrintSalva; p3.style.display = 'block'; } else p3.style.display = 'none';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function limparFormulario() {
+            idVisitaAtual = null;
+            arquivoFachada = null; arquivoSelfie = null; arquivoPrint = null;
+            urlFachadaSalva = ''; urlSelfieSalva = ''; urlPrintSalva = '';
+            document.getElementById('tituloForm').innerText = 'Nova Visita';
+            document.getElementById('btnLimpar').style.display = 'none';
+            document.getElementById('refImovel').value = '';
+            document.getElementById('enderecoAvulso').value = '';
+            document.getElementById('nomeParte').value = '';
+            document.getElementById('telefoneParte').value = '';
+            document.getElementById('creciParceiro').value = '';
+            document.getElementById('previewCard').style.display = 'none';
+            document.getElementById('imgPreviewFachada').style.display = 'none';
+            document.getElementById('imgPreviewSelfie').style.display = 'none';
+            document.getElementById('imgPreviewPrint').style.display = 'none';
+            document.getElementById('statusMsg').innerText = '';
+        }
+    </script>
 </body>
 </html>
