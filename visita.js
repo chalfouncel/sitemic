@@ -7,20 +7,17 @@ let imovelSelecionado = {
     codigo: '',
     titulo: '',
     endereco: '',
-    fotoCapa: '',
-    arquivoCapa: null
+    fotoCapa: ''
 };
 
 let arquivoFachada = null;
 let arquivoSelfie = null;
 
-// Inicialização: Data/Hora + Identificação automática do Corretor Logado (Mario ou Ivy)
 window.addEventListener('DOMContentLoaded', async () => {
     const agora = new Date();
     document.getElementById('dataVisita').value = agora.toISOString().split('T')[0];
     document.getElementById('horaVisita').value = agora.toTimeString().substring(0, 5);
 
-    // Verifica quem está logado no Supabase ou salvo no aparelho
     const selectCorretor = document.getElementById('corretorMic');
     try {
         const { data: { user } } = await supabaseClient.auth.getUser();
@@ -37,7 +34,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (e) {}
 
-    // Memoriza a escolha no celular de cada um
     selectCorretor.addEventListener('change', () => {
         localStorage.setItem('mic_corretor_padrao', selectCorretor.value);
     });
@@ -55,7 +51,6 @@ function alternarParceiro() {
     document.getElementById('labelNome').innerText = (tipo === 'parceiro') ? 'Nome do Corretor Parceiro' : 'Nome do Cliente';
 }
 
-// Busca o imóvel e já baixa a foto principal em memória para envio direto no WhatsApp
 async function buscarImovelBanco() {
     const termo = document.getElementById('refImovel').value.trim();
     const btn = document.getElementById('btnBuscar');
@@ -95,24 +90,11 @@ async function buscarImovelBanco() {
         const fotoPrincipal = listaFotos.length > 0 ? listaFotos[0] : '';
         const endFormatado = `${imo.endereco || ''}${imo.numero ? ', ' + imo.numero : ''}${imo.bairro ? ' - ' + imo.bairro : ''}${imo.cidade ? ', ' + imo.cidade : ''}`;
 
-        // Baixa o arquivo da foto de capa para anexar direto no WhatsApp pelo celular
-        let fileCapa = null;
-        if (fotoPrincipal) {
-            try {
-                const resp = await fetch(fotoPrincipal);
-                const blob = await resp.blob();
-                fileCapa = new File([blob], `${imo.referencia || 'imovel'}.jpg`, { type: 'image/jpeg' });
-            } catch (e) {
-                console.warn('Não foi possível converter a capa em arquivo local:', e);
-            }
-        }
-
         imovelSelecionado = {
             codigo: imo.referencia || termo.toUpperCase(),
             titulo: imo.titulo || 'Imóvel M&IC',
             endereco: endFormatado,
-            fotoCapa: fotoPrincipal,
-            arquivoCapa: fileCapa
+            fotoCapa: fotoPrincipal
         };
 
         const imgEl = document.getElementById('previewFoto');
@@ -130,11 +112,10 @@ async function buscarImovelBanco() {
     } catch (err) {
         btn.innerText = 'Buscar';
         btn.disabled = false;
-        alert('Erro ao consultar banco de dados.');
+        alert('Erro ao consultar a base de dados.');
     }
 }
 
-// Processa as fotos tiradas na visita com carimbo de data/hora
 async function processarFotoLocal(input, idImgPreview, tipo) {
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
@@ -193,7 +174,6 @@ function obterDadosFormulario() {
         titulo: origem === 'site' ? imovelSelecionado.titulo : '',
         endereco: enderecoFinal,
         fotoCapa: origem === 'site' ? imovelSelecionado.fotoCapa : '',
-        arquivoCapa: origem === 'site' ? imovelSelecionado.arquivoCapa : null,
         data: dataFormatada,
         hora: hora,
         tipoContato: document.getElementById('tipoContato').value,
@@ -204,8 +184,8 @@ function obterDadosFormulario() {
     };
 }
 
-// 1. CONFIRMAÇÃO DE AGENDAMENTO (Envia a foto real no celular ou link com preview no PC)
-async function enviarConfirmacaoAgendamento() {
+// 1. CONFIRMAÇÃO DE AGENDAMENTO (DIRETO PARA O WHATSAPP DO CLIENTE/PARCEIRO)
+function enviarConfirmacaoAgendamento() {
     const d = obterDadosFormulario();
 
     if (d.origem === 'site' && !d.endereco) return alert('Clique em BUSCAR primeiro para carregar o imóvel.');
@@ -214,9 +194,16 @@ async function enviarConfirmacaoAgendamento() {
     if (d.tipoContato === 'parceiro' && !d.creciParceiro) return alert('Preencha o CRECI do corretor parceiro.');
 
     let msg = '';
+
+    // Se for do site, coloca o link da nossa rota de Card no topo para o WhatsApp puxar a FOTO PRINCIPAL
+    if (d.origem === 'site') {
+        const linkCard = `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}`;
+        msg += `${linkCard}\n\n`;
+    }
+
     if (d.tipoContato === 'parceiro') {
         msg += `Olá colega corretor(a) *${d.nome}* (CRECI: ${d.creciParceiro}), tudo bem?\n\n`;
-        msg += `Aqui é da *M&IC Corretores de Imóveis*. Estamos registrando nossa parceria de intermediação para a visita agendada:\n\n`;
+        msg += `Aqui é da *M&IC Corretores de Imóveis*. Estamos a registar a nossa parceria de intermediação para a visita agendada:\n\n`;
     } else {
         msg += `Olá *${d.nome}*, tudo bem?\n\n`;
         msg += `Aqui é da *M&IC Corretores de Imóveis*. Passando para confirmar os detalhes da nossa visita ao imóvel:\n\n`;
@@ -231,26 +218,11 @@ async function enviarConfirmacaoAgendamento() {
     msg += `\n*Você confirma o nosso agendamento neste local e horário?*\n_(Por favor, responda com "Sim" ou "Confirmado" para validarmos o acesso)._\n\n`;
     msg += `Atenciosamente,\n*${d.corretorMic}*`;
 
-    // No celular: compartilha a FOTO REAL aberta junto com o texto no WhatsApp
-    if (d.arquivoCapa && navigator.canShare && navigator.canShare({ files: [d.arquivoCapa] })) {
-        try {
-            await navigator.share({
-                files: [d.arquivoCapa],
-                text: msg
-            });
-            return;
-        } catch (err) {
-            console.log('Compartilhamento nativo cancelado, abrindo link direto...');
-        }
-    }
-
-    // Fallback para PC: coloca o link da foto no topo para forçar o WhatsApp a carregar o card
-    const textoFallback = (d.origem === 'site' && d.fotoCapa) ? `${d.fotoCapa}\n\n${msg}` : msg;
     const fone = d.telefone.startsWith('55') ? d.telefone : `55${d.telefone}`;
-    window.open(`https://wa.me/${fone}?text=${encodeURIComponent(textoFallback)}`, '_blank');
+    window.open(`https://wa.me/${fone}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
-// 2. RELATÓRIO DE VISITA REALIZADA
+// 2. RELATÓRIO DE VISITA REALIZADA (DIRETO PARA O WHATSAPP DO CLIENTE/PARCEIRO)
 async function gerarRelatorioVisita() {
     const d = obterDadosFormulario();
 
@@ -262,7 +234,7 @@ async function gerarRelatorioVisita() {
     const statusMsg = document.getElementById('statusMsg');
     btn.disabled = true;
     statusMsg.style.color = 'var(--gold)';
-    statusMsg.innerText = 'Salvando fotos comprobatórias...';
+    statusMsg.innerText = 'A guardar fotos comprovativas...';
 
     let urlFachada = '';
     let urlSelfie = '';
@@ -284,12 +256,18 @@ async function gerarRelatorioVisita() {
 
     btn.disabled = false;
     statusMsg.style.color = '#25D366';
-    statusMsg.innerText = 'Relatório pronto! Abrindo WhatsApp...';
+    statusMsg.innerText = 'Relatório pronto! A abrir o WhatsApp...';
 
     const carimboAgora = new Date().toLocaleString('pt-BR');
 
-    let rel = `*TERMO E RELATÓRIO DE VISITA IMOBILIÁRIA*\n`;
-    rel += `Registro: ${carimboAgora}\n\n`;
+    let rel = '';
+    if (d.origem === 'site') {
+        const linkCard = `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}`;
+        rel += `${linkCard}\n\n`;
+    }
+
+    rel += `*TERMO E RELATÓRIO DE VISITA IMOBILIÁRIA*\n`;
+    rel += `Registo: ${carimboAgora}\n\n`;
 
     if (d.origem === 'site') {
         rel += `• *Imóvel:* ${d.codigo} - ${d.titulo}\n`;
@@ -306,25 +284,12 @@ async function gerarRelatorioVisita() {
     }
 
     rel += `\n*EVIDÊNCIAS DE PRESENÇA E INTERMEDIAÇÃO:*\n`;
-    if (d.origem === 'site' && d.fotoCapa) rel += `> *Anúncio Oficial:* ${d.fotoCapa}\n`;
-    rel += `> *Foto no Local:* ${urlFachada || 'Arquivada no dispositivo'}\n`;
-    rel += `> *Selfie com as Partes:* ${urlSelfie || 'Arquivada no dispositivo'}\n`;
+    rel += `> *Foto no Local:* ${urlFachada || 'Registada no dispositivo'}\n`;
+    rel += `> *Selfie com as Partes:* ${urlSelfie || 'Registada no dispositivo'}\n`;
 
-    rel += `\n*Nota Legal e LGPD:* Este registro comprova a efetiva apresentação do imóvel e a intermediação imobiliária realizada nesta data. Os dados mínimos acima foram coletados exclusivamente para este fim (Lei 13.709/18).\n\n`;
-    rel += `*Por favor, responda "Ciente" ou "De acordo" abaixo para confirmação deste registro.*\n\n`;
+    rel += `\n*Nota Legal e LGPD:* Este registo comprova a efetiva apresentação do imóvel e a intermediação imobiliária realizada nesta data. Os dados mínimos acima foram recolhidos exclusivamente para este fim (Lei 13.709/18).\n\n`;
+    rel += `*Por favor, responda "Ciente" ou "De acordo" abaixo para confirmação deste registo.*\n\n`;
     rel += `*${d.corretorMic}*`;
-
-    // No celular: se tirou foto da fachada e selfie, já anexa as imagens reais direto na conversa
-    const fotosEvidencia = [arquivoFachada, arquivoSelfie].filter(Boolean);
-    if (fotosEvidencia.length > 0 && navigator.canShare && navigator.canShare({ files: fotosEvidencia })) {
-        try {
-            await navigator.share({
-                files: fotosEvidencia,
-                text: rel
-            });
-            return;
-        } catch (err) {}
-    }
 
     const fone = d.telefone.startsWith('55') ? d.telefone : `55${d.telefone}`;
     window.open(`https://wa.me/${fone}?text=${encodeURIComponent(rel)}`, '_blank');
