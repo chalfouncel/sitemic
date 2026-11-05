@@ -6,7 +6,6 @@
     <title>Ficha de Visita | M&IC</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Biblioteca para gerar e baixar o arquivo .PDF real com todas as cores e fotos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
@@ -46,7 +45,7 @@
 
         .camera-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
         .btn-camera { background: var(--black); border: 1px dashed var(--gold); color: var(--gold); padding: 14px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: center; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
-        .preview-evidencia { width: 100%; height: 110px; object-fit: cover; border-radius: 4px; margin-top: 8px; border: 2px solid var(--green); display: none; }
+        .preview-evidencia { width: 100%; height: 125px; object-fit: cover; border-radius: 4px; margin-top: 8px; border: 2px solid var(--green); display: none; }
 
         .lgpd-box { background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.25); padding: 12px; border-radius: 6px; margin: 18px 0; }
         .lgpd-box label { display: flex; align-items: flex-start; gap: 10px; color: #ccc; font-size: 12px; line-height: 1.4; cursor: pointer; }
@@ -67,94 +66,95 @@
         .badge.confirmada { background: rgba(0, 150, 255, 0.2); color: #4db8ff; }
         .badge.realizada { background: rgba(37, 211, 102, 0.2); color: var(--green); }
 
-        /* ====================================================
-           MODAL E DOCUMENTO OFICIAL M&IC (PADRÃO PRETO & OURO)
-           ==================================================== */
+        /* ==============================================================
+           MODAL E DOCUMENTO OFICIAL M&IC (DIMENSIONADO PARA 1 PÁGINA A4)
+           ============================================================== */
         #modalTermoOverlay {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92);
-            z-index: 9999; overflow-y: auto; padding: 20px 10px;
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 9999; overflow-y: auto; padding: 15px 10px;
         }
         .termo-toolbar {
-            max-width: 780px; margin: 0 auto 15px auto; display: flex; gap: 10px; flex-wrap: wrap;
-            background: #1A1A1A; padding: 12px; border-radius: 8px; border: 1px solid var(--gold);
+            max-width: 760px; margin: 0 auto 12px auto; display: flex; gap: 8px; flex-wrap: wrap;
+            background: #1A1A1A; padding: 10px; border-radius: 8px; border: 1px solid var(--gold);
         }
         .termo-toolbar button {
-            flex: 1; min-width: 140px; padding: 12px; font-weight: 700; font-size: 12px;
+            flex: 1; min-width: 130px; padding: 11px; font-weight: 700; font-size: 12px;
             text-transform: uppercase; border-radius: 6px; cursor: pointer; border: none;
         }
         .btn-dl-pdf { background: var(--gold); color: var(--black); }
         .btn-sh-pdf { background: var(--green); color: var(--white); }
-        .btn-pr-pdf { background: #333; color: var(--white); border: 1px solid #555 !important; }
-        .btn-cl-pdf { background: #ff4444; color: var(--white); flex: 0 0 auto !important; min-width: 90px !important; }
+        .btn-pr-pdf { background: #2C323C; color: var(--white); border: 1px solid var(--gold) !important; }
+        .btn-cl-pdf { background: #ff4444; color: var(--white); flex: 0 0 auto !important; min-width: 85px !important; }
 
-        /* Folha do Documento M&IC */
+        /* Folha A4 calibrada para não quebrar em 2 páginas */
         #documentoTermoMIC {
-            max-width: 780px; margin: 0 auto; background: #0D0D0D; color: #FFFFFF;
-            border: 2px solid #C9A84C; border-radius: 10px; padding: 32px 28px;
-            font-family: 'Inter', sans-serif; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            width: 760px; max-width: 100%; margin: 0 auto; background: #0D0D0D; color: #FFFFFF;
+            border: 2px solid #C9A84C; border-radius: 8px; padding: 20px 22px;
+            font-family: 'Inter', sans-serif; page-break-inside: avoid;
         }
         .doc-header {
             display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 2px solid #C9A84C; padding-bottom: 18px; margin-bottom: 22px; gap: 15px;
+            border-bottom: 2px solid #C9A84C; padding-bottom: 12px; margin-bottom: 12px; gap: 12px;
         }
-        .doc-header img { height: 70px; width: auto; object-fit: contain; }
+        .doc-header img { height: 56px; width: auto; object-fit: contain; }
         .doc-header-text { text-align: right; }
-        .doc-header-text h2 { font-family: 'Playfair Display', serif; color: #C9A84C; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
-        .doc-header-text p { color: #CCCCCC; font-size: 11px; margin-top: 4px; }
+        .doc-header-text h2 { font-family: 'Playfair Display', serif; color: #C9A84C; font-size: 18px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .doc-header-text p { color: #CCCCCC; font-size: 10.5px; margin-top: 3px; }
 
         .doc-grid-meta {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-            background: #171717; border: 1px solid rgba(201,168,76,0.35); border-radius: 6px;
-            padding: 14px; margin-bottom: 18px; font-size: 12px;
+            display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 8px;
+            background: #161616; border: 1px solid rgba(201,168,76,0.35); border-radius: 6px;
+            padding: 10px 12px; margin-bottom: 12px; font-size: 11.5px;
         }
-        .doc-grid-meta div strong { color: #C9A84C; display: block; font-size: 10px; text-transform: uppercase; margin-bottom: 2px; }
+        .doc-grid-meta div strong { color: #C9A84C; display: block; font-size: 9.5px; text-transform: uppercase; margin-bottom: 2px; }
 
         .doc-section {
-            background: #171717; border: 1px solid rgba(201,168,76,0.25); border-radius: 6px;
-            padding: 14px; margin-bottom: 18px;
+            background: #161616; border: 1px solid rgba(201,168,76,0.25); border-radius: 6px;
+            padding: 10px 12px; margin-bottom: 12px; page-break-inside: avoid;
         }
         .doc-section-title {
-            color: #C9A84C; font-family: 'Playfair Display', serif; font-size: 15px;
-            border-bottom: 1px solid rgba(201,168,76,0.2); padding-bottom: 6px; margin-bottom: 10px;
+            color: #C9A84C; font-family: 'Playfair Display', serif; font-size: 13px;
+            border-bottom: 1px solid rgba(201,168,76,0.2); padding-bottom: 4px; margin-bottom: 8px;
             text-transform: uppercase; letter-spacing: 0.5px;
         }
-        .doc-imovel-box { display: flex; gap: 15px; align-items: center; }
-        .doc-imovel-box img { width: 140px; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #C9A84C; flex-shrink: 0; }
-        .doc-imovel-info p { font-size: 13px; line-height: 1.5; color: #EAEAEA; margin-bottom: 4px; }
+        .doc-imovel-box { display: flex; gap: 12px; align-items: center; }
+        .doc-imovel-box img { width: 120px; height: 82px; object-fit: cover; border-radius: 5px; border: 1px solid #C9A84C; flex-shrink: 0; }
+        .doc-imovel-info p { font-size: 12px; line-height: 1.45; color: #EAEAEA; margin-bottom: 3px; }
 
         .doc-fotos-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px;
         }
         .doc-foto-card {
-            background: #111111; border: 1px solid rgba(201,168,76,0.4); border-radius: 6px;
-            padding: 10px; text-align: center;
+            background: #101010; border: 1px solid #C9A84C; border-radius: 6px;
+            padding: 8px; text-align: center;
         }
         .doc-foto-card span {
-            display: block; color: #C9A84C; font-size: 11px; font-weight: 700;
-            text-transform: uppercase; margin-bottom: 8px;
+            display: block; color: #C9A84C; font-size: 10.5px; font-weight: 700;
+            text-transform: uppercase; margin-bottom: 6px;
         }
         .doc-foto-card img {
-            width: 100%; height: 230px; object-fit: cover; border-radius: 4px; border: 1px solid #333;
+            width: 100%; height: 195px; object-fit: cover; border-radius: 4px; display: block; margin: 0 auto;
         }
         .doc-foto-vazia {
-            height: 230px; display: flex; align-items: center; justify-content: center;
-            color: #666; font-size: 12px; border: 1px dashed #333; border-radius: 4px;
+            height: 195px; display: flex; align-items: center; justify-content: center;
+            color: #777; font-size: 11px; border: 1px dashed #444; border-radius: 4px; padding: 10px;
         }
 
         .doc-footer {
-            margin-top: 22px; padding-top: 14px; border-top: 1px solid rgba(201,168,76,0.3);
-            font-size: 11px; color: #BBBBBB; line-height: 1.5; text-align: justify;
+            margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(201,168,76,0.3);
+            font-size: 9.8px; color: #BBBBBB; line-height: 1.4; text-align: justify;
         }
         .doc-assinaturas {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 28px; text-align: center; font-size: 12px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 22px; text-align: center; font-size: 11px;
         }
-        .doc-assinaturas div { border-top: 1px solid #C9A84C; padding-top: 8px; color: #E8D48B; font-weight: 600; }
+        .doc-assinaturas div { border-top: 1px solid #C9A84C; padding-top: 5px; color: #E8D48B; font-weight: 600; }
 
         @media print {
-            body { background: #0D0D0D !important; padding: 0 !important; }
+            @page { size: A4 portrait; margin: 6mm; }
+            body { background: #0D0D0D !important; padding: 0 !important; margin: 0 !important; }
             .no-print, .termo-toolbar { display: none !important; }
             #modalTermoOverlay { position: static !important; display: block !important; background: #0D0D0D !important; padding: 0 !important; }
-            #documentoTermoMIC { box-shadow: none !important; max-width: 100% !important; width: 100% !important; }
+            #documentoTermoMIC { box-shadow: none !important; width: 100% !important; border: 2px solid #C9A84C !important; }
         }
     </style>
 </head>
@@ -205,9 +205,9 @@
             </div>
 
             <div id="blocoSite" class="form-group">
-                <label>Código do Imóvel (Ex: MIC_0021)</label>
+                <label>Código do Imóvel (Ex: MIC_0004)</label>
                 <div class="busca-row">
-                    <input type="text" id="refImovel" placeholder="MIC_0021">
+                    <input type="text" id="refImovel" placeholder="MIC_0004">
                     <button type="button" id="btnBuscar" class="btn-buscar" onclick="buscarImovelBanco()">Buscar</button>
                 </div>
 
@@ -266,20 +266,20 @@
             <hr style="border: 0; border-top: 1px solid rgba(201,168,76,0.15); margin: 20px 0;">
 
             <div class="form-group">
-                <label style="color: var(--gold);">Comprovação no Local (Fotos Obrigatórias)</label>
+                <label style="color: var(--gold);">Comprovação no Local (Fotos Obrigatórias na Visita)</label>
                 <div class="camera-grid">
                     <div>
                         <button type="button" class="btn-camera" onclick="document.getElementById('inputFotoImovel').click()">
                             <span>📸</span> Foto Fachada/Imóvel
                         </button>
-                        <input type="file" id="inputFotoImovel" accept="image/*" capture="environment" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewFachada', 'fachada')">
+                        <input type="file" id="inputFotoImovel" accept="image/*" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewFachada', 'fachada')">
                         <img id="imgPreviewFachada" class="preview-evidencia">
                     </div>
                     <div>
                         <button type="button" class="btn-camera" onclick="document.getElementById('inputFotoSelfie').click()">
                             <span>🤳</span> Selfie com as Partes
                         </button>
-                        <input type="file" id="inputFotoSelfie" accept="image/*" capture="user" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewSelfie', 'selfie')">
+                        <input type="file" id="inputFotoSelfie" accept="image/*" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewSelfie', 'selfie')">
                         <img id="imgPreviewSelfie" class="preview-evidencia">
                     </div>
                 </div>
@@ -307,18 +307,18 @@
             </button>
 
             <button type="button" id="btnVerTermo" class="btn-action btn-laudo" onclick="abrirVisualizadorTermoAtual()">
-                👁️ Visualizar / Baixar / Compartilhar PDF Oficial
+                👁️ Gerar Laudo / Baixar / Compartilhar PDF Oficial
             </button>
         </div>
 
         <div class="card">
-            <h2>Visitas Registradas no Sistema</h2>
+            <h2>Visitas Registradas (Toque para abrir ou gerar PDF)</h2>
             <div id="listaVisitas">Carregando histórico...</div>
         </div>
     </div>
 
     <!-- =================================================================
-         MODAL DO TERMO OFICIAL M&IC (COM BOTÕES BAIXAR, COMPARTILHAR, IMPRIMIR)
+         MODAL DO TERMO OFICIAL M&IC (1 PÁGINA A4 COM FOTOS GARANTIDAS)
          ================================================================= -->
     <div id="modalTermoOverlay">
         <div class="termo-toolbar">
@@ -330,10 +330,10 @@
 
         <div id="documentoTermoMIC">
             <div class="doc-header">
-                <img src="logo.png" alt="M&IC Logo" crossorigin="anonymous">
+                <img id="pdfLogoImg" src="logo.png" alt="M&IC Logo">
                 <div class="doc-header-text">
                     <h2>Termo de Visita e Intermediação</h2>
-                    <p>Comprovação de Apresentação Imobiliária • Lei 13.709/18 (LGPD)</p>
+                    <p>Comprovação Oficial de Apresentação Imobiliária • Lei 13.709/18 (LGPD)</p>
                 </div>
             </div>
 
@@ -343,10 +343,10 @@
                     <span id="pdfStatus" style="color: #25D366; font-weight: 700;"></span>
                 </div>
                 <div>
-                    <strong>Data e Horário da Visita</strong>
+                    <strong>Data e Horário</strong>
                     <span id="pdfDataHora"></span>
                 </div>
-                <div style="grid-column: span 2;">
+                <div>
                     <strong>Corretor(a) Responsável (M&IC)</strong>
                     <span id="pdfCorretor"></span>
                 </div>
@@ -355,7 +355,7 @@
             <div class="doc-section">
                 <div class="doc-section-title">1. Identificação do Imóvel Visitado</div>
                 <div class="doc-imovel-box">
-                    <img id="pdfFotoCapaImovel" src="" alt="Imóvel" crossorigin="anonymous" style="display: none;">
+                    <img id="pdfFotoCapaImovel" src="" alt="Imóvel" style="display: none;">
                     <div class="doc-imovel-info">
                         <p><strong style="color:#C9A84C;">Referência / Imóvel:</strong> <span id="pdfImovelInfo"></span></p>
                         <p><strong style="color:#C9A84C;">Endereço:</strong> <span id="pdfEnderecoInfo"></span></p>
@@ -365,7 +365,7 @@
 
             <div class="doc-section">
                 <div class="doc-section-title">2. Parte Interessada / Acompanhante</div>
-                <p id="pdfClienteInfo" style="font-size: 13px; line-height: 1.6; color: #EAEAEA;"></p>
+                <p id="pdfClienteInfo" style="font-size: 12.5px; line-height: 1.5; color: #EAEAEA;"></p>
             </div>
 
             <div class="doc-section">
@@ -373,20 +373,19 @@
                 <div class="doc-fotos-grid">
                     <div class="doc-foto-card">
                         <span>📸 Fachada / Interior no Local</span>
-                        <img id="pdfImgFachada" src="" alt="Foto Local" crossorigin="anonymous" style="display: none;">
+                        <img id="pdfImgFachada" src="" alt="Foto Local" style="display: none;">
                         <div id="pdfSemFachada" class="doc-foto-vazia">Foto ainda não capturada</div>
                     </div>
                     <div class="doc-foto-card">
                         <span>🤳 Selfie com Cliente / Parceiro</span>
-                        <img id="pdfImgSelfie" src="" alt="Selfie Visita" crossorigin="anonymous" style="display: none;">
+                        <img id="pdfImgSelfie" src="" alt="Selfie Visita" style="display: none;">
                         <div id="pdfSemSelfie" class="doc-foto-vazia">Selfie ainda não capturada</div>
                     </div>
                 </div>
 
-                <!-- Se tiver print anexado, aparece abaixo -->
-                <div id="boxPdfPrint" style="display: none; margin-top: 14px;" class="doc-foto-card">
+                <div id="boxPdfPrint" style="display: none; margin-top: 10px;" class="doc-foto-card">
                     <span>💬 Comprovante / Print de Confirmação no WhatsApp</span>
-                    <img id="pdfImgPrint" src="" alt="Print WhatsApp" crossorigin="anonymous" style="max-height: 240px; object-fit: contain;">
+                    <img id="pdfImgPrint" src="" alt="Print WhatsApp" style="max-height: 150px; object-fit: contain;">
                 </div>
             </div>
 
@@ -408,9 +407,8 @@
         var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let idVisitaAtual = null;
-        let imovelSelecionado = { codigo: '', titulo: '', endereco: '', fotoCapa: '' };
+        let imovelSelecionado = { codigo: '', titulo: '', endereco: '', fotoCapa: '', base64Capa: '' };
 
-        // Guarda TANTO o arquivo para subir no Supabase QUANTO o Base64 imediato para nunca falhar no PDF
         let arquivoFachada = null, arquivoSelfie = null, arquivoPrint = null;
         let base64Fachada = '', base64Selfie = '', base64Print = '';
         let urlFachadaSalva = '', urlSelfieSalva = '', urlPrintSalva = '';
@@ -418,7 +416,46 @@
         let listaVisitasCache = [];
         let dadosVisitaPDF = null;
 
+        async function converterUrlParaBase64(url) {
+            if (!url) return '';
+            if (url.startsWith('data:image')) return url;
+            try {
+                const resp = await fetch(url, { mode: 'cors' });
+                const blob = await resp.blob();
+                return await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = () => resolve(url);
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) {
+                return url;
+            }
+        }
+
+        // Faz o upload tentando primeiro o bucket 'visitas_fotos', depois 'imoveis_fotos', e se não tiver política, guarda o Base64 direto no banco!
+        async function salvarFotoNoSupabaseOuFallback(arquivo, base64Fallback, prefixo) {
+            const nomeStorage = `${prefixo}_${Date.now()}.jpg`;
+            try {
+                // Tentativa 1: Bucket público visitas_fotos
+                const { error: err1 } = await supabaseClient.storage.from('visitas_fotos').upload(nomeStorage, arquivo);
+                if (!err1) {
+                    return supabaseClient.storage.from('visitas_fotos').getPublicUrl(nomeStorage).data.publicUrl;
+                }
+                // Tentativa 2: Bucket imoveis_fotos
+                const { error: err2 } = await supabaseClient.storage.from('imoveis_fotos').upload(nomeStorage, arquivo);
+                if (!err2) {
+                    return supabaseClient.storage.from('imoveis_fotos').getPublicUrl(nomeStorage).data.publicUrl;
+                }
+            } catch (e) {}
+            // Fallback blindado: Retorna o próprio Base64 compactado para gravar na coluna text da tabela visitas (nunca falha!)
+            return base64Fallback;
+        }
+
         window.addEventListener('DOMContentLoaded', async () => {
+            const logoEl = document.getElementById('pdfLogoImg');
+            converterUrlParaBase64('logo.png').then(b64 => { if (b64) logoEl.src = b64; });
+
             const params = new URLSearchParams(window.location.search);
             const idConfirmar = params.get('confirmar');
 
@@ -495,7 +532,7 @@
             const btn = document.getElementById('btnBuscar');
             const previewCard = document.getElementById('previewCard');
 
-            if (!termo) return alert('Digite o código do imóvel (Ex: MIC_0021).');
+            if (!termo) return alert('Digite o código do imóvel (Ex: MIC_0004).');
             btn.innerText = '...'; btn.disabled = true;
 
             const { data, error } = await supabaseClient.from('imoveis').select('*').ilike('referencia', `%${termo}%`).limit(1);
@@ -518,33 +555,50 @@
             const fotoPrincipal = listaFotos.length > 0 ? listaFotos[0] : '';
             const endFormatado = `${imo.endereco || ''}${imo.numero ? ', ' + imo.numero : ''}${imo.bairro ? ' - ' + imo.bairro : ''}${imo.cidade ? ', ' + imo.cidade : ''}`;
 
+            const b64Capa = fotoPrincipal ? await converterUrlParaBase64(fotoPrincipal) : '';
+
             imovelSelecionado = {
                 codigo: imo.referencia || termo.toUpperCase(),
                 titulo: imo.titulo || 'Imóvel M&IC',
                 endereco: endFormatado,
-                fotoCapa: fotoPrincipal
+                fotoCapa: fotoPrincipal,
+                base64Capa: b64Capa
             };
 
             const imgEl = document.getElementById('previewFoto');
-            if (fotoPrincipal) { imgEl.src = fotoPrincipal; imgEl.style.display = 'block'; }
-            else { imgEl.style.display = 'none'; }
+            if (b64Capa || fotoPrincipal) {
+                imgEl.src = b64Capa || fotoPrincipal;
+                imgEl.style.display = 'block';
+            } else {
+                imgEl.style.display = 'none';
+            }
 
             document.getElementById('previewTitulo').innerText = `${imovelSelecionado.codigo} - ${imovelSelecionado.titulo}`;
             document.getElementById('previewEndereco').innerText = imovelSelecionado.endereco;
             previewCard.style.display = 'block';
         }
 
-        // Processa a foto tirada na hora, gera Base64 imediato (garante que aparece no PDF na hora) e faz upload em background
+        // Processa a foto e salva tanto no Storage quanto na tabela visitas
         async function processarFotoLocal(input, idImgPreview, tipo) {
             if (!input.files || input.files.length === 0) return;
             const file = input.files[0];
 
+            const statusMsg = document.getElementById('statusMsg');
+            statusMsg.style.color = 'var(--gold)';
+            statusMsg.innerText = '⏳ Processando e carimbando foto...';
+
+            const dataUrlOriginal = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+
             const img = new Image();
-            img.src = URL.createObjectURL(file);
+            img.src = dataUrlOriginal;
             await new Promise(r => img.onload = r);
 
             const canvas = document.createElement('canvas');
-            const maxDim = 1280;
+            const maxDim = 950;
             let w = img.width, h = img.height;
             if (w > maxDim || h > maxDim) {
                 if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
@@ -556,52 +610,43 @@
             ctx.drawImage(img, 0, 0, w, h);
 
             const carimbo = new Date().toLocaleString('pt-BR');
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-            ctx.fillRect(10, h - 42, 320, 32);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
+            ctx.fillRect(10, h - 38, 300, 28);
             ctx.fillStyle = '#C9A84C';
-            ctx.font = 'bold 14px sans-serif';
-            ctx.fillText(`M&IC Visita: ${carimbo}`, 18, h - 21);
+            ctx.font = 'bold 13px sans-serif';
+            ctx.fillText(`M&IC Visita: ${carimbo}`, 18, h - 19);
 
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-            const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
+            const dataUrlCarimbada = canvas.toDataURL('image/jpeg', 0.78);
+            const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.78));
             const arquivoFinal = new File([blob], `visita_${tipo}_${Date.now()}.jpg`, { type: 'image/jpeg' });
 
             const previewEl = document.getElementById(idImgPreview);
-            previewEl.src = dataUrl;
+            previewEl.src = dataUrlCarimbada;
             previewEl.style.display = 'block';
 
-            if (tipo === 'fachada') { arquivoFachada = arquivoFinal; base64Fachada = dataUrl; }
-            if (tipo === 'selfie') { arquivoSelfie = arquivoFinal; base64Selfie = dataUrl; }
-            if (tipo === 'print') { arquivoPrint = arquivoFinal; base64Print = dataUrl; }
+            if (tipo === 'fachada') { arquivoFachada = arquivoFinal; base64Fachada = dataUrlCarimbada; }
+            if (tipo === 'selfie') { arquivoSelfie = arquivoFinal; base64Selfie = dataUrlCarimbada; }
+            if (tipo === 'print') { arquivoPrint = arquivoFinal; base64Print = dataUrlCarimbada; }
 
-            // Já sobe pro Supabase na mesma hora para garantir a URL salva no banco
-            const statusMsg = document.getElementById('statusMsg');
-            statusMsg.style.color = 'var(--gold)';
-            statusMsg.innerText = '⏳ Anexando foto ao registro...';
+            statusMsg.innerText = '⏳ Gravando foto no banco de dados...';
 
-            try {
-                const nomeStorage = `visita_${tipo}_${Date.now()}.jpg`;
-                const { error } = await supabaseClient.storage.from('imoveis_fotos').upload(nomeStorage, arquivoFinal);
-                if (!error) {
-                    const publicUrl = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(nomeStorage).data.publicUrl;
-                    if (tipo === 'fachada') urlFachadaSalva = publicUrl;
-                    if (tipo === 'selfie') urlSelfieSalva = publicUrl;
-                    if (tipo === 'print') urlPrintSalva = publicUrl;
+            const urlOuBase64 = await salvarFotoNoSupabaseOuFallback(arquivoFinal, dataUrlCarimbada, `visita_${tipo}`);
 
-                    if (idVisitaAtual) {
-                        const updateObj = {};
-                        if (tipo === 'fachada') updateObj.foto_fachada = publicUrl;
-                        if (tipo === 'selfie') updateObj.foto_selfie = publicUrl;
-                        if (tipo === 'print') updateObj.foto_print_zap = publicUrl;
-                        await supabaseClient.from('visitas').update(updateObj).eq('id', idVisitaAtual);
-                        carregarHistoricoVisitas();
-                    }
-                    statusMsg.style.color = '#25D366';
-                    statusMsg.innerText = '✅ Foto anexada e pronta para o Relatório/PDF!';
-                }
-            } catch (e) {
-                statusMsg.innerText = '';
+            if (tipo === 'fachada') urlFachadaSalva = urlOuBase64;
+            if (tipo === 'selfie') urlSelfieSalva = urlOuBase64;
+            if (tipo === 'print') urlPrintSalva = urlOuBase64;
+
+            if (idVisitaAtual) {
+                const updateObj = {};
+                if (tipo === 'fachada') updateObj.foto_fachada = urlOuBase64;
+                if (tipo === 'selfie') updateObj.foto_selfie = urlOuBase64;
+                if (tipo === 'print') updateObj.foto_print_zap = urlOuBase64;
+                await supabaseClient.from('visitas').update(updateObj).eq('id', idVisitaAtual);
+                await carregarHistoricoVisitas();
             }
+
+            statusMsg.style.color = '#25D366';
+            statusMsg.innerText = '✅ Foto gravada com sucesso! Pode gerar o PDF.';
         }
 
         function obterDadosFormulario() {
@@ -638,7 +683,10 @@
                 titulo_imovel: d.titulo, endereco: d.endereco, foto_capa: d.fotoCapa,
                 data_visita: d.data, hora_visita: d.hora, tipo_contato: d.tipoContato,
                 nome_parte: d.nome, telefone_parte: d.telefone, creci_parceiro: d.creciParceiro,
-                status: 'Agendada'
+                status: 'Agendada',
+                foto_fachada: urlFachadaSalva || base64Fachada || null,
+                foto_selfie: urlSelfieSalva || base64Selfie || null,
+                foto_print_zap: urlPrintSalva || base64Print || null
             };
 
             let registroId = idVisitaAtual;
@@ -679,7 +727,17 @@
 
             const btn = document.getElementById('btnRelatorio');
             btn.disabled = true;
-            btn.innerText = '⏳ Salvando registro completo...';
+            btn.innerText = '⏳ Salvando fotos e registro...';
+
+            if (arquivoFachada && !urlFachadaSalva) {
+                urlFachadaSalva = await salvarFotoNoSupabaseOuFallback(arquivoFachada, base64Fachada, 'visita_fachada');
+            }
+            if (arquivoSelfie && !urlSelfieSalva) {
+                urlSelfieSalva = await salvarFotoNoSupabaseOuFallback(arquivoSelfie, base64Selfie, 'visita_selfie');
+            }
+            if (arquivoPrint && !urlPrintSalva) {
+                urlPrintSalva = await salvarFotoNoSupabaseOuFallback(arquivoPrint, base64Print, 'visita_print');
+            }
 
             const payload = {
                 corretor_mic: d.corretorMic, origem: d.origem, codigo_imovel: d.codigo,
@@ -687,9 +745,9 @@
                 data_visita: d.data, hora_visita: d.hora, tipo_contato: d.tipoContato,
                 nome_parte: d.nome, telefone_parte: d.telefone, creci_parceiro: d.creciParceiro,
                 status: 'Realizada',
-                foto_fachada: urlFachadaSalva || null,
-                foto_selfie: urlSelfieSalva || null,
-                foto_print_zap: urlPrintSalva || null
+                foto_fachada: urlFachadaSalva || base64Fachada || null,
+                foto_selfie: urlSelfieSalva || base64Selfie || null,
+                foto_print_zap: urlPrintSalva || base64Print || null
             };
 
             if (idVisitaAtual) {
@@ -702,6 +760,9 @@
             await carregarHistoricoVisitas();
             btn.disabled = false;
             btn.innerText = '📄 2. Salvar Fotos e Enviar Relatório no Zap';
+
+            const linkPublicoFachada = (urlFachadaSalva && urlFachadaSalva.startsWith('http')) ? urlFachadaSalva : 'Arquivada no Laudo PDF M&IC';
+            const linkPublicoSelfie = (urlSelfieSalva && urlSelfieSalva.startsWith('http')) ? urlSelfieSalva : 'Arquivada no Laudo PDF M&IC';
 
             let rel = '';
             if (d.origem === 'site') rel += `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}\n\n`;
@@ -716,8 +777,8 @@
             }
 
             rel += `\n*EVIDÊNCIAS DE PRESENÇA E INTERMEDIAÇÃO:*\n`;
-            rel += `> *Foto no Local:* ${urlFachadaSalva || 'Registrada no sistema M&IC'}\n`;
-            rel += `> *Selfie com as Partes:* ${urlSelfieSalva || 'Registrada no sistema M&IC'}\n\n`;
+            rel += `> *Foto no Local:* ${linkPublicoFachada}\n`;
+            rel += `> *Selfie com as Partes:* ${linkPublicoSelfie}\n\n`;
             rel += `*Nota Legal e LGPD:* Este registro comprova a efetiva apresentação do imóvel e a intermediação imobiliária realizada nesta data (Lei 13.709/18).\n\n`;
             rel += `*Por favor, responda "Ciente" ou "De acordo" abaixo.*\n\n*${d.corretorMic}*`;
 
@@ -742,34 +803,41 @@
                 if (v.status === 'Confirmada') badgeClass = 'confirmada';
                 if (v.status === 'Realizada') badgeClass = 'realizada';
 
-                const temFotos = (v.foto_fachada || v.foto_selfie) ? '📸 Com Fotos' : '⚠️ Sem Fotos locais';
+                const qtdFotos = [v.foto_fachada, v.foto_selfie].filter(Boolean).length;
+                const tagFotos = qtdFotos > 0 ? `📸 ${qtdFotos}/2 Fotos Anexadas` : '⚠️ Sem fotos locais (Toque para anexar)';
 
                 container.innerHTML += `
                     <div class="visita-item">
                         <div onclick="selecionarVisitaSalva('${v.id}')" style="cursor:pointer;">
                             <span class="badge ${badgeClass}">${v.status}</span>
-                            <span style="font-size:11px; color:var(--gold); margin-left:6px;">${temFotos}</span>
+                            <span style="font-size:11px; color:${qtdFotos > 0 ? '#25D366' : 'var(--gold)'}; margin-left:6px; font-weight:600;">${tagFotos}</span>
                             <div style="font-weight:700; color:var(--white); font-size:14px; margin-top:2px;">${v.codigo_imovel} - ${v.nome_parte}</div>
                             <div style="font-size:12px; color:#ccc; margin-top:4px;">📍 ${v.endereco}</div>
                             <div style="font-size:11px; color:var(--gray); margin-top:4px;">🗓️ ${v.data_visita} às ${v.hora_visita}</div>
                         </div>
                         <div style="display:flex; gap:8px; margin-top:10px;">
-                            <button type="button" class="btn-action btn-laudo" style="padding:9px; font-size:11px; margin:0; flex:1;" onclick="abrirModalTermoPorId('${v.id}')">👁️ Abrir / Baixar / Compartilhar PDF</button>
+                            <button type="button" class="btn-action btn-laudo" style="padding:9px; font-size:11px; margin:0; flex:1;" onclick="abrirModalTermoPorId('${v.id}')">👁️ Abrir Laudo / Baixar PDF com Fotos</button>
                         </div>
                     </div>
                 `;
             });
         }
 
-        function selecionarVisitaSalva(id) {
+        function selecionarVisitaSalva(id, manterFotosMemoria = false) {
             const v = listaVisitasCache.find(item => item.id === id);
             if (!v) return;
 
             idVisitaAtual = v.id;
             dadosVisitaPDF = v;
-            base64Fachada = ''; base64Selfie = ''; base64Print = '';
 
-            document.getElementById('tituloForm').innerText = `Editando (${v.status})`;
+            // Só limpa as fotos da memória se estiver trocando para uma visita que já tem fotos próprias salvas
+            if (!manterFotosMemoria) {
+                base64Fachada = v.foto_fachada || '';
+                base64Selfie = v.foto_selfie || '';
+                base64Print = v.foto_print_zap || '';
+            }
+
+            document.getElementById('tituloForm').innerText = `Editando (${v.nome_parte})`;
             document.getElementById('btnLimpar').style.display = 'block';
 
             document.getElementById('corretorMic').value = v.corretor_mic;
@@ -778,7 +846,7 @@
 
             if (v.origem === 'site') {
                 document.getElementById('refImovel').value = v.codigo_imovel;
-                imovelSelecionado = { codigo: v.codigo_imovel, titulo: v.titulo_imovel, endereco: v.endereco, fotoCapa: v.foto_capa };
+                imovelSelecionado = { codigo: v.codigo_imovel, titulo: v.titulo_imovel, endereco: v.endereco, fotoCapa: v.foto_capa, base64Capa: '' };
                 document.getElementById('previewTitulo').innerText = `${v.codigo_imovel} - ${v.titulo_imovel || ''}`;
                 document.getElementById('previewEndereco').innerText = v.endereco;
                 if (v.foto_capa) { document.getElementById('previewFoto').src = v.foto_capa; document.getElementById('previewFoto').style.display = 'block'; }
@@ -798,9 +866,9 @@
             document.getElementById('telefoneParte').value = v.telefone_parte;
             document.getElementById('creciParceiro').value = v.creci_parceiro || '';
 
-            urlFachadaSalva = v.foto_fachada || '';
-            urlSelfieSalva = v.foto_selfie || '';
-            urlPrintSalva = v.foto_print_zap || '';
+            urlFachadaSalva = v.foto_fachada || base64Fachada || '';
+            urlSelfieSalva = v.foto_selfie || base64Selfie || '';
+            urlPrintSalva = v.foto_print_zap || base64Print || '';
 
             const p1 = document.getElementById('imgPreviewFachada');
             if (urlFachadaSalva) { p1.src = urlFachadaSalva; p1.style.display = 'block'; } else p1.style.display = 'none';
@@ -814,27 +882,25 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // =========================================================================
-        // FUNÇÕES DO TERMO OFICIAL M&IC (VISUALIZAR, BAIXAR PDF E COMPARTILHAR PDF)
-        // =========================================================================
-        function abrirModalTermoPorId(id) {
+        async function abrirModalTermoPorId(id) {
             const v = listaVisitasCache.find(item => item.id === id);
             if (!v) return;
-            selecionarVisitaSalva(id);
-            montarTermoNoModal(v);
+            const mesmoRegistro = (idVisitaAtual === id);
+            selecionarVisitaSalva(id, mesmoRegistro);
+            await montarTermoNoModal(v);
         }
 
-        function abrirVisualizadorTermoAtual() {
+        async function abrirVisualizadorTermoAtual() {
             const d = obterDadosFormulario();
             const obj = {
-                status: idVisitaAtual ? 'Realizada / Registrada' : 'Em Preenchimento',
+                status: idVisitaAtual ? 'Realizada' : 'Em Preenchimento',
                 corretor_mic: d.corretorMic,
                 data_visita: d.data || new Date().toLocaleDateString('pt-BR'),
                 hora_visita: d.hora || '',
                 codigo_imovel: d.codigo || 'Imóvel',
                 titulo_imovel: d.titulo || '',
                 endereco: d.endereco || 'Endereço não informado',
-                foto_capa: d.fotoCapa || '',
+                foto_capa: imovelSelecionado.base64Capa || d.fotoCapa || '',
                 tipo_contato: d.tipoContato,
                 nome_parte: d.nome || 'Não informado',
                 telefone_parte: d.telefone || '',
@@ -843,24 +909,20 @@
                 foto_selfie: base64Selfie || urlSelfieSalva,
                 foto_print_zap: base64Print || urlPrintSalva
             };
-            montarTermoNoModal(obj);
+            await montarTermoNoModal(obj);
         }
 
-        function montarTermoNoModal(v) {
+        async function montarTermoNoModal(v) {
+            const statusMsg = document.getElementById('statusMsg');
+            statusMsg.style.color = 'var(--gold)';
+            statusMsg.innerText = '⏳ Montando Laudo Oficial com as fotos...';
+
             dadosVisitaPDF = v;
             document.getElementById('pdfStatus').innerText = v.status || 'Realizada';
             document.getElementById('pdfCorretor').innerText = v.corretor_mic || '';
             document.getElementById('pdfDataHora').innerText = `${v.data_visita || ''} às ${v.hora_visita || ''}`;
             document.getElementById('pdfImovelInfo').innerText = `${v.codigo_imovel || ''} ${v.titulo_imovel ? '- ' + v.titulo_imovel : ''}`;
             document.getElementById('pdfEnderecoInfo').innerText = v.endereco || '';
-
-            const imgCapa = document.getElementById('pdfFotoCapaImovel');
-            if (v.foto_capa) {
-                imgCapa.src = v.foto_capa;
-                imgCapa.style.display = 'block';
-            } else {
-                imgCapa.style.display = 'none';
-            }
 
             let textoParte = `<strong>Nome:</strong> ${v.nome_parte || ''} &nbsp;|&nbsp; <strong>WhatsApp:</strong> ${v.telefone_parte || ''}`;
             if (v.tipo_contato === 'parceiro') {
@@ -873,34 +935,49 @@
             document.getElementById('pdfAssinaturaCorretor').innerText = v.corretor_mic || 'M&IC Corretores';
             document.getElementById('pdfAssinaturaCliente').innerText = `${v.nome_parte || 'Cliente / Parceiro'}`;
 
-            // Fotos de evidência (usa o Base64 imediato ou o link salvo no Supabase)
-            const srcFachada = base64Fachada || v.foto_fachada || '';
+            const imgCapa = document.getElementById('pdfFotoCapaImovel');
+            if (v.foto_capa) {
+                imgCapa.src = await converterUrlParaBase64(v.foto_capa);
+                imgCapa.style.display = 'block';
+            } else {
+                imgCapa.style.display = 'none';
+            }
+
+            const srcFachada = v.foto_fachada || base64Fachada || urlFachadaSalva || '';
             const imgF = document.getElementById('pdfImgFachada');
             const semF = document.getElementById('pdfSemFachada');
             if (srcFachada) {
-                imgF.src = srcFachada; imgF.style.display = 'block'; semF.style.display = 'none';
+                imgF.src = await converterUrlParaBase64(srcFachada);
+                imgF.style.display = 'block';
+                semF.style.display = 'none';
             } else {
-                imgF.style.display = 'none'; semF.style.display = 'flex';
+                imgF.style.display = 'none';
+                semF.style.display = 'flex';
             }
 
-            const srcSelfie = base64Selfie || v.foto_selfie || '';
+            const srcSelfie = v.foto_selfie || base64Selfie || urlSelfieSalva || '';
             const imgS = document.getElementById('pdfImgSelfie');
             const semS = document.getElementById('pdfSemSelfie');
             if (srcSelfie) {
-                imgS.src = srcSelfie; imgS.style.display = 'block'; semS.style.display = 'none';
+                imgS.src = await converterUrlParaBase64(srcSelfie);
+                imgS.style.display = 'block';
+                semS.style.display = 'none';
             } else {
-                imgS.style.display = 'none'; semS.style.display = 'flex';
+                imgS.style.display = 'none';
+                semS.style.display = 'flex';
             }
 
-            const srcPrint = base64Print || v.foto_print_zap || '';
+            const srcPrint = v.foto_print_zap || base64Print || urlPrintSalva || '';
             const boxP = document.getElementById('boxPdfPrint');
             const imgP = document.getElementById('pdfImgPrint');
             if (srcPrint) {
-                imgP.src = srcPrint; boxP.style.display = 'block';
+                imgP.src = await converterUrlParaBase64(srcPrint);
+                boxP.style.display = 'block';
             } else {
                 boxP.style.display = 'none';
             }
 
+            statusMsg.innerText = '';
             document.getElementById('modalTermoOverlay').style.display = 'block';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -911,11 +988,12 @@
 
         function opcoesHtml2Pdf(nomeArquivo) {
             return {
-                margin: [8, 8, 8, 8],
+                margin: [5, 5, 5, 5],
                 filename: nomeArquivo,
-                image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#0D0D0D' },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                image: { type: 'jpeg', quality: 0.96 },
+                html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0D0D0D', scrollY: 0 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all'] }
             };
         }
 
@@ -930,7 +1008,6 @@
             try {
                 await html2pdf().set(opcoesHtml2Pdf(nomeArq)).from(elemento).save();
             } catch (e) {
-                alert('Erro ao baixar PDF. Usando impressão nativa.');
                 window.print();
             }
 
@@ -957,12 +1034,9 @@
                         files: [file]
                     });
                 } else {
-                    // Se o navegador desktop não suportar compartilhar arquivo PDF direto, faz o download automático
                     await html2pdf().set(opcoesHtml2Pdf(nomeArq)).from(elemento).save();
                 }
-            } catch (e) {
-                console.error(e);
-            }
+            } catch (e) {}
 
             btn.innerText = '📲 Compartilhar PDF';
             btn.disabled = false;
