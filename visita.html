@@ -168,12 +168,12 @@
     <div class="container no-print" id="telaConfirmacaoCliente" style="display: none;">
         <div class="card" style="text-align: center;">
             <h1>Confirmação de Visita</h1>
-            <p id="infoConfirmacao" style="color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">A carregar...</p>
+            <p id="infoConfirmacao" style="color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">Carregando...</p>
             <button type="button" id="btnClienteConfirmar" class="btn-action btn-zap" onclick="confirmarPresencaCliente()">
                 ✅ CONFIRMAR PRESENÇA E CIÊNCIA
             </button>
             <p id="msgSucessoCliente" style="color: var(--green); font-weight: 700; display: none; margin-top: 15px;">
-                Visita confirmada com sucesso! Vemo-nos no local.
+                Visita confirmada com sucesso! Nos vemos no local.
             </p>
         </div>
     </div>
@@ -198,7 +198,7 @@
             <div class="form-group">
                 <label>Origem do Imóvel</label>
                 <select id="origemImovel" onchange="alternarOrigem()">
-                    <option value="site">Imóvel do Nosso Site (Procurar pelo Código)</option>
+                    <option value="site">Imóvel do Nosso Site (Buscar pelo Código)</option>
                     <option value="outro">Outro Imóvel (Captação / Parceiro / Avulso)</option>
                 </select>
             </div>
@@ -217,14 +217,18 @@
                 </div>
             </div>
 
+            <!-- BLOCO OUTRO IMÓVEL (COM ENDEREÇO E LINK DO ANÚNCIO EXTERNO) -->
             <div id="blocoOutro" class="form-group" style="display: none;">
                 <div class="form-group" style="margin-bottom: 12px;">
                     <label>Endereço Completo do Imóvel</label>
                     <input type="text" id="enderecoAvulso" placeholder="Ex: Av. Lúcio Costa, 3500 - Barra da Tijuca">
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label>Link do Anúncio Externo (ZAP / VivaReal / etc.)</label>
-                    <input type="url" id="linkAnuncioAvulso" placeholder="https://www.zapimoveis.com.br/imovel/...">
+                    <label>Link do Anúncio (ZAP / VivaReal / etc.)</label>
+                    <div class="busca-row">
+                        <input type="url" id="linkAnuncioAvulso" placeholder="https://www.zapimoveis.com.br/imovel/...">
+                        <button type="button" id="btnBuscarOutro" class="btn-buscar" onclick="buscarImovelBanco()">Carregar Anúncio</button>
+                    </div>
                 </div>
             </div>
 
@@ -270,9 +274,6 @@
 
             <hr style="border: 0; border-top: 1px solid rgba(201,168,76,0.15); margin: 20px 0;">
 
-            <!-- ========================================================== -->
-            <!-- BOTÕES DE CÂMERA NATIVA RESTAURADOS (CAPTURE ENVIRONMENT/USER) -->
-            <!-- ========================================================== -->
             <div class="form-group">
                 <label style="color: var(--gold);">Comprovação no Local (Fotos Obrigatórias na Visita)</label>
                 <div class="camera-grid">
@@ -304,7 +305,7 @@
             <div class="lgpd-box">
                 <label>
                     <input type="checkbox" id="aceiteLgpd" checked>
-                    <span>Recolha mínima de dados (Nome, Telefone e Registo Fotográfico local) realizada estritamente para comprovação de visita e intermediação imobiliária, nos termos da LGPD (Lei 13.709/18).</span>
+                    <span>Coleta mínima de dados (Nome, Telefone e Registro Fotográfico local) realizada estritamente para comprovação de visita e intermediação imobiliária, nos termos da LGPD (Lei 13.709/18).</span>
                 </label>
             </div>
 
@@ -320,8 +321,8 @@
         </div>
 
         <div class="card">
-            <h2>Visitas Registadas (Toque para abrir ou gerar PDF)</h2>
-            <div id="listaVisitas">A carregar histórico...</div>
+            <h2>Visitas Registradas (Toque para abrir ou gerar PDF)</h2>
+            <div id="listaVisitas">Carregando histórico...</div>
         </div>
     </div>
 
@@ -347,7 +348,7 @@
 
             <div class="doc-grid-meta">
                 <div>
-                    <strong>Status do Registo</strong>
+                    <strong>Status do Registro</strong>
                     <span id="pdfStatus" style="color: #25D366; font-weight: 700;"></span>
                 </div>
                 <div>
@@ -366,7 +367,7 @@
                     <img id="pdfFotoCapaImovel" src="" alt="Imóvel" style="display: none;">
                     <div class="doc-imovel-info">
                         <p><strong style="color:#C9A84C;">Referência / Imóvel:</strong> <span id="pdfImovelInfo"></span></p>
-                        <p><strong style="color:#C9A84C;">Endereço:</strong> <span id="pdfEnderecoInfo"></span></p>
+                        <p><strong style="color:#C9A84C;">Endereço / Link:</strong> <span id="pdfEnderecoInfo"></span></p>
                     </div>
                 </div>
             </div>
@@ -377,7 +378,7 @@
             </div>
 
             <div class="doc-section">
-                <div class="doc-section-title">3. Evidências Fotográficas e Probatórias no Local</div>
+                <div class="doc-section-title">3. Evidências Fotográficas de Presença no Local</div>
                 <div class="doc-fotos-grid">
                     <div class="doc-foto-card">
                         <span>📸 Fachada / Interior no Local</span>
@@ -392,13 +393,13 @@
                 </div>
 
                 <div id="boxPdfPrint" style="display: none; margin-top: 10px;" class="doc-foto-card">
-                    <span>💬 Comprovativo / Print de Confirmação no WhatsApp</span>
+                    <span>💬 Comprovante / Print de Confirmação no WhatsApp</span>
                     <img id="pdfImgPrint" src="" alt="Print WhatsApp" style="max-height: 150px; object-fit: contain;">
                 </div>
             </div>
 
             <div class="doc-footer">
-                <strong>DECLARAÇÃO JURÍDICA DE INTERMEDIAÇÃO E LGPD:</strong> O presente registo eletrónico comprova a efetiva aproximação entre as partes e a apresentação física do imóvel acima descrito, assegurando a titularidade da intermediação imobiliária nos termos dos arts. 722 a 729 do Código Civil Brasileiro. Os dados pessoais mínimos e registos fotográficos foram recolhidos com finalidade estrita de lastro probatório (Lei nº 13.709/2018).
+                <strong>DECLARAÇÃO JURÍDICA DE INTERMEDIAÇÃO E LGPD:</strong> O presente registro eletrônico comprova a efetiva aproximação entre as partes e a apresentação física do imóvel acima descrito, assegurando a titularidade da intermediação imobiliária nos termos dos arts. 722 a 729 do Código Civil Brasileiro. Os dados pessoais mínimos e registros fotográficos foram colhidos com finalidade estrita de lastro probatório (Lei nº 13.709/2018).
             </div>
 
             <div class="doc-assinaturas">
@@ -521,8 +522,13 @@
 
         function alternarOrigem() {
             const origem = document.getElementById('origemImovel').value;
-            document.getElementById('blocoSite').style.display = (origem === 'site') ? 'block' : 'none';
-            document.getElementById('blocoOutro').style.display = (origem === 'site') ? 'none' : 'block';
+            if (origem === 'site') {
+                document.getElementById('blocoSite').style.display = 'block';
+                document.getElementById('blocoOutro').style.display = 'none';
+            } else {
+                document.getElementById('blocoSite').style.display = 'none';
+                document.getElementById('blocoOutro').style.display = 'block';
+            }
         }
 
         function alternarParceiro() {
@@ -532,13 +538,62 @@
         }
 
         async function buscarImovelBanco() {
-            const termo = document.getElementById('refImovel').value.trim();
-            const btn = document.getElementById('btnBuscar');
+            const origem = document.getElementById('origemImovel').value;
             const previewCard = document.getElementById('previewCard');
 
-            if (!termo) return alert('Digite o código do imóvel (Ex: MIC_0004).');
-            btn.innerText = '...'; btn.disabled = true;
+            // SE FOR OUTRO IMÓVEL (Link externo do ZAP/VivaReal)
+            if (origem === 'outro') {
+                const linkExterno = document.getElementById('linkAnuncioAvulso').value.trim();
+                if (!linkExterno) return alert('Cole o link do anúncio externo primeiro.');
 
+                const btn = document.getElementById('btnBuscarOutro');
+                btn.innerText = 'A processar...'; btn.disabled = true;
+
+                try {
+                    const res = await fetch(`https://api.miccorretores.com.br/api/og?url=${encodeURIComponent(linkExterno)}`).catch(() => null);
+                    const resVercel = res && res.ok ? res : await fetch(`/api/og?url=${encodeURIComponent(linkExterno)}`);
+                    const dadosOg = await resVercel.json();
+
+                    imovelSelecionado = {
+                        codigo: 'EXTERNO',
+                        titulo: dadosOg.title || 'Imóvel Externo (Parceria/Captação)',
+                        endereco: document.getElementById('enderecoAvulso').value.trim() || linkExterno,
+                        fotoCapa: dadosOg.image || 'https://miccorretores.com.br/logo.png',
+                        base64Capa: ''
+                    };
+
+                    imovelSelecionado.base64Capa = await converterUrlParaBase64(imovelSelecionado.fotoCapa);
+
+                    const imgEl = document.getElementById('previewFoto');
+                    imgEl.src = imovelSelecionado.base64Capa || imovelSelecionado.fotoCapa;
+                    imgEl.style.display = 'block';
+
+                    document.getElementById('previewTitulo').innerText = imovelSelecionado.titulo;
+                    document.getElementById('previewEndereco').innerText = imovelSelecionado.endereco;
+                    previewCard.style.display = 'block';
+                    btn.innerText = 'Carregar Anúncio'; btn.disabled = false;
+                } catch (e) {
+                    imovelSelecionado = {
+                        codigo: 'EXTERNO',
+                        titulo: 'Imóvel Externo',
+                        endereco: document.getElementById('enderecoAvulso').value.trim() || linkExterno,
+                        fotoCapa: 'https://miccorretores.com.br/logo.png',
+                        base64Capa: ''
+                    };
+                    document.getElementById('previewTitulo').innerText = 'Imóvel Externo via Link';
+                    document.getElementById('previewEndereco').innerText = imovelSelecionado.endereco;
+                    previewCard.style.display = 'block';
+                    btn.innerText = 'Carregar Anúncio'; btn.disabled = false;
+                }
+                return;
+            }
+
+            // SE FOR DO NOSSO SITE
+            const termo = document.getElementById('refImovel').value.trim();
+            const btn = document.getElementById('btnBuscar');
+            if (!termo) return alert('Digite o código do imóvel (Ex: MIC_0004).');
+
+            btn.innerText = '...'; btn.disabled = true;
             const { data, error } = await supabaseClient.from('imoveis').select('*').ilike('referencia', `%${termo}%`).limit(1);
             btn.innerText = 'Buscar'; btn.disabled = false;
 
@@ -549,13 +604,7 @@
             }
 
             const imo = data[0];
-            let listaFotos = [];
-            if (Array.isArray(imo.fotos)) listaFotos = imo.fotos;
-            else if (typeof imo.fotos === 'string') {
-                let clean = imo.fotos.trim().replace(/^[{[\]}]|[{[\]}]$/g, '');
-                if (clean) listaFotos = clean.split(',').map(s => s.replace(/^"|"$/g, '').trim());
-            }
-
+            let listaFotos = Array.isArray(imo.fotos) ? imo.fotos : (imo.fotos ? String(imo.fotos).replace(/^[{[\]}]|[{[\]}]$/g, '').split(',').map(s => s.replace(/^"|"$/g, '').trim()) : []);
             const fotoPrincipal = listaFotos.length > 0 ? listaFotos[0] : '';
             const endFormatado = `${imo.endereco || ''}${imo.numero ? ', ' + imo.numero : ''}${imo.bairro ? ' - ' + imo.bairro : ''}${imo.cidade ? ', ' + imo.cidade : ''}`;
 
@@ -570,12 +619,8 @@
             };
 
             const imgEl = document.getElementById('previewFoto');
-            if (b64Capa || fotoPrincipal) {
-                imgEl.src = b64Capa || fotoPrincipal;
-                imgEl.style.display = 'block';
-            } else {
-                imgEl.style.display = 'none';
-            }
+            imgEl.src = b64Capa || fotoPrincipal;
+            imgEl.style.display = 'block';
 
             document.getElementById('previewTitulo').innerText = `${imovelSelecionado.codigo} - ${imovelSelecionado.titulo}`;
             document.getElementById('previewEndereco').innerText = imovelSelecionado.endereco;
@@ -654,17 +699,28 @@
 
         function obterDadosFormulario() {
             const origem = document.getElementById('origemImovel').value;
-            const enderecoFinal = (origem === 'site') ? imovelSelecionado.endereco : document.getElementById('enderecoAvulso').value.trim();
+            let enderecoFinal = '';
+            let linkAnuncio = '';
+
+            if (origem === 'site') {
+                enderecoFinal = imovelSelecionado.endereco;
+            } else {
+                enderecoFinal = document.getElementById('enderecoAvulso').value.trim();
+                linkAnuncio = document.getElementById('linkAnuncioAvulso').value.trim();
+                if (linkAnuncio) enderecoFinal += ` | Link: ${linkAnuncio}`;
+            }
+
             const dataBruta = document.getElementById('dataVisita').value;
             const dataFormatada = dataBruta ? dataBruta.split('-').reverse().join('/') : '';
 
             return {
                 corretorMic: document.getElementById('corretorMic').value,
                 origem: origem,
-                codigo: origem === 'site' ? imovelSelecionado.codigo : 'Imóvel Externo',
-                titulo: origem === 'site' ? imovelSelecionado.titulo : '',
+                codigo: origem === 'site' ? imovelSelecionado.codigo : 'EXTERNO',
+                titulo: origem === 'site' ? imovelSelecionado.titulo : (imovelSelecionado.titulo || 'Imóvel Externo'),
                 endereco: enderecoFinal,
-                fotoCapa: origem === 'site' ? imovelSelecionado.fotoCapa : '',
+                linkAnuncio: linkAnuncio,
+                fotoCapa: imovelSelecionado.fotoCapa || '',
                 data: dataFormatada,
                 hora: document.getElementById('horaVisita').value,
                 tipoContato: document.getElementById('tipoContato').value,
@@ -703,7 +759,11 @@
             carregarHistoricoVisitas();
 
             let msg = '';
-            if (d.origem === 'site') msg += `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}\n\n`;
+            if (d.origem === 'site') {
+                msg += `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}\n\n`;
+            } else if (d.linkAnuncio) {
+                msg += `${d.linkAnuncio}\n\n`;
+            }
 
             if (d.tipoContato === 'parceiro') {
                 msg += `Olá colega corretor(a) *${d.nome}* (CRECI: ${d.creciParceiro}), tudo bem?\n\n`;
@@ -768,7 +828,12 @@
             const linkPublicoSelfie = (urlSelfieSalva && urlSelfieSalva.startsWith('http')) ? urlSelfieSalva : 'Arquivada no Laudo PDF M&IC';
 
             let rel = '';
-            if (d.origem === 'site') rel += `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}\n\n`;
+            if (d.origem === 'site') {
+                rel += `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}\n\n`;
+            } else if (d.linkAnuncio) {
+                rel += `${d.linkAnuncio}\n\n`;
+            }
+
             rel += `*TERMO E RELATÓRIO DE VISITA IMOBILIÁRIA*\nRegistro: ${new Date().toLocaleString('pt-BR')}\n\n`;
             if (d.origem === 'site') rel += `• *Imóvel:* ${d.codigo} - ${d.titulo}\n`;
             rel += `• *Endereço:* ${d.endereco}\n\n`;
@@ -854,7 +919,9 @@
                 if (v.foto_capa) { document.getElementById('previewFoto').src = v.foto_capa; document.getElementById('previewFoto').style.display = 'block'; }
                 document.getElementById('previewCard').style.display = 'block';
             } else {
-                document.getElementById('enderecoAvulso').value = v.endereco;
+                let partesEnd = (v.endereco || '').split(' | Link: ');
+                document.getElementById('enderecoAvulso').value = partesEnd[0] || '';
+                document.getElementById('linkAnuncioAvulso').value = partesEnd[1] || '';
             }
 
             if (v.data_visita && v.data_visita.includes('/')) {
@@ -1053,6 +1120,7 @@
             document.getElementById('btnLimpar').style.display = 'none';
             document.getElementById('refImovel').value = '';
             document.getElementById('enderecoAvulso').value = '';
+            document.getElementById('linkAnuncioAvulso').value = '';
             document.getElementById('nomeParte').value = '';
             document.getElementById('telefoneParte').value = '';
             document.getElementById('creciParceiro').value = '';
