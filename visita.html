@@ -67,7 +67,7 @@
         .badge.realizada { background: rgba(37, 211, 102, 0.2); color: var(--green); }
 
         /* ==============================================================
-           MODAL E DOCUMENTO OFICIAL M&IC (DIMENSIONADO PARA 1 PÁGINA A4)
+           MODAL E DOCUMENTO OFICIAL M&IC (1 PÁGINA A4 EXATA)
            ============================================================== */
         #modalTermoOverlay {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
@@ -86,7 +86,6 @@
         .btn-pr-pdf { background: #2C323C; color: var(--white); border: 1px solid var(--gold) !important; }
         .btn-cl-pdf { background: #ff4444; color: var(--white); flex: 0 0 auto !important; min-width: 85px !important; }
 
-        /* Folha A4 calibrada para não quebrar em 2 páginas */
         #documentoTermoMIC {
             width: 760px; max-width: 100%; margin: 0 auto; background: #0D0D0D; color: #FFFFFF;
             border: 2px solid #C9A84C; border-radius: 8px; padding: 20px 22px;
@@ -169,12 +168,12 @@
     <div class="container no-print" id="telaConfirmacaoCliente" style="display: none;">
         <div class="card" style="text-align: center;">
             <h1>Confirmação de Visita</h1>
-            <p id="infoConfirmacao" style="color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">Carregando...</p>
+            <p id="infoConfirmacao" style="color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">A carregar...</p>
             <button type="button" id="btnClienteConfirmar" class="btn-action btn-zap" onclick="confirmarPresencaCliente()">
                 ✅ CONFIRMAR PRESENÇA E CIÊNCIA
             </button>
             <p id="msgSucessoCliente" style="color: var(--green); font-weight: 700; display: none; margin-top: 15px;">
-                Visita confirmada com sucesso! Nos vemos no local.
+                Visita confirmada com sucesso! Vemo-nos no local.
             </p>
         </div>
     </div>
@@ -199,7 +198,7 @@
             <div class="form-group">
                 <label>Origem do Imóvel</label>
                 <select id="origemImovel" onchange="alternarOrigem()">
-                    <option value="site">Imóvel do Nosso Site (Buscar pelo Código)</option>
+                    <option value="site">Imóvel do Nosso Site (Procurar pelo Código)</option>
                     <option value="outro">Outro Imóvel (Captação / Parceiro / Avulso)</option>
                 </select>
             </div>
@@ -265,6 +264,9 @@
 
             <hr style="border: 0; border-top: 1px solid rgba(201,168,76,0.15); margin: 20px 0;">
 
+            <!-- ========================================================== -->
+            <!-- BOTÕES DE CÂMERA NATIVA RESTAURADOS (CAPTURE ENVIRONMENT/USER) -->
+            <!-- ========================================================== -->
             <div class="form-group">
                 <label style="color: var(--gold);">Comprovação no Local (Fotos Obrigatórias na Visita)</label>
                 <div class="camera-grid">
@@ -272,14 +274,14 @@
                         <button type="button" class="btn-camera" onclick="document.getElementById('inputFotoImovel').click()">
                             <span>📸</span> Foto Fachada/Imóvel
                         </button>
-                        <input type="file" id="inputFotoImovel" accept="image/*" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewFachada', 'fachada')">
+                        <input type="file" id="inputFotoImovel" accept="image/*" capture="environment" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewFachada', 'fachada')">
                         <img id="imgPreviewFachada" class="preview-evidencia">
                     </div>
                     <div>
                         <button type="button" class="btn-camera" onclick="document.getElementById('inputFotoSelfie').click()">
                             <span>🤳</span> Selfie com as Partes
                         </button>
-                        <input type="file" id="inputFotoSelfie" accept="image/*" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewSelfie', 'selfie')">
+                        <input type="file" id="inputFotoSelfie" accept="image/*" capture="user" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewSelfie', 'selfie')">
                         <img id="imgPreviewSelfie" class="preview-evidencia">
                     </div>
                 </div>
@@ -296,7 +298,7 @@
             <div class="lgpd-box">
                 <label>
                     <input type="checkbox" id="aceiteLgpd" checked>
-                    <span>Coleta mínima de dados (Nome, Telefone e Registro Fotográfico local) realizada estritamente para comprovação de visita e intermediação imobiliária, nos termos da LGPD (Lei 13.709/18).</span>
+                    <span>Recolha mínima de dados (Nome, Telefone e Registo Fotográfico local) realizada estritamente para comprovação de visita e intermediação imobiliária, nos termos da LGPD (Lei 13.709/18).</span>
                 </label>
             </div>
 
@@ -312,14 +314,14 @@
         </div>
 
         <div class="card">
-            <h2>Visitas Registradas (Toque para abrir ou gerar PDF)</h2>
-            <div id="listaVisitas">Carregando histórico...</div>
+            <h2>Visitas Registadas (Toque para abrir ou gerar PDF)</h2>
+            <div id="listaVisitas">A carregar histórico...</div>
         </div>
     </div>
 
-    <!-- =================================================================
-         MODAL DO TERMO OFICIAL M&IC (1 PÁGINA A4 COM FOTOS GARANTIDAS)
-         ================================================================= -->
+    <!-- ================================================================= -->
+    <!-- MODAL DO TERMO OFICIAL M&IC (1 PÁGINA A4 COM FOTOS GARANTIDAS) -->
+    <!-- ================================================================= -->
     <div id="modalTermoOverlay">
         <div class="termo-toolbar">
             <button type="button" class="btn-dl-pdf" id="btnDownloadPDF" onclick="baixarArquivoPDF()">⬇️ Baixar PDF</button>
@@ -339,7 +341,7 @@
 
             <div class="doc-grid-meta">
                 <div>
-                    <strong>Status do Registro</strong>
+                    <strong>Status do Registo</strong>
                     <span id="pdfStatus" style="color: #25D366; font-weight: 700;"></span>
                 </div>
                 <div>
@@ -369,7 +371,7 @@
             </div>
 
             <div class="doc-section">
-                <div class="doc-section-title">3. Evidências Fotográficas de Presença no Local</div>
+                <div class="doc-section-title">3. Evidências Fotográficas e Probatórias no Local</div>
                 <div class="doc-fotos-grid">
                     <div class="doc-foto-card">
                         <span>📸 Fachada / Interior no Local</span>
@@ -384,13 +386,13 @@
                 </div>
 
                 <div id="boxPdfPrint" style="display: none; margin-top: 10px;" class="doc-foto-card">
-                    <span>💬 Comprovante / Print de Confirmação no WhatsApp</span>
+                    <span>💬 Comprovativo / Print de Confirmação no WhatsApp</span>
                     <img id="pdfImgPrint" src="" alt="Print WhatsApp" style="max-height: 150px; object-fit: contain;">
                 </div>
             </div>
 
             <div class="doc-footer">
-                <strong>DECLARAÇÃO JURÍDICA DE INTERMEDIAÇÃO E LGPD:</strong> O presente registro eletrônico comprova a efetiva aproximação entre as partes e a apresentação física do imóvel acima descrito, assegurando a titularidade da intermediação imobiliária nos termos dos arts. 722 a 729 do Código Civil Brasileiro. Os dados pessoais mínimos e registros fotográficos foram colhidos com finalidade estrita de lastro probatório (Lei nº 13.709/2018).
+                <strong>DECLARAÇÃO JURÍDICA DE INTERMEDIAÇÃO E LGPD:</strong> O presente registo eletrónico comprova a efetiva aproximação entre as partes e a apresentação física do imóvel acima descrito, assegurando a titularidade da intermediação imobiliária nos termos dos arts. 722 a 729 do Código Civil Brasileiro. Os dados pessoais mínimos e registos fotográficos foram recolhidos com finalidade estrita de lastro probatório (Lei nº 13.709/2018).
             </div>
 
             <div class="doc-assinaturas">
@@ -433,22 +435,18 @@
             }
         }
 
-        // Faz o upload tentando primeiro o bucket 'visitas_fotos', depois 'imoveis_fotos', e se não tiver política, guarda o Base64 direto no banco!
         async function salvarFotoNoSupabaseOuFallback(arquivo, base64Fallback, prefixo) {
             const nomeStorage = `${prefixo}_${Date.now()}.jpg`;
             try {
-                // Tentativa 1: Bucket público visitas_fotos
                 const { error: err1 } = await supabaseClient.storage.from('visitas_fotos').upload(nomeStorage, arquivo);
                 if (!err1) {
                     return supabaseClient.storage.from('visitas_fotos').getPublicUrl(nomeStorage).data.publicUrl;
                 }
-                // Tentativa 2: Bucket imoveis_fotos
                 const { error: err2 } = await supabaseClient.storage.from('imoveis_fotos').upload(nomeStorage, arquivo);
                 if (!err2) {
                     return supabaseClient.storage.from('imoveis_fotos').getPublicUrl(nomeStorage).data.publicUrl;
                 }
             } catch (e) {}
-            // Fallback blindado: Retorna o próprio Base64 compactado para gravar na coluna text da tabela visitas (nunca falha!)
             return base64Fallback;
         }
 
@@ -578,7 +576,6 @@
             previewCard.style.display = 'block';
         }
 
-        // Processa a foto e salva tanto no Storage quanto na tabela visitas
         async function processarFotoLocal(input, idImgPreview, tipo) {
             if (!input.files || input.files.length === 0) return;
             const file = input.files[0];
@@ -830,7 +827,6 @@
             idVisitaAtual = v.id;
             dadosVisitaPDF = v;
 
-            // Só limpa as fotos da memória se estiver trocando para uma visita que já tem fotos próprias salvas
             if (!manterFotosMemoria) {
                 base64Fachada = v.foto_fachada || '';
                 base64Selfie = v.foto_selfie || '';
@@ -915,7 +911,7 @@
         async function montarTermoNoModal(v) {
             const statusMsg = document.getElementById('statusMsg');
             statusMsg.style.color = 'var(--gold)';
-            statusMsg.innerText = '⏳ Montando Laudo Oficial com as fotos...';
+            statusMsg.innerText = '⏳ A carregar fotografias para o Laudo PDF...';
 
             dadosVisitaPDF = v;
             document.getElementById('pdfStatus').innerText = v.status || 'Realizada';
