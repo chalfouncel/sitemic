@@ -6,9 +6,12 @@
     <title>Ficha de Visita | M&IC</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Biblioteca para gerar e baixar o arquivo .PDF real com todas as cores e fotos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --gold: #C9A84C;
+            --gold-light: #E8D48B;
             --black: #0A0A0A;
             --black-light: #1A1A1A;
             --black-lighter: #242424;
@@ -16,11 +19,11 @@
             --gray: #9A9A9A;
             --green: #25D366;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         body { font-family: 'Inter', sans-serif; background: var(--black); color: var(--white); padding-bottom: 60px; }
         
         .header { text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(201,168,76,0.2); margin-bottom: 20px; }
-        .header img { height: 50px; }
+        .header img { height: 55px; }
         .header p { color: var(--gold); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-top: 6px; }
 
         .container { max-width: 550px; margin: 0 auto; padding: 0 16px; }
@@ -49,28 +52,109 @@
         .lgpd-box label { display: flex; align-items: flex-start; gap: 10px; color: #ccc; font-size: 12px; line-height: 1.4; cursor: pointer; }
         .lgpd-box input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); margin-top: 2px; flex-shrink: 0; }
 
-        .btn-action { width: 100%; padding: 16px; border: none; border-radius: 6px; font-weight: 700; font-size: 14px; text-transform: uppercase; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-action { width: 100%; padding: 15px; border: none; border-radius: 6px; font-weight: 700; font-size: 13px; text-transform: uppercase; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-zap { background: var(--green); color: var(--white); }
         .btn-relatorio { background: var(--gold); color: var(--black); }
-        .btn-imprimir { background: #007bff; color: var(--white); margin-top: 8px; }
-        .btn-novo { background: transparent; border: 1px solid var(--gray); color: var(--gray); padding: 10px; font-size: 12px; margin-bottom: 16px; }
+        .btn-laudo { background: var(--black); color: var(--gold); border: 1px solid var(--gold); }
+        .btn-novo { background: transparent; border: 1px solid var(--gray); color: var(--gray); padding: 8px 12px; font-size: 11px; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
 
         #statusMsg { text-align: center; font-size: 13px; font-weight: 600; margin: 10px 0; min-height: 18px; }
 
-        .visita-item { background: var(--black); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 14px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; }
+        .visita-item { background: var(--black); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 14px; margin-bottom: 12px; transition: 0.2s; }
         .visita-item:hover { border-color: var(--gold); }
         .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
         .badge.agendada { background: rgba(201,168,76,0.2); color: var(--gold); }
         .badge.confirmada { background: rgba(0, 150, 255, 0.2); color: #4db8ff; }
         .badge.realizada { background: rgba(37, 211, 102, 0.2); color: var(--green); }
 
-        /* ESTILO EXCLUSIVO PARA IMPRESSÃO EM PDF (A4) */
-        #areaImpressaoPDF { display: none; }
+        /* ====================================================
+           MODAL E DOCUMENTO OFICIAL M&IC (PADRÃO PRETO & OURO)
+           ==================================================== */
+        #modalTermoOverlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+            z-index: 9999; overflow-y: auto; padding: 20px 10px;
+        }
+        .termo-toolbar {
+            max-width: 780px; margin: 0 auto 15px auto; display: flex; gap: 10px; flex-wrap: wrap;
+            background: #1A1A1A; padding: 12px; border-radius: 8px; border: 1px solid var(--gold);
+        }
+        .termo-toolbar button {
+            flex: 1; min-width: 140px; padding: 12px; font-weight: 700; font-size: 12px;
+            text-transform: uppercase; border-radius: 6px; cursor: pointer; border: none;
+        }
+        .btn-dl-pdf { background: var(--gold); color: var(--black); }
+        .btn-sh-pdf { background: var(--green); color: var(--white); }
+        .btn-pr-pdf { background: #333; color: var(--white); border: 1px solid #555 !important; }
+        .btn-cl-pdf { background: #ff4444; color: var(--white); flex: 0 0 auto !important; min-width: 90px !important; }
+
+        /* Folha do Documento M&IC */
+        #documentoTermoMIC {
+            max-width: 780px; margin: 0 auto; background: #0D0D0D; color: #FFFFFF;
+            border: 2px solid #C9A84C; border-radius: 10px; padding: 32px 28px;
+            font-family: 'Inter', sans-serif; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+        .doc-header {
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 2px solid #C9A84C; padding-bottom: 18px; margin-bottom: 22px; gap: 15px;
+        }
+        .doc-header img { height: 70px; width: auto; object-fit: contain; }
+        .doc-header-text { text-align: right; }
+        .doc-header-text h2 { font-family: 'Playfair Display', serif; color: #C9A84C; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .doc-header-text p { color: #CCCCCC; font-size: 11px; margin-top: 4px; }
+
+        .doc-grid-meta {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            background: #171717; border: 1px solid rgba(201,168,76,0.35); border-radius: 6px;
+            padding: 14px; margin-bottom: 18px; font-size: 12px;
+        }
+        .doc-grid-meta div strong { color: #C9A84C; display: block; font-size: 10px; text-transform: uppercase; margin-bottom: 2px; }
+
+        .doc-section {
+            background: #171717; border: 1px solid rgba(201,168,76,0.25); border-radius: 6px;
+            padding: 14px; margin-bottom: 18px;
+        }
+        .doc-section-title {
+            color: #C9A84C; font-family: 'Playfair Display', serif; font-size: 15px;
+            border-bottom: 1px solid rgba(201,168,76,0.2); padding-bottom: 6px; margin-bottom: 10px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .doc-imovel-box { display: flex; gap: 15px; align-items: center; }
+        .doc-imovel-box img { width: 140px; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #C9A84C; flex-shrink: 0; }
+        .doc-imovel-info p { font-size: 13px; line-height: 1.5; color: #EAEAEA; margin-bottom: 4px; }
+
+        .doc-fotos-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px;
+        }
+        .doc-foto-card {
+            background: #111111; border: 1px solid rgba(201,168,76,0.4); border-radius: 6px;
+            padding: 10px; text-align: center;
+        }
+        .doc-foto-card span {
+            display: block; color: #C9A84C; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; margin-bottom: 8px;
+        }
+        .doc-foto-card img {
+            width: 100%; height: 230px; object-fit: cover; border-radius: 4px; border: 1px solid #333;
+        }
+        .doc-foto-vazia {
+            height: 230px; display: flex; align-items: center; justify-content: center;
+            color: #666; font-size: 12px; border: 1px dashed #333; border-radius: 4px;
+        }
+
+        .doc-footer {
+            margin-top: 22px; padding-top: 14px; border-top: 1px solid rgba(201,168,76,0.3);
+            font-size: 11px; color: #BBBBBB; line-height: 1.5; text-align: justify;
+        }
+        .doc-assinaturas {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 28px; text-align: center; font-size: 12px;
+        }
+        .doc-assinaturas div { border-top: 1px solid #C9A84C; padding-top: 8px; color: #E8D48B; font-weight: 600; }
+
         @media print {
-            body * { visibility: hidden; }
-            #areaImpressaoPDF, #areaImpressaoPDF * { visibility: visible; }
-            #areaImpressaoPDF { display: block !important; position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; padding: 30px; font-family: 'Inter', sans-serif; }
-            .no-print { display: none !important; }
+            body { background: #0D0D0D !important; padding: 0 !important; }
+            .no-print, .termo-toolbar { display: none !important; }
+            #modalTermoOverlay { position: static !important; display: block !important; background: #0D0D0D !important; padding: 0 !important; }
+            #documentoTermoMIC { box-shadow: none !important; max-width: 100% !important; width: 100% !important; }
         }
     </style>
 </head>
@@ -81,7 +165,7 @@
         <p>Controle de Visitas e Intermediação</p>
     </div>
 
-    <!-- TELA DO CLIENTE PARA CONFIRMAÇÃO -->
+    <!-- TELA DO CLIENTE (CONFIRMAÇÃO 1 CLIQUE) -->
     <div class="container no-print" id="telaConfirmacaoCliente" style="display: none;">
         <div class="card" style="text-align: center;">
             <h1>Confirmação de Visita</h1>
@@ -100,7 +184,7 @@
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(201,168,76,0.15); margin-bottom: 18px; padding-bottom: 10px;">
                 <h1 id="tituloForm" style="border: none; margin: 0; padding: 0;">Nova Visita</h1>
-                <button type="button" id="btnLimpar" class="btn-novo" style="display: none; width: auto; margin: 0;" onclick="limparFormulario()">+ Nova Ficha</button>
+                <button type="button" id="btnLimpar" class="btn-novo" style="display: none;" onclick="limparFormulario()">+ Nova Ficha</button>
             </div>
 
             <div class="form-group">
@@ -182,7 +266,7 @@
             <hr style="border: 0; border-top: 1px solid rgba(201,168,76,0.15); margin: 20px 0;">
 
             <div class="form-group">
-                <label style="color: var(--gold);">Comprovação no Local e Anexos</label>
+                <label style="color: var(--gold);">Comprovação no Local (Fotos Obrigatórias)</label>
                 <div class="camera-grid">
                     <div>
                         <button type="button" class="btn-camera" onclick="document.getElementById('inputFotoImovel').click()">
@@ -202,7 +286,7 @@
 
                 <div style="margin-top: 10px;">
                     <button type="button" class="btn-camera" onclick="document.getElementById('inputFotoPrint').click()">
-                        <span>💬</span> Anexar Print do "Sim" no WhatsApp (Opcional)
+                        <span>💬</span> Anexar Print da Confirmação no Zap (Opcional)
                     </button>
                     <input type="file" id="inputFotoPrint" accept="image/*" style="display:none" onchange="processarFotoLocal(this, 'imgPreviewPrint', 'print')">
                     <img id="imgPreviewPrint" class="preview-evidencia">
@@ -219,60 +303,101 @@
             <div id="statusMsg"></div>
 
             <button type="button" id="btnRelatorio" class="btn-action btn-relatorio" onclick="abrirZapRelatorio()">
-                📄 2. Salvar Fotos e Enviar Relatório Final
+                📄 2. Salvar Fotos e Enviar Relatório no Zap
             </button>
 
-            <button type="button" id="btnImprimirPdf" class="btn-action btn-imprimir" style="display: none;" onclick="imprimirTermoPDF()">
-                🖨️ Imprimir Termo em PDF para Processo
+            <button type="button" id="btnVerTermo" class="btn-action btn-laudo" onclick="abrirVisualizadorTermoAtual()">
+                👁️ Visualizar / Baixar / Compartilhar PDF Oficial
             </button>
         </div>
 
         <div class="card">
-            <h2>Visitas Registradas (Toque para abrir / gerar PDF)</h2>
+            <h2>Visitas Registradas no Sistema</h2>
             <div id="listaVisitas">Carregando histórico...</div>
         </div>
     </div>
 
-    <!-- LAYOUT PROFISSIONAL PARA IMPRESSÃO EM PDF (OCULTO NA TELA, VISÍVEL NO PRINT) -->
-    <div id="areaImpressaoPDF">
-        <div style="text-align: center; border-bottom: 2px solid #C9A84C; padding-bottom: 15px; margin-bottom: 20px;">
-            <h2 style="color: #0A0A0A; font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 5px;">M&IC CORRETORES DE IMÓVEIS</h2>
-            <p style="font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px;">Termo Oficial de Comprovação de Visita e Intermediação Imobiliária (Lei 13.709/18 - LGPD)</p>
+    <!-- =================================================================
+         MODAL DO TERMO OFICIAL M&IC (COM BOTÕES BAIXAR, COMPARTILHAR, IMPRIMIR)
+         ================================================================= -->
+    <div id="modalTermoOverlay">
+        <div class="termo-toolbar">
+            <button type="button" class="btn-dl-pdf" id="btnDownloadPDF" onclick="baixarArquivoPDF()">⬇️ Baixar PDF</button>
+            <button type="button" class="btn-sh-pdf" id="btnSharePDF" onclick="compartilharArquivoPDF()">📲 Compartilhar PDF</button>
+            <button type="button" class="btn-pr-pdf" onclick="window.print()">🖨️ Imprimir</button>
+            <button type="button" class="btn-cl-pdf" onclick="fecharModalTermo()">✖ Fechar</button>
         </div>
 
-        <div style="margin-bottom: 15px; font-size: 13px; line-height: 1.6;">
-            <p><strong>Status do Registro:</strong> <span id="pdfStatus" style="color: #007bff; font-weight: bold;"></span></p>
-            <p><strong>Corretor(a) Responsável:</strong> <span id="pdfCorretor"></span></p>
-            <p><strong>Data e Horário da Visita:</strong> <span id="pdfDataHora"></span></p>
-        </div>
-
-        <div style="background: #f9f9f9; border: 1px solid #ddd; padding: 12px; border-radius: 4px; margin-bottom: 15px; font-size: 13px;">
-            <h4 style="color: #C9A84C; margin-bottom: 6px; text-transform: uppercase; font-size: 12px;">Dados do Imóvel</h4>
-            <p id="pdfImovelInfo"></p>
-            <p id="pdfEnderecoInfo" style="margin-top: 4px;"></p>
-        </div>
-
-        <div style="background: #f9f9f9; border: 1px solid #ddd; padding: 12px; border-radius: 4px; margin-bottom: 20px; font-size: 13px;">
-            <h4 style="color: #C9A84C; margin-bottom: 6px; text-transform: uppercase; font-size: 12px;">Parte Interessada / Visitante</h4>
-            <p id="pdfClienteInfo"></p>
-        </div>
-
-        <h4 style="color: #333; font-size: 13px; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 4px;">Evidências Fotográficas e Probatórias</h4>
-        <div style="display: flex; gap: 15px; justify-content: space-around; margin-bottom: 30px; text-align: center;">
-            <div style="flex: 1;" id="boxPdfFachada">
-                <p style="font-size: 11px; font-weight: bold; margin-bottom: 4px;">Foto no Local / Fachada</p>
-                <img id="pdfImgFachada" style="width: 100%; max-height: 220px; object-fit: contain; border: 1px solid #ccc; border-radius: 4px; display: none;">
-                <p id="pdfSemFachada" style="font-size: 11px; color: #777; font-style: italic; display: none;">Não anexada</p>
+        <div id="documentoTermoMIC">
+            <div class="doc-header">
+                <img src="logo.png" alt="M&IC Logo" crossorigin="anonymous">
+                <div class="doc-header-text">
+                    <h2>Termo de Visita e Intermediação</h2>
+                    <p>Comprovação de Apresentação Imobiliária • Lei 13.709/18 (LGPD)</p>
+                </div>
             </div>
-            <div style="flex: 1;" id="boxPdfSelfie">
-                <p style="font-size: 11px; font-weight: bold; margin-bottom: 4px;">Selfie com as Partes</p>
-                <img id="pdfImgSelfie" style="width: 100%; max-height: 220px; object-fit: contain; border: 1px solid #ccc; border-radius: 4px; display: none;">
-                <p id="pdfSemSelfie" style="font-size: 11px; color: #777; font-style: italic; display: none;">Não anexada</p>
-            </div>
-        </div>
 
-        <div style="font-size: 10px; color: #666; line-height: 1.4; border-top: 1px solid #ddd; padding-top: 15px; margin-top: 40px;">
-            <p><strong>Declaração Legal:</strong> Este documento serve como prova hábil de aproximação comercial e intermediação imobiliária, garantindo o direito à comissão de corretagem conforme o Código Civil Brasileiro. Gerado eletronicamente pelo sistema M&IC.</p>
+            <div class="doc-grid-meta">
+                <div>
+                    <strong>Status do Registro</strong>
+                    <span id="pdfStatus" style="color: #25D366; font-weight: 700;"></span>
+                </div>
+                <div>
+                    <strong>Data e Horário da Visita</strong>
+                    <span id="pdfDataHora"></span>
+                </div>
+                <div style="grid-column: span 2;">
+                    <strong>Corretor(a) Responsável (M&IC)</strong>
+                    <span id="pdfCorretor"></span>
+                </div>
+            </div>
+
+            <div class="doc-section">
+                <div class="doc-section-title">1. Identificação do Imóvel Visitado</div>
+                <div class="doc-imovel-box">
+                    <img id="pdfFotoCapaImovel" src="" alt="Imóvel" crossorigin="anonymous" style="display: none;">
+                    <div class="doc-imovel-info">
+                        <p><strong style="color:#C9A84C;">Referência / Imóvel:</strong> <span id="pdfImovelInfo"></span></p>
+                        <p><strong style="color:#C9A84C;">Endereço:</strong> <span id="pdfEnderecoInfo"></span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="doc-section">
+                <div class="doc-section-title">2. Parte Interessada / Acompanhante</div>
+                <p id="pdfClienteInfo" style="font-size: 13px; line-height: 1.6; color: #EAEAEA;"></p>
+            </div>
+
+            <div class="doc-section">
+                <div class="doc-section-title">3. Evidências Fotográficas de Presença no Local</div>
+                <div class="doc-fotos-grid">
+                    <div class="doc-foto-card">
+                        <span>📸 Fachada / Interior no Local</span>
+                        <img id="pdfImgFachada" src="" alt="Foto Local" crossorigin="anonymous" style="display: none;">
+                        <div id="pdfSemFachada" class="doc-foto-vazia">Foto ainda não capturada</div>
+                    </div>
+                    <div class="doc-foto-card">
+                        <span>🤳 Selfie com Cliente / Parceiro</span>
+                        <img id="pdfImgSelfie" src="" alt="Selfie Visita" crossorigin="anonymous" style="display: none;">
+                        <div id="pdfSemSelfie" class="doc-foto-vazia">Selfie ainda não capturada</div>
+                    </div>
+                </div>
+
+                <!-- Se tiver print anexado, aparece abaixo -->
+                <div id="boxPdfPrint" style="display: none; margin-top: 14px;" class="doc-foto-card">
+                    <span>💬 Comprovante / Print de Confirmação no WhatsApp</span>
+                    <img id="pdfImgPrint" src="" alt="Print WhatsApp" crossorigin="anonymous" style="max-height: 240px; object-fit: contain;">
+                </div>
+            </div>
+
+            <div class="doc-footer">
+                <strong>DECLARAÇÃO JURÍDICA DE INTERMEDIAÇÃO E LGPD:</strong> O presente registro eletrônico comprova a efetiva aproximação entre as partes e a apresentação física do imóvel acima descrito, assegurando a titularidade da intermediação imobiliária nos termos dos arts. 722 a 729 do Código Civil Brasileiro. Os dados pessoais mínimos e registros fotográficos foram colhidos com finalidade estrita de lastro probatório (Lei nº 13.709/2018).
+            </div>
+
+            <div class="doc-assinaturas">
+                <div id="pdfAssinaturaCorretor">M&IC Corretores de Imóveis</div>
+                <div id="pdfAssinaturaCliente">Visitante / Corretor Parceiro</div>
+            </div>
         </div>
     </div>
 
@@ -284,8 +409,12 @@
 
         let idVisitaAtual = null;
         let imovelSelecionado = { codigo: '', titulo: '', endereco: '', fotoCapa: '' };
+
+        // Guarda TANTO o arquivo para subir no Supabase QUANTO o Base64 imediato para nunca falhar no PDF
         let arquivoFachada = null, arquivoSelfie = null, arquivoPrint = null;
+        let base64Fachada = '', base64Selfie = '', base64Print = '';
         let urlFachadaSalva = '', urlSelfieSalva = '', urlPrintSalva = '';
+
         let listaVisitasCache = [];
         let dadosVisitaPDF = null;
 
@@ -405,6 +534,7 @@
             previewCard.style.display = 'block';
         }
 
+        // Processa a foto tirada na hora, gera Base64 imediato (garante que aparece no PDF na hora) e faz upload em background
         async function processarFotoLocal(input, idImgPreview, tipo) {
             if (!input.files || input.files.length === 0) return;
             const file = input.files[0];
@@ -426,22 +556,52 @@
             ctx.drawImage(img, 0, 0, w, h);
 
             const carimbo = new Date().toLocaleString('pt-BR');
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            ctx.fillRect(10, h - 40, 310, 30);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+            ctx.fillRect(10, h - 42, 320, 32);
             ctx.fillStyle = '#C9A84C';
             ctx.font = 'bold 14px sans-serif';
-            ctx.fillText(`M&IC Registro: ${carimbo}`, 18, h - 20);
+            ctx.fillText(`M&IC Visita: ${carimbo}`, 18, h - 21);
 
-            const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.82));
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
             const arquivoFinal = new File([blob], `visita_${tipo}_${Date.now()}.jpg`, { type: 'image/jpeg' });
 
-            if (tipo === 'fachada') arquivoFachada = arquivoFinal;
-            if (tipo === 'selfie') arquivoSelfie = arquivoFinal;
-            if (tipo === 'print') arquivoPrint = arquivoFinal;
-
             const previewEl = document.getElementById(idImgPreview);
-            previewEl.src = URL.createObjectURL(blob);
+            previewEl.src = dataUrl;
             previewEl.style.display = 'block';
+
+            if (tipo === 'fachada') { arquivoFachada = arquivoFinal; base64Fachada = dataUrl; }
+            if (tipo === 'selfie') { arquivoSelfie = arquivoFinal; base64Selfie = dataUrl; }
+            if (tipo === 'print') { arquivoPrint = arquivoFinal; base64Print = dataUrl; }
+
+            // Já sobe pro Supabase na mesma hora para garantir a URL salva no banco
+            const statusMsg = document.getElementById('statusMsg');
+            statusMsg.style.color = 'var(--gold)';
+            statusMsg.innerText = '⏳ Anexando foto ao registro...';
+
+            try {
+                const nomeStorage = `visita_${tipo}_${Date.now()}.jpg`;
+                const { error } = await supabaseClient.storage.from('imoveis_fotos').upload(nomeStorage, arquivoFinal);
+                if (!error) {
+                    const publicUrl = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(nomeStorage).data.publicUrl;
+                    if (tipo === 'fachada') urlFachadaSalva = publicUrl;
+                    if (tipo === 'selfie') urlSelfieSalva = publicUrl;
+                    if (tipo === 'print') urlPrintSalva = publicUrl;
+
+                    if (idVisitaAtual) {
+                        const updateObj = {};
+                        if (tipo === 'fachada') updateObj.foto_fachada = publicUrl;
+                        if (tipo === 'selfie') updateObj.foto_selfie = publicUrl;
+                        if (tipo === 'print') updateObj.foto_print_zap = publicUrl;
+                        await supabaseClient.from('visitas').update(updateObj).eq('id', idVisitaAtual);
+                        carregarHistoricoVisitas();
+                    }
+                    statusMsg.style.color = '#25D366';
+                    statusMsg.innerText = '✅ Foto anexada e pronta para o Relatório/PDF!';
+                }
+            } catch (e) {
+                statusMsg.innerText = '';
+            }
         }
 
         function obterDadosFormulario() {
@@ -490,7 +650,6 @@
             }
 
             carregarHistoricoVisitas();
-            document.getElementById('btnImprimirPdf').style.display = 'block';
 
             let msg = '';
             if (d.origem === 'site') msg += `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}\n\n`;
@@ -509,7 +668,8 @@
             if (registroId) msg += `👉 Confirme com 1 clique: ${window.location.origin}/visita.html?confirmar=${registroId}\n\n`;
             msg += `Atenciosamente,\n*${d.corretorMic}*`;
 
-            window.open(`https://wa.me/55${d.telefone}?text=${encodeURIComponent(msg)}`, '_blank');
+            const fone = d.telefone.startsWith('55') ? d.telefone : `55${d.telefone}`;
+            window.open(`https://wa.me/${fone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
         async function abrirZapRelatorio() {
@@ -519,34 +679,17 @@
 
             const btn = document.getElementById('btnRelatorio');
             btn.disabled = true;
-            btn.innerText = 'A guardar fotos no servidor...';
-
-            let urlFachada = urlFachadaSalva, urlSelfie = urlSelfieSalva, urlPrint = urlPrintSalva;
-
-            try {
-                if (arquivoFachada) {
-                    const n1 = `visita_fachada_${Date.now()}.jpg`;
-                    const { error: e1 } = await supabaseClient.storage.from('imoveis_fotos').upload(n1, arquivoFachada);
-                    if (!e1) urlFachada = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(n1).data.publicUrl;
-                }
-                if (arquivoSelfie) {
-                    const n2 = `visita_selfie_${Date.now()}.jpg`;
-                    const { error: e2 } = await supabaseClient.storage.from('imoveis_fotos').upload(n2, arquivoSelfie);
-                    if (!e2) urlSelfie = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(n2).data.publicUrl;
-                }
-                if (arquivoPrint) {
-                    const n3 = `visita_print_${Date.now()}.jpg`;
-                    const { error: e3 } = await supabaseClient.storage.from('imoveis_fotos').upload(n3, arquivoPrint);
-                    if (!e3) urlPrint = supabaseClient.storage.from('imoveis_fotos').getPublicUrl(n3).data.publicUrl;
-                }
-            } catch (e) {}
+            btn.innerText = '⏳ Salvando registro completo...';
 
             const payload = {
                 corretor_mic: d.corretorMic, origem: d.origem, codigo_imovel: d.codigo,
                 titulo_imovel: d.titulo, endereco: d.endereco, foto_capa: d.fotoCapa,
                 data_visita: d.data, hora_visita: d.hora, tipo_contato: d.tipoContato,
                 nome_parte: d.nome, telefone_parte: d.telefone, creci_parceiro: d.creciParceiro,
-                status: 'Realizada', foto_fachada: urlFachada || null, foto_selfie: urlSelfie || null, foto_print_zap: urlPrint || null
+                status: 'Realizada',
+                foto_fachada: urlFachadaSalva || null,
+                foto_selfie: urlSelfieSalva || null,
+                foto_print_zap: urlPrintSalva || null
             };
 
             if (idVisitaAtual) {
@@ -556,12 +699,9 @@
                 if (data) idVisitaAtual = data.id;
             }
 
-            urlFachadaSalva = urlFachada; urlSelfieSalva = urlSelfie; urlPrintSalva = urlPrint;
-            carregarHistoricoVisitas();
-
+            await carregarHistoricoVisitas();
             btn.disabled = false;
-            btn.innerText = '📄 2. Salvar Fotos e Enviar Relatório Final';
-            document.getElementById('btnImprimirPdf').style.display = 'block';
+            btn.innerText = '📄 2. Salvar Fotos e Enviar Relatório no Zap';
 
             let rel = '';
             if (d.origem === 'site') rel += `${window.location.origin}/api/card?ref=${encodeURIComponent(d.codigo)}\n\n`;
@@ -575,16 +715,22 @@
                 rel += `• *Modalidade:* Atendimento Direto\n• *Cliente:* ${d.nome}\n`;
             }
 
-            rel += `\n*EVIDÊNCIAS:*\n> *Foto no Local:* ${urlFachada || 'Registrada'}\n> *Selfie:* ${urlSelfie || 'Registrada'}\n\n*${d.corretorMic}*`;
-            window.open(`https://wa.me/55${d.telefone}?text=${encodeURIComponent(rel)}`, '_blank');
+            rel += `\n*EVIDÊNCIAS DE PRESENÇA E INTERMEDIAÇÃO:*\n`;
+            rel += `> *Foto no Local:* ${urlFachadaSalva || 'Registrada no sistema M&IC'}\n`;
+            rel += `> *Selfie com as Partes:* ${urlSelfieSalva || 'Registrada no sistema M&IC'}\n\n`;
+            rel += `*Nota Legal e LGPD:* Este registro comprova a efetiva apresentação do imóvel e a intermediação imobiliária realizada nesta data (Lei 13.709/18).\n\n`;
+            rel += `*Por favor, responda "Ciente" ou "De acordo" abaixo.*\n\n*${d.corretorMic}*`;
+
+            const fone = d.telefone.startsWith('55') ? d.telefone : `55${d.telefone}`;
+            window.open(`https://wa.me/${fone}?text=${encodeURIComponent(rel)}`, '_blank');
         }
 
         async function carregarHistoricoVisitas() {
             const container = document.getElementById('listaVisitas');
-            const { data, error } = await supabaseClient.from('visitas').select('*').order('created_at', { ascending: false }).limit(20);
+            const { data, error } = await supabaseClient.from('visitas').select('*').order('created_at', { ascending: false }).limit(25);
 
             if (error || !data || data.length === 0) {
-                container.innerHTML = '<p style="color:var(--gray); font-size:13px;">Nenhuma visita registada.</p>';
+                container.innerHTML = '<p style="color:var(--gray); font-size:13px;">Nenhuma visita registrada.</p>';
                 return;
             }
 
@@ -596,15 +742,20 @@
                 if (v.status === 'Confirmada') badgeClass = 'confirmada';
                 if (v.status === 'Realizada') badgeClass = 'realizada';
 
+                const temFotos = (v.foto_fachada || v.foto_selfie) ? '📸 Com Fotos' : '⚠️ Sem Fotos locais';
+
                 container.innerHTML += `
                     <div class="visita-item">
-                        <div onclick="selecionarVisitaSalva('${v.id}')">
+                        <div onclick="selecionarVisitaSalva('${v.id}')" style="cursor:pointer;">
                             <span class="badge ${badgeClass}">${v.status}</span>
-                            <div style="font-weight:700; color:var(--gold); font-size:14px;">${v.codigo_imovel} - ${v.nome_parte}</div>
+                            <span style="font-size:11px; color:var(--gold); margin-left:6px;">${temFotos}</span>
+                            <div style="font-weight:700; color:var(--white); font-size:14px; margin-top:2px;">${v.codigo_imovel} - ${v.nome_parte}</div>
                             <div style="font-size:12px; color:#ccc; margin-top:4px;">📍 ${v.endereco}</div>
                             <div style="font-size:11px; color:var(--gray); margin-top:4px;">🗓️ ${v.data_visita} às ${v.hora_visita}</div>
                         </div>
-                        <button type="button" class="btn-action btn-imprimir" style="padding:8px; font-size:11px; margin-top:10px;" onclick="imprimirPDFEspecifico('${v.id}')">🖨️ Imprimir PDF deste Termo</button>
+                        <div style="display:flex; gap:8px; margin-top:10px;">
+                            <button type="button" class="btn-action btn-laudo" style="padding:9px; font-size:11px; margin:0; flex:1;" onclick="abrirModalTermoPorId('${v.id}')">👁️ Abrir / Baixar / Compartilhar PDF</button>
+                        </div>
                     </div>
                 `;
             });
@@ -616,9 +767,10 @@
 
             idVisitaAtual = v.id;
             dadosVisitaPDF = v;
-            document.getElementById('tituloForm').innerText = `Editando Visita (${v.status})`;
+            base64Fachada = ''; base64Selfie = ''; base64Print = '';
+
+            document.getElementById('tituloForm').innerText = `Editando (${v.status})`;
             document.getElementById('btnLimpar').style.display = 'block';
-            document.getElementById('btnImprimirPdf').style.display = 'block';
 
             document.getElementById('corretorMic').value = v.corretor_mic;
             document.getElementById('origemImovel').value = v.origem;
@@ -627,7 +779,7 @@
             if (v.origem === 'site') {
                 document.getElementById('refImovel').value = v.codigo_imovel;
                 imovelSelecionado = { codigo: v.codigo_imovel, titulo: v.titulo_imovel, endereco: v.endereco, fotoCapa: v.foto_capa };
-                document.getElementById('previewTitulo').innerText = `${v.codigo_imovel} - ${v.titulo_imovel}`;
+                document.getElementById('previewTitulo').innerText = `${v.codigo_imovel} - ${v.titulo_imovel || ''}`;
                 document.getElementById('previewEndereco').innerText = v.endereco;
                 if (v.foto_capa) { document.getElementById('previewFoto').src = v.foto_capa; document.getElementById('previewFoto').style.display = 'block'; }
                 document.getElementById('previewCard').style.display = 'block';
@@ -662,66 +814,167 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function imprimirPDFEspecifico(id) {
+        // =========================================================================
+        // FUNÇÕES DO TERMO OFICIAL M&IC (VISUALIZAR, BAIXAR PDF E COMPARTILHAR PDF)
+        // =========================================================================
+        function abrirModalTermoPorId(id) {
             const v = listaVisitasCache.find(item => item.id === id);
             if (!v) return;
-            dadosVisitaPDF = v;
-            preencherDadosPDFNaTela();
-            window.print();
+            selecionarVisitaSalva(id);
+            montarTermoNoModal(v);
         }
 
-        function imprimirTermoPDF() {
+        function abrirVisualizadorTermoAtual() {
             const d = obterDadosFormulario();
-            dadosVisitaPDF = {
-                status: idVisitaAtual ? 'Registrada no Sistema' : 'Nova Ficha',
+            const obj = {
+                status: idVisitaAtual ? 'Realizada / Registrada' : 'Em Preenchimento',
                 corretor_mic: d.corretorMic,
-                data_visita: d.data || 'Não informada',
+                data_visita: d.data || new Date().toLocaleDateString('pt-BR'),
                 hora_visita: d.hora || '',
-                codigo_imovel: d.codigo,
-                titulo_imovel: d.titulo,
-                endereco: d.endereco,
+                codigo_imovel: d.codigo || 'Imóvel',
+                titulo_imovel: d.titulo || '',
+                endereco: d.endereco || 'Endereço não informado',
+                foto_capa: d.fotoCapa || '',
                 tipo_contato: d.tipoContato,
-                nome_parte: d.nome || 'Não preenchido',
-                telefone_parte: d.telefone,
-                creci_parceiro: d.creciParceiro,
-                foto_fachada: urlFachadaSalva,
-                foto_selfie: urlSelfieSalva
+                nome_parte: d.nome || 'Não informado',
+                telefone_parte: d.telefone || '',
+                creci_parceiro: d.creciParceiro || '',
+                foto_fachada: base64Fachada || urlFachadaSalva,
+                foto_selfie: base64Selfie || urlSelfieSalva,
+                foto_print_zap: base64Print || urlPrintSalva
             };
-            preencherDadosPDFNaTela();
-            window.print();
+            montarTermoNoModal(obj);
         }
 
-        function preencherDadosPDFNaTela() {
-            if (!dadosVisitaPDF) return;
-            const v = dadosVisitaPDF;
-            document.getElementById('pdfStatus').innerText = v.status || 'Ativo';
-            document.getElementById('pdfCorretor').innerText = v.corretor_mic;
-            document.getElementById('pdfDataHora').innerText = `${v.data_visita} às ${v.hora_visita || ''}`;
-            document.getElementById('pdfImovelInfo').innerText = `Código/Ref: ${v.codigo_imovel || 'Externo'} - ${v.titulo_imovel || ''}`;
-            document.getElementById('pdfEnderecoInfo').innerText = `Endereço: ${v.endereco}`;
+        function montarTermoNoModal(v) {
+            dadosVisitaPDF = v;
+            document.getElementById('pdfStatus').innerText = v.status || 'Realizada';
+            document.getElementById('pdfCorretor').innerText = v.corretor_mic || '';
+            document.getElementById('pdfDataHora').innerText = `${v.data_visita || ''} às ${v.hora_visita || ''}`;
+            document.getElementById('pdfImovelInfo').innerText = `${v.codigo_imovel || ''} ${v.titulo_imovel ? '- ' + v.titulo_imovel : ''}`;
+            document.getElementById('pdfEnderecoInfo').innerText = v.endereco || '';
 
-            let clienteStr = `Nome: ${v.nome_parte} | WhatsApp: ${v.telefone_parte}`;
-            if (v.tipo_contato === 'parceiro') clienteStr += ` | Corretor Parceiro (CRECI: ${v.creci_parceiro})`;
-            document.getElementById('pdfClienteInfo').innerText = clienteStr;
+            const imgCapa = document.getElementById('pdfFotoCapaImovel');
+            if (v.foto_capa) {
+                imgCapa.src = v.foto_capa;
+                imgCapa.style.display = 'block';
+            } else {
+                imgCapa.style.display = 'none';
+            }
 
+            let textoParte = `<strong>Nome:</strong> ${v.nome_parte || ''} &nbsp;|&nbsp; <strong>WhatsApp:</strong> ${v.telefone_parte || ''}`;
+            if (v.tipo_contato === 'parceiro') {
+                textoParte += `<br><strong>Modalidade:</strong> Visita em Parceria Imobiliária &nbsp;|&nbsp; <strong>CRECI Parceiro:</strong> ${v.creci_parceiro || ''}`;
+            } else {
+                textoParte += `<br><strong>Modalidade:</strong> Atendimento Direto ao Cliente`;
+            }
+            document.getElementById('pdfClienteInfo').innerHTML = textoParte;
+
+            document.getElementById('pdfAssinaturaCorretor').innerText = v.corretor_mic || 'M&IC Corretores';
+            document.getElementById('pdfAssinaturaCliente').innerText = `${v.nome_parte || 'Cliente / Parceiro'}`;
+
+            // Fotos de evidência (usa o Base64 imediato ou o link salvo no Supabase)
+            const srcFachada = base64Fachada || v.foto_fachada || '';
             const imgF = document.getElementById('pdfImgFachada');
             const semF = document.getElementById('pdfSemFachada');
-            if (v.foto_fachada) { imgF.src = v.foto_fachada; imgF.style.display = 'block'; semF.style.display = 'none'; }
-            else { imgF.style.display = 'none'; semF.style.display = 'block'; }
+            if (srcFachada) {
+                imgF.src = srcFachada; imgF.style.display = 'block'; semF.style.display = 'none';
+            } else {
+                imgF.style.display = 'none'; semF.style.display = 'flex';
+            }
 
+            const srcSelfie = base64Selfie || v.foto_selfie || '';
             const imgS = document.getElementById('pdfImgSelfie');
             const semS = document.getElementById('pdfSemSelfie');
-            if (v.foto_selfie) { imgS.src = v.foto_selfie; imgS.style.display = 'block'; semS.style.display = 'none'; }
-            else { imgS.style.display = 'none'; semS.style.display = 'block'; }
+            if (srcSelfie) {
+                imgS.src = srcSelfie; imgS.style.display = 'block'; semS.style.display = 'none';
+            } else {
+                imgS.style.display = 'none'; semS.style.display = 'flex';
+            }
+
+            const srcPrint = base64Print || v.foto_print_zap || '';
+            const boxP = document.getElementById('boxPdfPrint');
+            const imgP = document.getElementById('pdfImgPrint');
+            if (srcPrint) {
+                imgP.src = srcPrint; boxP.style.display = 'block';
+            } else {
+                boxP.style.display = 'none';
+            }
+
+            document.getElementById('modalTermoOverlay').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function fecharModalTermo() {
+            document.getElementById('modalTermoOverlay').style.display = 'none';
+        }
+
+        function opcoesHtml2Pdf(nomeArquivo) {
+            return {
+                margin: [8, 8, 8, 8],
+                filename: nomeArquivo,
+                image: { type: 'jpeg', quality: 0.95 },
+                html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#0D0D0D' },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+        }
+
+        async function baixarArquivoPDF() {
+            const btn = document.getElementById('btnDownloadPDF');
+            btn.innerText = '⏳ Gerando PDF...';
+            btn.disabled = true;
+
+            const elemento = document.getElementById('documentoTermoMIC');
+            const nomeArq = `Termo_Visita_${(dadosVisitaPDF?.codigo_imovel || 'MIC').replace(/\s+/g, '_')}.pdf`;
+
+            try {
+                await html2pdf().set(opcoesHtml2Pdf(nomeArq)).from(elemento).save();
+            } catch (e) {
+                alert('Erro ao baixar PDF. Usando impressão nativa.');
+                window.print();
+            }
+
+            btn.innerText = '⬇️ Baixar PDF';
+            btn.disabled = false;
+        }
+
+        async function compartilharArquivoPDF() {
+            const btn = document.getElementById('btnSharePDF');
+            btn.innerText = '⏳ Preparando PDF...';
+            btn.disabled = true;
+
+            const elemento = document.getElementById('documentoTermoMIC');
+            const nomeArq = `Termo_Visita_${(dadosVisitaPDF?.codigo_imovel || 'MIC').replace(/\s+/g, '_')}.pdf`;
+
+            try {
+                const pdfBlob = await html2pdf().set(opcoesHtml2Pdf(nomeArq)).from(elemento).outputPdf('blob');
+                const file = new File([pdfBlob], nomeArq, { type: 'application/pdf' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: 'Termo de Visita M&IC',
+                        text: `Termo Oficial de Visita Imobiliária - ${dadosVisitaPDF?.nome_parte || ''}`,
+                        files: [file]
+                    });
+                } else {
+                    // Se o navegador desktop não suportar compartilhar arquivo PDF direto, faz o download automático
+                    await html2pdf().set(opcoesHtml2Pdf(nomeArq)).from(elemento).save();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+
+            btn.innerText = '📲 Compartilhar PDF';
+            btn.disabled = false;
         }
 
         function limparFormulario() {
             idVisitaAtual = null; dadosVisitaPDF = null;
             arquivoFachada = null; arquivoSelfie = null; arquivoPrint = null;
+            base64Fachada = ''; base64Selfie = ''; base64Print = '';
             urlFachadaSalva = ''; urlSelfieSalva = ''; urlPrintSalva = '';
             document.getElementById('tituloForm').innerText = 'Nova Visita';
             document.getElementById('btnLimpar').style.display = 'none';
-            document.getElementById('btnImprimirPdf').style.display = 'none';
             document.getElementById('refImovel').value = '';
             document.getElementById('enderecoAvulso').value = '';
             document.getElementById('nomeParte').value = '';
