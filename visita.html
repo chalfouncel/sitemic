@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ficha de Visita | M&IC</title>
     <link rel="icon" type="image/png" href="logo.png">
+
+    <!-- Configurações PWA e Instalação no Celular -->
+    <link rel="manifest" href="manifest-visita.json">
+    <meta name="theme-color" content="#C9A84C">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Visitas M&IC">
+    <link rel="apple-touch-icon" href="logo.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -162,6 +171,13 @@
     <div class="header no-print">
         <img src="logo.png" alt="M&IC Corretores">
         <p>Controle de Visitas e Intermediação</p>
+    </div>
+
+    <!-- BOTÃO NATIVO PWA DE INSTALAÇÃO NO CELULAR -->
+    <div class="container no-print" id="areaInstalarApp" style="display: none; margin-bottom: 16px;">
+        <button type="button" id="btnInstalarApp" style="width: 100%; padding: 13px; background: transparent; border: 2px dashed var(--gold); color: var(--gold); font-weight: 700; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">
+            📲 Instalar Aplicativo de Visitas na Tela Inicial
+        </button>
     </div>
 
     <!-- TELA DO CLIENTE (CONFIRMAÇÃO 1 CLIQUE) -->
@@ -424,6 +440,7 @@
 
         let listaVisitasCache = [];
         let dadosVisitaPDF = null;
+        let disparoInstalacao = null;
 
         async function converterUrlParaBase64(url) {
             if (!url) return '';
@@ -458,6 +475,38 @@
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
+            // Registro do Service Worker existente do projeto
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            }
+
+            // Gerenciamento da Instalação do PWA
+            const boxInstalar = document.getElementById('areaInstalarApp');
+            const btnInstalar = document.getElementById('btnInstalarApp');
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                disparoInstalacao = e;
+                if (boxInstalar) boxInstalar.style.display = 'block';
+            });
+
+            if (btnInstalar) {
+                btnInstalar.addEventListener('click', async () => {
+                    if (!disparoInstalacao) return;
+                    disparoInstalacao.prompt();
+                    const { outcome } = await disparoInstalacao.userChoice;
+                    if (outcome === 'accepted') {
+                        if (boxInstalar) boxInstalar.style.display = 'none';
+                    }
+                    disparoInstalacao = null;
+                });
+            }
+
+            window.addEventListener('appinstalled', () => {
+                if (boxInstalar) boxInstalar.style.display = 'none';
+            });
+
+            // Converte a logo em Base64 para garantir carregamento no PDF
             const logoEl = document.getElementById('pdfLogoImg');
             converterUrlParaBase64('logo.png').then(b64 => { if (b64) logoEl.src = b64; });
 
@@ -547,7 +596,7 @@
                 if (!linkExterno) return alert('Cole o link do anúncio externo primeiro.');
 
                 const btn = document.getElementById('btnBuscarOutro');
-                btn.innerText = 'A processar...'; btn.disabled = true;
+                btn.innerText = 'Processando...'; btn.disabled = true;
 
                 try {
                     const res = await fetch(`https://api.miccorretores.com.br/api/og?url=${encodeURIComponent(linkExterno)}`).catch(() => null);
@@ -984,7 +1033,7 @@
         async function montarTermoNoModal(v) {
             const statusMsg = document.getElementById('statusMsg');
             statusMsg.style.color = 'var(--gold)';
-            statusMsg.innerText = '⏳ A carregar fotografias para o Laudo PDF...';
+            statusMsg.innerText = '⏳ Carregando fotografias para o Laudo PDF...';
 
             dadosVisitaPDF = v;
             document.getElementById('pdfStatus').innerText = v.status || 'Realizada';
