@@ -323,35 +323,38 @@
                             <div id="previewFotos"></div>
                         </div>
                         
-                        <!-- VÍDEO -->
+                        <!-- VÍDEO ORIGINAL DO SITE -->
                         <div class="form-group full-width">
-                            <label>Vídeo de Apresentação (Opcional - MP4)</label>
-                            
-                            <!-- CAIXA DE PREVIEW DO VÍDEO NO BANCO -->
-                            <div id="previewVideoBox" style="display: none; margin-bottom: 15px; padding: 12px; background: #1a1a1a; border: 1px dashed var(--gold); border-radius: 4px; align-items: center; justify-content: space-between;">
-                                <div>
-                                    <span style="color: #25D366; font-size: 14px; font-weight: bold;">✓ Vídeo Atual no Banco</span><br>
-                                    <a id="linkVideoAtual" href="#" target="_blank" style="color: var(--gold); font-size: 13px; text-decoration: underline;">Visualizar vídeo existente</a>
-                                </div>
-                                <button type="button" onclick="removerVideoAntigo()" style="width: auto; padding: 6px 12px; background: #ff4444; color: white; border: none; border-radius: 4px; font-size: 12px; margin: 0; cursor: pointer;">Apagar Vídeo</button>
+                            <label>Vídeo original do imóvel no site (opcional)</label>
+                            <div id="previewVideoBox" style="display:none;margin-bottom:15px;padding:12px;background:#1a1a1a;border:1px dashed var(--gold);border-radius:4px;align-items:center;justify-content:space-between;">
+                                <div><span style="color:#25D366;font-size:14px;font-weight:bold;">✓ Original atual do site</span><br>
+                                <a id="linkVideoAtual" href="#" target="_blank" style="color:var(--gold);font-size:13px;text-decoration:underline;">Visualizar original</a></div>
+                                <button type="button" onclick="removerVideoAntigo()" style="width:auto;padding:6px 12px;background:#ff4444;color:white;border:0;border-radius:4px;font-size:12px;margin:0;">Apagar original e Reel</button>
                             </div>
-                            
-                            <!-- BOTÃO PERSONALIZADO DE VÍDEO -->
-                            <button type="button" onclick="document.getElementById('imoVideo').click()" style="background: transparent; border: 2px dashed #9a9a9a; color: #9a9a9a; padding: 12px; font-size: 14px; border-radius: 8px; margin-bottom: 10px;">
-                                🎥 CLIQUE AQUI PARA ADICIONAR VÍDEO
-                            </button>
-                            <input type="file" id="imoVideo" accept="video/mp4,video/x-m4v,video/*" style="display: none;">
-
-                            <!-- CAIXA DE PREVIEW DO VÍDEO NOVO (ACUMULADO) -->
-                            <div id="previewVideoNovoBox" style="display: none; margin-bottom: 15px; padding: 12px; background: #2a2a2a; border: 1px solid #25D366; border-radius: 4px; align-items: center; justify-content: space-between;">
-                                <div>
-                                    <span style="color: #25D366; font-size: 14px; font-weight: bold;">🎥 Novo Vídeo Selecionado:</span><br>
-                                    <span id="nomeVideoNovo" style="color: white; font-size: 13px;"></span>
-                                </div>
-                                <button type="button" onclick="removerVideoNovo()" style="width: auto; padding: 6px 12px; background: #ff4444; color: white; border: none; border-radius: 4px; font-size: 12px; margin: 0; cursor: pointer;">🗑️ Cancelar este</button>
+                            <button type="button" onclick="document.getElementById('imoVideo').click()" style="background:transparent;border:2px dashed #9a9a9a;color:#9a9a9a;padding:12px;font-size:14px;border-radius:8px;margin-bottom:10px;">🎥 Adicionar vídeo original</button>
+                            <input type="file" id="imoVideo" accept=".mp4,.mov,video/mp4,video/quicktime" style="display:none;">
+                            <div id="previewVideoNovoBox" style="display:none;margin-bottom:12px;padding:12px;background:#2a2a2a;border:1px solid #25D366;border-radius:4px;align-items:center;justify-content:space-between;">
+                                <div><span style="color:#25D366;font-size:14px;font-weight:bold;">Original selecionado:</span><br><span id="nomeVideoNovo" style="color:white;font-size:13px;"></span></div>
+                                <button type="button" onclick="removerVideoNovo()" style="width:auto;padding:6px 12px;background:#ff4444;color:white;border:0;border-radius:4px;font-size:12px;margin:0;">Cancelar</button>
                             </div>
+                            <small id="videoHelpText" style="color:var(--gold);font-size:12px;display:block;">Este arquivo será mantido como original do site. Limite atual: 50 MB.</small>
+                        </div>
 
-                            <small id="videoHelpText" style="color: var(--gold); font-size: 12px; display: block;">Selecione um arquivo de vídeo. <b>Tamanho máximo: 50MB.</b></small>
+                        <!-- REEL DESTINADO AO ZAP -->
+                        <div class="form-group full-width">
+                            <label>Reel enviado ao Zap (opcional)</label>
+                            <div id="previewVideoZapBox" style="display:none;margin-bottom:15px;padding:12px;background:#1a1a1a;border:1px dashed #25D366;border-radius:4px;align-items:center;justify-content:space-between;">
+                                <div><span style="color:#25D366;font-size:14px;font-weight:bold;">✓ Reel atual do Zap</span><br>
+                                <a id="linkVideoZapAtual" href="#" target="_blank" style="color:var(--gold);font-size:13px;text-decoration:underline;">Visualizar Reel</a></div>
+                                <button type="button" onclick="removerVideoZapAntigo()" style="width:auto;padding:6px 12px;background:#ff4444;color:white;border:0;border-radius:4px;font-size:12px;margin:0;">Remover Reel do Zap</button>
+                            </div>
+                            <button type="button" onclick="document.getElementById('imoVideoZap').click()" style="background:transparent;border:2px dashed #25D366;color:#25D366;padding:12px;font-size:14px;border-radius:8px;margin-bottom:10px;">📲 Adicionar cópia vertical para o Zap</button>
+                            <input type="file" id="imoVideoZap" accept=".mp4,.mov,video/mp4,video/quicktime" style="display:none;">
+                            <div id="previewVideoZapNovoBox" style="display:none;margin-bottom:12px;padding:12px;background:#2a2a2a;border:1px solid #25D366;border-radius:4px;align-items:center;justify-content:space-between;">
+                                <div><span style="color:#25D366;font-size:14px;font-weight:bold;">Reel selecionado:</span><br><span id="nomeVideoZapNovo" style="color:white;font-size:13px;"></span></div>
+                                <button type="button" onclick="removerVideoZapNovo()" style="width:auto;padding:6px 12px;background:#ff4444;color:white;border:0;border-radius:4px;font-size:12px;margin:0;">Cancelar</button>
+                            </div>
+                            <small id="videoZapHelpText" style="color:var(--gold);font-size:12px;display:block;">MP4/MOV vertical 9:16, 10-60 segundos, até 50 MB. Se o original já cumprir esses critérios, o próprio arquivo será usado.</small>
                         </div>
                     </div>
                     
@@ -427,6 +430,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- VERSÃO V7 PARA FORÇAR SEU NAVEGADOR A PUXAR O NOVO CAMPO DE DESTAQUE DO ZAP -->
