@@ -270,6 +270,45 @@ section { padding: 100px 0; }
     z-index: 10;
 }
 
+.modal-right-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-share-modal {
+    display: flex;
+    width: 100%;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid rgba(201,168,76,0.7);
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-share-modal svg {
+    fill: currentColor;
+    flex-shrink: 0;
+}
+.btn-share-modal:hover,
+.btn-share-modal:focus-visible {
+    background: rgba(201,168,76,0.12);
+    border-color: var(--gold);
+}
+.btn-share-modal:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+}
+
 .btn-whatsapp-modal { 
     display: flex; 
     width: 100%; 
@@ -389,7 +428,7 @@ section { padding: 100px 0; }
     
     /* Configuração Mobile Lado Direito */
     .modal-right { border-left: none; overflow: visible; display: block; padding: 0; }
-    .modal-right-scrollable { padding: 20px 20px 100px 20px; overflow: visible; }
+    .modal-right-scrollable { padding: 20px 20px 160px 20px; overflow: visible; }
     
     /* Prende o botão na base do celular também */
     .modal-right-footer { 
