@@ -12,13 +12,16 @@ let idImovelEditando = null;
 let fotosAntigasEdicao = [];
 let fotosParaExcluirDoStorage = []; // Guarda as fotos deletadas para apagar do servidor ao salvar
 let videoAntigoEdicao = null;
-let videoParaExcluirDoStorage = null; 
+let videoZapAntigoEdicao = null;
+let videoParaExcluirDoStorage = null;
+let videoZapParaExcluirDoStorage = null; 
 let listaImoveisGestao = [];
 
 // Agora fotosProcessadas é um array CUMULATIVO de objetos { file, id, localUrl, uploadedUrl }
 let fotosProcessadas = []; 
-// Variável segura para não perder o vídeo ao clicar no input novamente
-let videoNovoProcessado = null; 
+// Os arquivos originais do site e o reel enviado ao Zap têm estados independentes.
+let videoNovoProcessado = null;
+let videoZapNovoProcessado = null; 
 
 // ==========================================
 // FUNÇÕES DE FORMATAÇÃO DE MOEDA
@@ -114,9 +117,12 @@ function resetarFormularioImovel() {
     fotosAntigasEdicao = [];
     fotosParaExcluirDoStorage = []; 
     videoAntigoEdicao = null;
+    videoZapAntigoEdicao = null;
     videoParaExcluirDoStorage = null;
+    videoZapParaExcluirDoStorage = null;
     fotosProcessadas = []; // Limpa o array cumulativo
-    videoNovoProcessado = null; // Limpa o video novo
+    videoNovoProcessado = null;
+    videoZapNovoProcessado = null;
     tentativasIA = 0;
     
     document.getElementById('formImovel').reset();
@@ -145,8 +151,17 @@ function resetarFormularioImovel() {
     const vHelp = document.getElementById('videoHelpText');
     if(vHelp) {
         vHelp.style.color = 'var(--gold)';
-        vHelp.innerHTML = 'Selecione um arquivo de vídeo. <b>Tamanho máximo: 50MB.</b>';
+        vHelp.innerText = 'O original do site fica preservado. Um Reel do Zap compatível pode usar o mesmo arquivo.';
     }
+    const zapHelp = document.getElementById('videoZapHelpText');
+    if(zapHelp) {
+        zapHelp.style.color = 'var(--gold)';
+        zapHelp.innerText = 'MP4/MOV vertical 9:16, de 10 a 60 segundos, até 50 MB.';
+    }
+    const previewVideoZapBox = document.getElementById('previewVideoZapBox');
+    if(previewVideoZapBox) previewVideoZapBox.style.display = 'none';
+    const previewVideoZapNovoBox = document.getElementById('previewVideoZapNovoBox');
+    if(previewVideoZapNovoBox) previewVideoZapNovoBox.style.display = 'none';
     
     document.getElementById('tituloAbaImovel').innerText = 'Novo Imóvel (Padrão Integração)';
     document.getElementById('btnSubmit').innerText = 'Publicar Imóvel';
@@ -218,26 +233,113 @@ if (cepInput) {
 }
 
 // ==========================================
-// VÍDEO (LÓGICA BLINDADA E ACUMULATIVA NO ESTADO)
+// ORIGINAIS DO SITE E REELS DO ZAP
 // ==========================================
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+
+function nomeVideoPermitido(file) {
+    const name = file.name.toLowerCase();
+    return name.endsWith('.mp4') || name.endsWith('.mov');
+}
+
+function validarTamanhoVideo(file) {
+    if (!nomeVideoPermitido(file)) throw new Error('Use um arquivo MP4 ou MOV.');
+    if (file.size > MAX_VIDEO_BYTES) throw new Error('O limite do projeto atual é 50 MB por arquivo.');
+}
+
+function lerMetadadosVideo(file) {
+    return new Promise((resolve, reject) => {
+        const objectUrl = URL.createObjectURL(file);
+        const probe = document.createElement('video');
+        probe.preload = 'metadata';
+        probe.onloadedmetadata = () => {
+            const result = { duration: probe.duration, width: probe.videoWidth, height: probe.videoHeight };
+            URL.revokeObjectURL(objectUrl);
+            resolve(result);
+        };
+        probe.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error('O navegador não conseguiu ler este vídeo.'));
+        };
+        probe.src = objectUrl;
+    });
+}
+
+async function validarReelZap(file) {
+    validarTamanhoVideo(file);
+    const meta = await lerMetadadosVideo(file);
+    if (!Number.isFinite(meta.duration) || meta.duration < 10 || meta.duration > 60) {
+        throw new Error('O Reel precisa ter entre 10 e 60 segundos.');
+    }
+    const ratio = meta.width / meta.height;
+    if (!meta.width || !meta.height || meta.height <= meta.width || Math.abs(ratio - (9 / 16)) > 0.02) {
+        throw new Error('O Reel precisa ser vertical na proporção 9:16. O original do site não será alterado.');
+    }
+    return meta;
+}
+
+async function uploadVideoRetomavel(file, objectName, onProgress) {
+    if (!window.tus || typeof window.tus.Upload !== 'function') {
+        throw new Error('O módulo de envio retomável não carregou. Atualize a página e tente novamente.');
+    }
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
+    if (!session || !session.access_token) throw new Error('Sua sessão expirou. Entre novamente no portal.');
+
+    const projectRef = new URL(SUPABASE_URL).hostname.split('.')[0];
+    const endpoint = `https://${projectRef}.storage.supabase.co/storage/v1/upload/resumable`;
+    const contentType = file.type || (file.name.toLowerCase().endsWith('.mov') ? 'video/quicktime' : 'video/mp4');
+
+    return new Promise((resolve, reject) => {
+        const upload = new window.tus.Upload(file, {
+            endpoint,
+            retryDelays: [0, 3000, 5000, 10000, 20000],
+            headers: { authorization: `Bearer ${session.access_token}` },
+            uploadDataDuringCreation: true,
+            removeFingerprintOnSuccess: true,
+            metadata: { bucketName: 'imoveis_fotos', objectName, contentType, cacheControl: '3600' },
+            chunkSize: 6 * 1024 * 1024,
+            onError: reject,
+            onProgress: (uploaded, total) => onProgress(Math.floor((uploaded / total) * 100)),
+            onSuccess: resolve
+        });
+        upload.start();
+    });
+}
+
 const videoInput = document.getElementById('imoVideo');
-const videoHelpText = document.getElementById('videoHelpText');
-if(videoInput) {
+if (videoInput) {
     videoInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
-        if(!file) return;
-        const maxSizeBytes = 52428800; 
-        if (file.size > maxSizeBytes) {
-            alert('🚨 ARQUIVO MUITO GRANDE! \n\nO vídeo selecionado tem ' + (file.size / 1048576).toFixed(2) + 'MB.\nO limite máximo é de 50MB.');
-            videoInput.value = ''; 
-        } else {
+        if (!file) return;
+        try {
+            validarTamanhoVideo(file);
             videoNovoProcessado = file;
             document.getElementById('nomeVideoNovo').innerText = file.name;
             document.getElementById('previewVideoNovoBox').style.display = 'flex';
-            
-            // Lógica essencial: zera o input nativo. 
-            // Assim, se o usuário clicar para escolher de novo e apertar cancelar, não perde o arquivo já salvo na variável.
+        } catch (error) {
+            alert(error.message);
+        } finally {
             videoInput.value = '';
+        }
+    });
+}
+
+const videoZapInput = document.getElementById('imoVideoZap');
+if (videoZapInput) {
+    videoZapInput.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            const meta = await validarReelZap(file);
+            videoZapNovoProcessado = file;
+            document.getElementById('nomeVideoZapNovo').innerText =
+                `${file.name} · ${meta.duration.toFixed(1)}s · ${meta.width}×${meta.height}`;
+            document.getElementById('previewVideoZapNovoBox').style.display = 'flex';
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            videoZapInput.value = '';
         }
     });
 }
@@ -247,17 +349,30 @@ function removerVideoNovo() {
     document.getElementById('previewVideoNovoBox').style.display = 'none';
 }
 
+function removerVideoZapNovo() {
+    videoZapNovoProcessado = null;
+    document.getElementById('previewVideoZapNovoBox').style.display = 'none';
+}
+
 function removerVideoAntigo() {
-    if (videoAntigoEdicao) {
-        videoParaExcluirDoStorage = videoAntigoEdicao; 
-    }
+    if (videoAntigoEdicao) videoParaExcluirDoStorage = videoAntigoEdicao;
+    if (videoZapAntigoEdicao) videoZapParaExcluirDoStorage = videoZapAntigoEdicao;
     videoAntigoEdicao = null;
+    videoZapAntigoEdicao = null;
     document.getElementById('previewVideoBox').style.display = 'none';
+    document.getElementById('previewVideoZapBox').style.display = 'none';
     const vHelp = document.getElementById('videoHelpText');
-    if(vHelp) {
-        vHelp.style.color = '#ff4444';
-        vHelp.innerHTML = 'Vídeo atual será removido.';
+    if (vHelp) vHelp.innerText = 'O vídeo original do site será removido ao salvar.';
+}
+
+function removerVideoZapAntigo() {
+    if (videoZapAntigoEdicao && videoZapAntigoEdicao !== videoAntigoEdicao) {
+        videoZapParaExcluirDoStorage = videoZapAntigoEdicao;
     }
+    videoZapAntigoEdicao = null;
+    document.getElementById('previewVideoZapBox').style.display = 'none';
+    const zapHelp = document.getElementById('videoZapHelpText');
+    if (zapHelp) zapHelp.innerText = 'O Reel será removido do envio ao Zap ao salvar.';
 }
 
 // ==========================================
@@ -565,14 +680,51 @@ if (formImovel) {
         }
 
         let videoUrl = videoAntigoEdicao;
-        if (videoNovoProcessado) {
-            const videoFile = videoNovoProcessado;
-            const videoName = `video_${Date.now()}_${videoFile.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
-            const { data: vData, error: vError } = await supabase.storage.from('imoveis_fotos').upload(videoName, videoFile);
-            if (!vError) {
-                const { data: vPublicUrl } = supabase.storage.from('imoveis_fotos').getPublicUrl(videoName);
-                videoUrl = vPublicUrl.publicUrl;
+        let videoZapUrl = videoZapAntigoEdicao;
+        const uploadedVideoPaths = [];
+
+        try {
+            if (videoNovoProcessado) {
+                const sourceFile = videoNovoProcessado;
+                validarTamanhoVideo(sourceFile);
+                const sourceName = `video_site_${Date.now()}_${sourceFile.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+                await uploadVideoRetomavel(sourceFile, sourceName, percent => {
+                    msg.innerText = `Enviando original do site: ${percent}%...`;
+                });
+                uploadedVideoPaths.push(sourceName);
+                const { data: sourcePublic } = supabase.storage.from('imoveis_fotos').getPublicUrl(sourceName);
+                if (!sourcePublic?.publicUrl) throw new Error('O Storage não retornou a URL pública do vídeo original.');
+                videoUrl = sourcePublic.publicUrl;
+
+                if (!videoZapNovoProcessado) {
+                    try {
+                        await validarReelZap(sourceFile);
+                        videoZapUrl = videoUrl;
+                    } catch {
+                        // Mantém o Reel separado já cadastrado; não o substitui por um original incompatível.
+                        videoZapUrl = (videoZapAntigoEdicao && videoZapAntigoEdicao !== videoAntigoEdicao)
+                            ? videoZapAntigoEdicao
+                            : null;
+                    }
+                }
             }
+
+            if (videoZapNovoProcessado) {
+                await validarReelZap(videoZapNovoProcessado);
+                const reelName = `video_zap_${Date.now()}_${videoZapNovoProcessado.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+                await uploadVideoRetomavel(videoZapNovoProcessado, reelName, percent => {
+                    msg.innerText = `Enviando Reel do Zap: ${percent}%...`;
+                });
+                uploadedVideoPaths.push(reelName);
+                const { data: reelPublic } = supabase.storage.from('imoveis_fotos').getPublicUrl(reelName);
+                if (!reelPublic?.publicUrl) throw new Error('O Storage não retornou a URL pública do Reel.');
+                videoZapUrl = reelPublic.publicUrl;
+            }
+        } catch (error) {
+            if (uploadedVideoPaths.length) await supabase.storage.from('imoveis_fotos').remove(uploadedVideoPaths);
+            msg.style.color = '#ff4444';
+            msg.innerText = `Falha ao enviar vídeo: ${error.message || error}`;
+            return;
         }
 
         // AS FOTOS FINAIS SERÃO AS ANTIGAS SALVAS + AS NOVAS SOMADAS (GARANTIA DE NÃO DELETAR)
@@ -610,7 +762,8 @@ if (formImovel) {
             cidade: document.getElementById('imoCidade').value,
             estado: document.getElementById('imoEstado').value,
             fotos: fotosFinais, 
-            video: videoUrl
+            video: videoUrl,
+            video_zap: videoZapUrl
         };
 
         if (idImovelEditando) {
@@ -632,12 +785,24 @@ if (formImovel) {
                     if(pathV) supabase.storage.from('imoveis_fotos').remove([pathV]);
                 }
 
+                // Remove a cópia antiga do Reel somente quando ela era um arquivo independente.
+                if (videoZapParaExcluirDoStorage) {
+                    const zapPath = extrairPathDoStorage(videoZapParaExcluirDoStorage);
+                    if (zapPath) supabase.storage.from('imoveis_fotos').remove([zapPath]);
+                } else if (videoZapAntigoEdicao &&
+                           videoZapAntigoEdicao !== videoAntigoEdicao &&
+                           videoZapAntigoEdicao !== videoZapUrl) {
+                    const zapPath = extrairPathDoStorage(videoZapAntigoEdicao);
+                    if (zapPath) supabase.storage.from('imoveis_fotos').remove([zapPath]);
+                }
+
                 msg.style.color = '#25D366'; 
                 msg.innerText = 'Imóvel atualizado com sucesso!';
                 setTimeout(() => { mudarAba('gestao'); }, 2000);
             } else {
+                if (uploadedVideoPaths.length) await supabase.storage.from('imoveis_fotos').remove(uploadedVideoPaths);
                 msg.style.color = '#ff4444';
-                msg.innerText = 'Erro ao atualizar o imóvel.';
+                msg.innerText = `Erro ao atualizar o imóvel: ${error.message || error}`;
             }
         } else {
             payload.status = 'Ativo';
@@ -653,8 +818,9 @@ if (formImovel) {
                 msg.innerText = 'Imóvel publicado com sucesso!';
                 setTimeout(() => { resetarFormularioImovel(); }, 2500);
             } else {
+                if (uploadedVideoPaths.length) await supabase.storage.from('imoveis_fotos').remove(uploadedVideoPaths);
                 msg.style.color = '#ff4444';
-                msg.innerText = 'Erro ao gravar o imóvel.';
+                msg.innerText = `Erro ao gravar o imóvel: ${error.message || error}`;
             }
         }
     });
@@ -879,6 +1045,7 @@ function abrirEdicao(id) {
 
     fotosAntigasEdicao = fotosAntigasEdicao.filter(url => typeof url === 'string' && url.length > 5);
     videoAntigoEdicao = imovel.video || null;
+    videoZapAntigoEdicao = imovel.video_zap || null;
 
     const previewSalvas = document.getElementById('previewFotosSalvas');
     if (previewSalvas) {
@@ -893,10 +1060,19 @@ function abrirEdicao(id) {
     } else {
         if (previewVideoBox) previewVideoBox.style.display = 'none';
         const vHelp = document.getElementById('videoHelpText');
-        if(vHelp) {
-            vHelp.style.color = '#ff4444';
-            vHelp.innerHTML = '<b>Nenhum vídeo salvo para este imóvel.</b> Selecione um arquivo se desejar adicionar.';
-        }
+        if (vHelp) vHelp.innerText = 'Nenhum original de vídeo salvo para este imóvel.';
+    }
+
+    const previewVideoZapBox = document.getElementById('previewVideoZapBox');
+    if (videoZapAntigoEdicao) {
+        previewVideoZapBox.style.display = 'flex';
+        document.getElementById('linkVideoZapAtual').href = videoZapAntigoEdicao;
+    } else {
+        previewVideoZapBox.style.display = 'none';
+        const zapHelp = document.getElementById('videoZapHelpText');
+        if (zapHelp) zapHelp.innerText = videoAntigoEdicao
+            ? 'O vídeo original existe, mas não há um Reel validado para o Zap.'
+            : 'Selecione um Reel compatível ou use um original que atenda ao formato.';
     }
 
     // Preencher campos textuais E TRAZER OS VALORES DO BANCO COM MÁSCARA
