@@ -1,3 +1,12 @@
+function xmlEscape(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+}
+
 export default async function handler(req, res) {
     // Credenciais do seu Supabase
     const SUPABASE_URL = 'https://uztsmkhlvoemjbbyebcr.supabase.co';
@@ -57,8 +66,8 @@ export default async function handler(req, res) {
                     xml += `        <Item medium="image"${isPrimary}>${fotoUrl}</Item>\n`;
                 });
             }
-            if (imovel.video) {
-                xml += `        <Item medium="video">${imovel.video}</Item>\n`;
+            if (imovel.video_zap) {
+                xml += `        <Item medium="reel">${xmlEscape(imovel.video_zap)}</Item>\n`;
             }
             xml += `      </Media>\n`;
 
