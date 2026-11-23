@@ -273,6 +273,50 @@ async function carregarImoveisSite(filtros = null) {
     }
 }
 
+window.compartilharAnuncio = async function() {
+    const botao = document.getElementById('modalShare');
+    const url = botao?.dataset.url;
+    if (!url) return;
+
+    const titulo = botao.dataset.title || 'Anúncio de imóvel';
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: titulo, text: titulo, url });
+            return;
+        } catch (erro) {
+            if (erro?.name === 'AbortError') return;
+        }
+    }
+
+    let copiado = false;
+    try {
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(url);
+            copiado = true;
+        }
+    } catch (_) {}
+
+    if (!copiado) {
+        const campo = document.createElement('textarea');
+        campo.value = url;
+        campo.setAttribute('readonly', '');
+        campo.style.position = 'fixed';
+        campo.style.opacity = '0';
+        document.body.appendChild(campo);
+        campo.select();
+        copiado = document.execCommand('copy');
+        campo.remove();
+    }
+
+    if (copiado) {
+        const textoOriginal = botao.innerHTML;
+        botao.innerHTML = 'LINK COPIADO!';
+        window.setTimeout(() => { botao.innerHTML = textoOriginal; }, 1800);
+    } else {
+        window.prompt('Copie o link deste anúncio:', url);
+    }
+};
+
 // Lógica de abertura do Modal exportada para o window global
 window.abrirModal = function(id) {
     const imovel = imoveisCarregados.find(i => i.id === id);
@@ -323,6 +367,11 @@ window.abrirModal = function(id) {
     if(modalZap) {
         const urlAtual = window.location.origin + window.location.pathname;
         const linkDoImovel = `${urlAtual}?id=${imovel.id}`;
+        const modalShare = document.getElementById('modalShare');
+        if (modalShare) {
+            modalShare.dataset.url = linkDoImovel;
+            modalShare.dataset.title = imovel.titulo || 'Anúncio de imóvel';
+        }
         const refImovel = imovel.referencia ? ` (Ref: ${imovel.referencia})` : '';
         const textoWhatsApp = `Olá! Tenho interesse neste imóvel:\n\n*${imovel.titulo}*${refImovel}\n*Valor:* ${precoFormatado}\n\n*Veja o anúncio aqui:* ${linkDoImovel}`;
         modalZap.href = `https://wa.me/5521979748388?text=${encodeURIComponent(textoWhatsApp)}`;
